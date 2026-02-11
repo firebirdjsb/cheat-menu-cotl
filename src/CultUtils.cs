@@ -4,6 +4,7 @@ using src.Extensions;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Reflection;
+using HarmonyLib;
 
 namespace CheatMenu;
 
@@ -52,15 +53,6 @@ internal class CultUtils {
             foreach(var objective in DataManager.Instance.Objectives.ToArray())
             {
                 CompleteObjective(objective);
-            }
-        }
-    }
-
-    public static void ClearBaseTrees(){
-        foreach(var tree in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.TREE)){
-            if (tree is Structures_Tree treeStruct)
-            {
-                treeStruct.OnTreeComplete(true);
             }
         }
     }
@@ -200,6 +192,54 @@ internal class CultUtils {
         }
     }
 
+    public static void ClearBaseTrees(){
+        try {
+            foreach(var tree in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.TREE)){
+                tree.Remove();
+            }
+            PlayNotification("Trees cleared!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to clear trees: {e.Message}");
+            PlayNotification("Failed to clear trees!");
+        }
+    }
+
+    public static void ClearBaseRubble(){
+        try {
+            int count = 0;
+            foreach(var rubble in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.RUBBLE)){
+                rubble.Remove();
+                count++;
+            }
+            foreach(var rock in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.ROCK)){
+                rock.Remove();
+                count++;
+            }
+            PlayNotification($"Rubble cleared! ({count} items)");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to clear rubble: {e.Message}");
+            PlayNotification("Failed to clear rubble!");
+        }
+    }
+
+    public static void ClearBaseGrass(){
+        try {
+            int count = 0;
+            foreach(var grass in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.GRASS)){
+                grass.Remove();
+                count++;
+            }
+            foreach(var weed in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.WEEDS)){
+                weed.Remove();
+                count++;
+            }
+            PlayNotification($"Grass cleared! ({count} items)");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to clear grass: {e.Message}");
+            PlayNotification("Failed to clear grass!");
+        }
+    }
+
     public static void ClearVomit(){
         foreach(var vomit in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.VOMIT)){
             vomit.Remove();
@@ -211,6 +251,7 @@ internal class CultUtils {
         foreach(var poop in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.POOP)){
             poop.Remove();
         }
+        ClearJanitorStations();
         await AsyncHelper.WaitSeconds(1);
         foreach(var pickup in PickUp.PickUps){
             if(pickup.type == InventoryItem.ITEM_TYPE.POOP){
@@ -218,6 +259,34 @@ internal class CultUtils {
             }
         }
         PlayNotification("Poop cleared!");
+    }
+
+    public static void ClearJanitorStations(){
+        try {
+            int count = 0;
+            foreach(var brainType in Enum.GetValues(typeof(StructureBrain.TYPES))){
+                string typeName = brainType.ToString();
+                if(typeName.Contains("JANITOR")){
+                    var stations = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, (StructureBrain.TYPES)brainType);
+                    foreach(var station in stations){
+                        if(station.Data != null && station.Data.Inventory != null){
+                            foreach(var item in station.Data.Inventory){
+                                if(item.type == (int)InventoryItem.ITEM_TYPE.POOP){
+                                    AddInventoryItem(InventoryItem.ITEM_TYPE.POOP, item.quantity);
+                                }
+                            }
+                            station.Data.Inventory.Clear();
+                            count++;
+                        }
+                    }
+                }
+            }
+            if(count > 0){
+                PlayNotification($"Janitor stations cleared! ({count})");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to clear janitor stations: {e.Message}");
+        }
     }
 
     public static void SetFollowerFaith(FollowerInfo followerInfo, float value){
@@ -229,15 +298,11 @@ internal class CultUtils {
     }
        
     public static void SetFollowerStarvation(FollowerInfo followerInfo, float value){
-        FollowerBrainStats.StatStateChangedEvent onStarvationStateChanged = FollowerBrainStats.OnStarvationStateChanged;
         if(value > 0){
             followerInfo.Starvation = UnityEngine.Mathf.Clamp(value, 0, 75);
-            followerInfo.IsStarving = true;
         } else {
             followerInfo.Starvation = 0f;
-            followerInfo.IsStarving = false;
         }
-        onStarvationStateChanged(followerInfo.ID, FollowerStatState.On, FollowerStatState.Off);
     }
 
     public static void ConvertDissenting(FollowerInfo followerInfo){
@@ -297,7 +362,10 @@ internal class CultUtils {
     public static float CalculateCurrentFaith()
     {
         float totalFaith = 0f;
-        foreach (ThoughtData thoughtData in CultFaithManager.Thoughts)
+        var thoughtsList = Traverse.Create(typeof(CultFaithManager)).Field("Thoughts").GetValue<List<ThoughtData>>();
+        if(thoughtsList == null) return totalFaith;
+        
+        foreach (ThoughtData thoughtData in thoughtsList)
         {
             int index = 0;
             float thoughtFaith = -1;
@@ -344,19 +412,11 @@ internal class CultUtils {
 
     public static void RenameCult(Action<string> onNameConfirmed = null)
     {
-        UICultNameMenuController cultNameMenuInstance = MonoSingleton<UIManager>.Instance.CultNameMenuTemplate.Instantiate<UICultNameMenuController>();
-        cultNameMenuInstance.Show(true);
-
-        cultNameMenuInstance.OnNameConfirmed = delegate (string newName)
-        {
-            DataManager.Instance.CultName = newName;
-        };
-        if (onNameConfirmed != null)
-        {
-            cultNameMenuInstance.OnNameConfirmed = (Action<string>)Action.Combine(cultNameMenuInstance.OnNameConfirmed, onNameConfirmed);
+        try {
+            Traverse.Create(typeof(CheatConsole)).Method("RenameCult").GetValue();
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to rename cult: {e.Message}");
         }
-        cultNameMenuInstance.OnHide = delegate () { };
-        cultNameMenuInstance.OnHidden = delegate () { };
     }
 
     public static void TurnFollowerYoung(FollowerInfo follower){
@@ -396,13 +456,19 @@ internal class CultUtils {
 
     public static void ClearAllThoughts()
     {
-        CultFaithManager.Thoughts.Clear();
+        var thoughtsList = Traverse.Create(typeof(CultFaithManager)).Field("Thoughts").GetValue<List<ThoughtData>>();
+        if(thoughtsList != null){
+            thoughtsList.Clear();
+        }
         CultFaithManager.GetFaith(0f, 0f, true, NotificationBase.Flair.Positive, "Cleared follower thoughts!", -1);
     }
 
     public static void ClearAndAddPositiveFollowerThought()
     {
-        CultFaithManager.Thoughts.Clear();
+        var thoughtsList = Traverse.Create(typeof(CultFaithManager)).Field("Thoughts").GetValue<List<ThoughtData>>();
+        if(thoughtsList != null){
+            thoughtsList.Clear();
+        }
         foreach(var follower in DataManager.Instance.Followers){
             CultFaithManager.AddThought(Thought.TestPositive, follower.ID, 999);
         }
@@ -424,7 +490,7 @@ internal class CultUtils {
                                     bool withNotification = false)
     {
         NotificationCentre.NotificationType notifType = withNotification ? NotificationCentre.NotificationType.Died : NotificationCentre.NotificationType.None;
-        follower.Die(notifType, false, 1, "dead", null, true);
+        follower.Die(notifType, false, 1, "dead", null);
     }
 
     //Similar to the revive that is performed by ritual but makes sure they aren't ill / hungry

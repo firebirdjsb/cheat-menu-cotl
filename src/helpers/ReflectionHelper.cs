@@ -19,7 +19,7 @@ public static class ReflectionHelper {
         }
     }
 
-    private readonly static string HarmonyId = "com.wicked.cheat_menu";
+    private readonly static string HarmonyId = "org.xunfairx.cheat_menu";
     private static Harmony s_harmonyInstance;
     private static Dictionary<string, PatchTrackerDetails> s_patchTracker;
 
@@ -124,7 +124,7 @@ public static class ReflectionHelper {
         }
          
         if(methodInfo == null){
-            UnityEngine.Debug.LogError($"[ReflectionHelper] Method was not patched, unable to find method info {methodName} (Report To Wicked!)");
+            UnityEngine.Debug.LogError($"[ReflectionHelper] Method was not patched, unable to find method info {methodName} (Report To XUnfairX!)");
             return null;
         }
 

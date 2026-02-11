@@ -17,12 +17,12 @@ public class CultDefinitions : IDefinition {
     public static void Init(){
         s_ritualGui = new GUIUtils.ScrollableWindowParams(
             "Unlock All Rituals",
-            GUIUtils.GetCenterRect(500, 500)
+            GUIUtils.GetCenterRect(650, 700)
         );
 
         s_docterineGui = new GUIUtils.ScrollableWindowParams(
             "Change Doctrines",
-            GUIUtils.GetCenterRect(500, 500)
+            GUIUtils.GetCenterRect(650, 700)
         );
     }
 
@@ -30,6 +30,7 @@ public class CultDefinitions : IDefinition {
     [CheatDetails("Teleport to Cult", "Teleports the player to the Base")]
     public static void TeleportToBase(){
         Traverse.Create(typeof(CheatConsole)).Method("ReturnToBase").GetValue();
+        CultUtils.PlayNotification("Teleported to base!");
     }
 
     [CheatDetails("Rename Cult", "Bring up the UI to rename the cult")]
@@ -40,11 +41,12 @@ public class CultDefinitions : IDefinition {
     [CheatDetails("Allow Shrine Creation", "Allow Shrine Creation (OFF)", "Allow Shrine Creation (ON)", "Allows the Shrine to be created from the building menu", true)]
     public static void AllowShrineCreation(bool flag){
         DataManager.Instance.BuildShrineEnabled = flag;
+        CultUtils.PlayNotification(flag ? "Shrine creation enabled!" : "Shrine creation disabled!");
     }
 
     [CheatDetails("Clear Base Rubble", "Removes any stones and large rubble")]
     public static void ClearBaseRubble(){
-        Traverse.Create(typeof(CheatConsole)).Method("ClearRubble").GetValue();
+        CultUtils.ClearBaseRubble();
     }
 
     [CheatDetails("Clear Base Trees", "Removes all trees in the base")]
@@ -52,12 +54,17 @@ public class CultDefinitions : IDefinition {
         CultUtils.ClearBaseTrees();
     }
 
+    [CheatDetails("Clear Base Grass", "Removes all grass and weeds in the base")]
+    public static void ClearBaseGrass(){
+        CultUtils.ClearBaseGrass();
+    }
+
     [CheatDetails("Clear Vomit", "Clear any vomit on the floor!")]
     public static void ClearVomit(){
         CultUtils.ClearVomit();
     }
 
-    [CheatDetails("Clear Poop", "Clear any poop on the floor, giving the fertilizer directly!")]
+    [CheatDetails("Clear Poop", "Clear any poop on the floor and janitor stations, giving the fertilizer directly!")]
     public static void ClearPoop(){
         CultUtils.ClearPoop();
     }
@@ -82,8 +89,10 @@ public class CultDefinitions : IDefinition {
                 ReflectionHelper.GetMethodStaticPublic("Prefix_UpgradeSystem_AddCooldown"),
                 BindingFlags.Static | BindingFlags.Public
             );
+            CultUtils.PlayNotification("Ritual cooldowns auto-cleared!");
         } else {
             ReflectionHelper.UnpatchTracked(typeof(UpgradeSystem), "AddCooldown");
+            CultUtils.PlayNotification("Ritual cooldown clearing disabled!");
         }
     }
 
@@ -108,21 +117,91 @@ public class CultDefinitions : IDefinition {
             ReflectionHelper.UnpatchTracked(typeof(CostFormatter), "FormatCost");
         }
         Traverse.Create(typeof(CheatConsole)).Field("BuildingsFree").SetValue(flagStatus);
+        CultUtils.PlayNotification(flagStatus ? "Free building enabled!" : "Free building disabled!");
     }
 
     [CheatDetails("Build All Structures", "Instantly build all structures")]
     public static void BuildAllStructures(){
         Traverse.Create(typeof(CheatConsole)).Method("BuildAll").GetValue();
+        CultUtils.PlayNotification("All structures built!");
     }
 
-    [CheatDetails("Unlock All Structures", "Unlocks all buildings")]
+    [CheatDetails("Unlock All Structures", "Unlocks all buildings including DLC")]
     public static void UnlockAllStructures(){
-        Traverse.Create(typeof(CheatConsole)).Method("UnlockAllStructures").GetValue();
+        try {
+            Traverse.Create(typeof(CheatConsole)).Method("UnlockAllStructures").GetValue();
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"CheatConsole.UnlockAllStructures failed: {e.Message}");
+        }
+        try {
+            foreach(var structureType in Enum.GetValues(typeof(StructureBrain.TYPES))){
+                StructureBrain.TYPES type = (StructureBrain.TYPES)structureType;
+                StructuresData.SetRevealed(type);
+                if(!DataManager.Instance.UnlockedStructures.Contains(type)){
+                    DataManager.Instance.UnlockedStructures.Add(type);
+                }
+                if(!DataManager.Instance.RevealedStructures.Contains(type)){
+                    DataManager.Instance.RevealedStructures.Add(type);
+                }
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Structure iteration unlock failed: {e.Message}");
+        }
+        CultUtils.PlayNotification("All structures unlocked!");
     }
 
     [CheatDetails("Clear Outhouses", "Clears all outhouses of poop and adds the contents to your inventory.")]
     public static void ClearAllOuthouses(){
         CultUtils.ClearOuthouses();
+    }
+
+    [CheatDetails("Repair All Structures", "Repairs all damaged structures in the base")]
+    public static void RepairAllStructures(){
+        try {
+            int count = 0;
+            foreach(var brainType in Enum.GetValues(typeof(StructureBrain.TYPES))){
+                var structures = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, (StructureBrain.TYPES)brainType);
+                foreach(var structure in structures){
+                    if(structure.Data != null){
+                        Traverse durability = Traverse.Create(structure.Data).Field("DamagedDurability");
+                        if(!durability.FieldExists()){
+                            durability = Traverse.Create(structure.Data).Property("DamagedDurability");
+                        }
+                        if(durability.GetValue() != null){
+                            float val = durability.GetValue<float>();
+                            if(val > 0){
+                                durability.SetValue(0f);
+                                count++;
+                            }
+                        }
+                    }
+                }
+            }
+            CultUtils.PlayNotification($"Repaired {count} structure(s)!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to repair structures: {e.Message}");
+            CultUtils.PlayNotification("Failed to repair structures!");
+        }
+    }
+
+    [CheatDetails("Harvest All Farms", "Instantly collects all grown crops from farm plots")]
+    public static void HarvestAllFarms(){
+        try {
+            int count = 0;
+            var farmPlots = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.FARM_PLOT);
+            foreach(var farm in farmPlots){
+                Traverse farmTraverse = Traverse.Create(farm);
+                Traverse fullyGrown = farmTraverse.Property("FullyGrown");
+                if(fullyGrown.PropertyExists() && fullyGrown.GetValue<bool>()){
+                    farmTraverse.Method("Harvest").GetValue();
+                    count++;
+                }
+            }
+            CultUtils.PlayNotification($"Harvested {count} farm(s)!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to harvest farms: {e.Message}");
+            CultUtils.PlayNotification("Failed to harvest farms!");
+        }
     }
 
     [CheatDetails("Change Rituals", "Change Rituals",  "Change Rituals (Close)", "Lets you change the selected Rituals along with unlocking not yet acquired ones", true)]
@@ -164,22 +243,22 @@ public class CultDefinitions : IDefinition {
 
             void GuiContents()
             {
-                GUI.Label(new Rect(0, 20, 485, 50), "Select one ritual from each pair below, then press confirm at the bottom", GUIUtils.GetGUILabelStyle(500));
-                currentHeight = 90;
+                GUI.Label(new Rect(10, 35, 615, 50), "Select one ritual from each pair below, then press confirm at the bottom", GUIUtils.GetGUILabelStyle(620, 0.85f));
+                currentHeight = 100;
 
                 for(int idx = 0; idx < pairs.Count; idx++){
                     Tuple<UpgradeSystem.Type, UpgradeSystem.Type> tupleSet = pairs[idx];
                     string ritualOneName = UpgradeSystem.GetLocalizedName(tupleSet.Item1);
                     string ritualTwoName = UpgradeSystem.GetLocalizedName(tupleSet.Item2);
-                    pairStates[idx] = GUIUtils.ToggleButton(new Rect(0, currentHeight, 490, 100), $"{ritualOneName}", $"{ritualTwoName}", pairStates[idx]);
-                    currentHeight += 100;
+                    pairStates[idx] = GUIUtils.ToggleButton(new Rect(5, currentHeight, 620, 90), $"{ritualOneName}", $"{ritualTwoName}", pairStates[idx]);
+                    currentHeight += 95;
                 }
-                if(GUIUtils.Button(currentHeight, 490, "Confirm Selection")){
+                if(GUIUtils.Button(currentHeight, 620, "Confirm Selection")){
                     Confirm();
                     CultUtils.PlayNotification("Rituals unlocked!");
                     GUIManager.CloseGuiFunction(guiFunctionKey);
                 }
-                currentHeight += GUIUtils.GetButtonHeight();
+                currentHeight += GUIUtils.GetButtonHeight() + 10;
                 s_ritualGui.ScrollHeight = currentHeight;
             }
 
@@ -197,6 +276,7 @@ public class CultDefinitions : IDefinition {
     [CheatDetails("All Rituals", "All Rituals (Off)", "All Rituals (On)", "While enabled you will have access to all rituals (including both sides of every pair)")]
     public static void UnlockAllRituals(bool flag){
         CheatConsole.UnlockAllRituals = flag;
+        CultUtils.PlayNotification(flag ? "All rituals unlocked!" : "Rituals reverted!");
     }
 
     [CheatDetails("Change Doctrines", "Change Doctrines",  "Change Doctrines (Close)", "Allows the modification of selected doctrines", true)]
@@ -220,8 +300,8 @@ public class CultDefinitions : IDefinition {
             {                
                 //Display selection page
                 if(currentCategory == SermonCategory.None){
-                    currentHeight = 90;
-                    GUI.Label(new Rect(0, 20, 485, 50), "Select a doctrine category below to modify", GUIUtils.GetGUILabelStyle(500));
+                    currentHeight = 100;
+                    GUI.Label(new Rect(10, 35, 575, 50), "Select a doctrine category below to modify", GUIUtils.GetGUILabelStyle(580, 0.85f));
 
                     foreach(var value in Enum.GetValues(typeof(SermonCategory))){
                         SermonCategory sermonCategory = (SermonCategory)value;
@@ -230,25 +310,25 @@ public class CultDefinitions : IDefinition {
                             continue;
                         }
 
-                        if(GUIUtils.Button(currentHeight, 500, innerCategoryName)){
+                        if(GUIUtils.Button(currentHeight, 580, innerCategoryName)){
                             currentCategory = sermonCategory;
                             categoryName = innerCategoryName;
                             pairStates = CultUtils.GetDoctrineCategoryState(currentCategory);
                         }
-                        currentHeight += GUIUtils.GetButtonHeight();
+                        currentHeight += GUIUtils.GetButtonHeight() + 5;
                     }
                 } else {
                     int level = DoctrineUpgradeSystem.GetLevelBySermon(currentCategory);
                     
-                    GUI.Label(new Rect(0,5, 500, 10), $"Current category level", GUIUtils.GetGUILabelStyle(500, 0.75f));
-                    GUI.Label(new Rect(0,25, 500, 15), $"{categoryName}: {level}/4", GUIUtils.GetGUILabelStyle(500, 0.75f));
-                    GUI.Label(new Rect(5,70, 480, 15), $"Select desired traits below and then confirm at the bottom to apply", GUIUtils.GetGUILabelStyle(500, 0.75f));
-                    currentHeight = 110;
+                    GUI.Label(new Rect(10, 35, 575, 12), $"Current category level", GUIUtils.GetGUILabelStyle(580, 0.7f));
+                    GUI.Label(new Rect(10, 52, 575, 18), $"{categoryName}: {level}/4", GUIUtils.GetGUILabelStyle(580, 0.8f));
+                    GUI.Label(new Rect(10, 80, 570, 18), $"Select desired traits below and then confirm at the bottom to apply", GUIUtils.GetGUILabelStyle(580, 0.7f));
+                    currentHeight = 120;
 
-                    if(GUIUtils.Button(currentHeight, 500, "< Back")){
+                    if(GUIUtils.Button(currentHeight, 580, "« Back")){
                         currentCategory = SermonCategory.None;
                     }
-                    currentHeight += GUIUtils.GetButtonHeight();
+                    currentHeight += GUIUtils.GetButtonHeight() + 5;
 
                     var innerPairs = doctrinePairs[currentCategory];
                     for(int idx = 0; idx < innerPairs.Count; idx++){
@@ -259,15 +339,15 @@ public class CultDefinitions : IDefinition {
                         doctrineOneName = replaceRegex.Replace(doctrineOneName, "");
                         doctrineTwoName = replaceRegex.Replace(doctrineTwoName, "");
 
-                        pairStates[idx] = GUIUtils.ToggleButton(new Rect(0, currentHeight, 490, 100), $"{doctrineOneName}", $"{doctrineTwoName}", pairStates[idx]);
-                        currentHeight += 100;
+                        pairStates[idx] = GUIUtils.ToggleButton(new Rect(5, currentHeight, 580, 90), $"{doctrineOneName}", $"{doctrineTwoName}", pairStates[idx]);
+                        currentHeight += 95;
                     }
-                    if(GUIUtils.Button(currentHeight, 500, "Confirm")){                        
+                    if(GUIUtils.Button(currentHeight, 580, "Confirm")){                        
                         Confirm();
                         GUIManager.CloseGuiFunction(guiFunctionKey);
                         currentCategory = SermonCategory.None;
                     }
-                    currentHeight += GUIUtils.GetButtonHeight();
+                    currentHeight += GUIUtils.GetButtonHeight() + 10;
                 }
 
                 s_docterineGui.ScrollHeight = currentHeight;

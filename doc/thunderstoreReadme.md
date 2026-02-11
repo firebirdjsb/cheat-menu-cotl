@@ -55,7 +55,10 @@ To see what cheats/utilities the mod offers see below:
 - Give Small Gift
 - Weather: Clear
 - Weather: Rain
+- Weather: Snow
 - Weather: Windy
+- Auto Shear Wool
+- Clear Base Grass
 
 
 ### Changelog 1.0.3  

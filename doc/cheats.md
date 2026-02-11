@@ -451,10 +451,37 @@
 ---  
 
 
+### **Weather: Snow**  
+**Category**: Weather  
+**Type**: Simple  
+**Description**: Set weather to snowing (winter)  
+
+
+---  
+
+
 ### **Weather: Windy**  
 **Category**: Weather  
 **Type**: Simple  
 **Description**: Set weather to windy  
+
+
+---  
+
+
+### **Auto Shear Wool**  
+**Category**: DLC  
+**Type**: Mode  
+**Description**: Automatically shears wool from all Lambish and Yakish followers  
+
+
+---  
+
+
+### **Clear Base Grass**  
+**Category**: Cult  
+**Type**: Simple  
+**Description**: Removes all grass and weeds in the base  
 
 
 ---  

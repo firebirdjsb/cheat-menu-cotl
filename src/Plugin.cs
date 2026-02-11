@@ -4,7 +4,7 @@ using UnityAnnotationHelpers;
 
 namespace CheatMenu;
 
-[BepInPlugin("org.wicked.cheat_menu", "Cheat Menu", "1.0.3")]
+[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.0.7")]
 public class Plugin : BaseUnityPlugin
 {    
     private UnityAnnotationHelper _annotationHelper;

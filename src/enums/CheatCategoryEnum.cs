@@ -77,6 +77,12 @@ public enum CheatCategoryEnum {
     [StringEnum("Cult")]
     CULT,
 
+    [StringEnum("DLC")]
+    DLC,
+
+    [StringEnum("Splitscreen")]
+    SPLITSCREEN,
+
     [StringEnum("Misc")]
     MISC
 }

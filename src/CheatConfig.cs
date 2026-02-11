@@ -1,4 +1,5 @@
 using BepInEx.Configuration;
+using UnityEngine;
 
 namespace CheatMenu;
 
@@ -6,6 +7,7 @@ public class CheatConfig{
     public ConfigEntry<KeyboardShortcut> GuiKeybind;
     public ConfigEntry<KeyboardShortcut> BackCategory;
     public ConfigEntry<bool> CloseGuiOnEscape;
+    public ConfigEntry<bool> ControllerSupport;
 
     public CheatConfig(ConfigFile config){
         GuiKeybind = config.Bind(
@@ -21,7 +23,12 @@ public class CheatConfig{
         CloseGuiOnEscape = config.Bind(
             new ConfigDefinition("Options", "Close GUI on escape"),
             true,
-            new ConfigDescription("Disable/Enable closing the cheat menu GUI when escape is preseed")
+            new ConfigDescription("Disable/Enable closing the cheat menu GUI when escape is pressed")
+        );
+        ControllerSupport = config.Bind(
+            new ConfigDefinition("Controller", "Enable Controller Support"),
+            true,
+            new ConfigDescription("Enable controller/gamepad support for menu navigation. Uses the game's detected controller via Rewired. A=Select, B=Back, Start=Open/Close, Stick/D-Pad=Navigate")
         );
         Instance = this;
     }

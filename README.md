@@ -1,13 +1,42 @@
 # cheat-menu-cotl
-Provides a list of cheats/utilities in an easily accessible GUI.
+
+> ** **Version 1.0.7** - Controller + Animation Update! Slide animation, locked menu, full gamepad support with hover glow.
+
+Provides a list of cheats/utilities in an easily accessible **compact GUI**.
+
+## What's New in v1.0.7
+
+- **Slide Animation** - Menu slides in from bottom-left corner with easing
+- **Locked Position** - Menu is fixed in bottom-left, no accidental dragging
+- **Better Controller Support** - D-pad navigation with visual hover glow on selected items
+- **Even Smaller Menu** - 420x500px with 30px buttons and 2px spacing
+- **Weather Fix** - Uses direct instance access instead of broken Traverse methods
+- **Auto Shear Wool** - New DLC cheat for Lambish/Yakish followers
+- **Clear Base Grass** - New cheat to remove grass/weeds from base
+- **Rubble Fix** - Uses proper structure types instead of CheatConsole
+- **All Notifications** - Every action now gives in-game feedback popup
+- **Snow Weather** - Added winter/snow weather option
+
+---
 
 ## Features & Usage
-Press the ```M``` key to activate the cheat menu and click on any of the buttons to enable/disable the specific cheats or enter that specific cheat cateogry. ```N``` key can be used to go back from a category. Both these keys can be changed in the configuration in the ```config``` folder.
+Press the ```M``` key to activate the cheat menu and click on any of the buttons to enable/disable the specific cheats or enter that specific cheat category. ```N``` key can be used to go back from a category. Both these keys can be changed in the configuration in the ```config``` folder.
+
+### Controller Support
+**Full gamepad/controller support** with visual hover glow! Navigate the menu using:
+- **D-Pad Up/Down** - Navigate between options (highlighted with red glow)
+- **Left Stick Click (L3)** - Open/close menu
+- **B/Circle Button** - Go back to previous menu (or close menu from main)
+- **A/Cross Button** - Select/activate option
+
+Controller buttons can be customized in the config file. Works with Xbox, PlayStation, Nintendo Switch Pro, and generic controllers!
 
 To see what cheats/utilities the mod offers see below:
 [Available Cheats](doc/cheats.md)
 
-Latest changes: [1.0.3](doc/changelogs/1.0.3.md)
+Latest changes: [1.0.7](doc/changelogs/1.0.7.md) - **Controller + Animation Update!**
+
+**Note**: This version features a compact, animated menu with controller hover glow, slide animation, and full gamepad support. Compatible with Cult of the Lamb v1.5.16.1000+
 
 ## Installation
 - Make sure you have BepInEx installed ([Guide](https://docs.bepinex.dev/articles/user_guide/installation/index.html))
@@ -35,9 +64,11 @@ Latest changes: [1.0.3](doc/changelogs/1.0.3.md)
 - Run either ```./build.bat``` or ```./watch.bat``` under scripts 
 
 ### License / Credits
-Feel free to look around the code and modify for personal use, if you want to release a version of your code please reach out to me first!
+Originally created by Wicked7000. Now maintained by **XUnfairX**.
 
-If you just want to add a specific 'Cheat' to the mode feel free to open a pull request or open an issue.
+Feel free to look around the code and modify for personal use. If you want to release a version of your code, please open an issue or pull request!
+
+If you just want to add a specific 'Cheat' to the mod, feel free to open a pull request or open an issue.
 
 ### Ethics
 Cheats that unlock DLC content or content that is intended to be locked will not be added to this mod.

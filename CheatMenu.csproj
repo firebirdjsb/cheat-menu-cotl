@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AssemblyName>cheat_menu</AssemblyName>
     <Description>Cheat/Utility menu for cult of the lamb</Description>
     <Version>1.0.0</Version>
@@ -29,8 +29,17 @@
   </ItemGroup>
   
   <ItemGroup>
-	  <Reference Include="CultOfTheLambAssembly">
-		  <HintPath>./libs/Assembly-CSharp.dll</HintPath>
+	  <Reference Include="Assembly-CSharp">
+	    <HintPath>F:\SteamLibrary\steamapps\common\Cult of the Lamb\Cult Of The Lamb_Data\Managed\Assembly-CSharp.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Rewired_Core">
+	    <HintPath>F:\SteamLibrary\steamapps\common\Cult of the Lamb\Cult Of The Lamb_Data\Managed\Rewired_Core.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Rewired_Windows">
+	    <HintPath>F:\SteamLibrary\steamapps\common\Cult of the Lamb\Cult Of The Lamb_Data\Managed\Rewired_Windows.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Rewired_Windows_Functions">
+	    <HintPath>F:\SteamLibrary\steamapps\common\Cult of the Lamb\Cult Of The Lamb_Data\Managed\Rewired_Windows_Functions.dll</HintPath>
 	  </Reference>
   </ItemGroup>
   
