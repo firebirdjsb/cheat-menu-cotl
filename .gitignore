@@ -5,3 +5,4 @@ scripts/*.md
 tools/*
 release.zip
 .vs/*
+/assembily-dumped
