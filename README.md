@@ -1,74 +1,177 @@
-# cheat-menu-cotl
+# Changelog 1.1.0
 
-> ** **Version 1.0.7** - Controller + Animation Update! Slide animation, locked menu, full gamepad support with hover glow.
+## 🎮 Weather Fix, New Items, QOL & Assembly Update!
 
-Provides a list of cheats/utilities in an easily accessible **compact GUI**.
-
-## What's New in v1.0.7
-
-- **Slide Animation** - Menu slides in from bottom-left corner with easing
-- **Locked Position** - Menu is fixed in bottom-left, no accidental dragging
-- **Better Controller Support** - D-pad navigation with visual hover glow on selected items
-- **Even Smaller Menu** - 420x500px with 30px buttons and 2px spacing
-- **Weather Fix** - Uses direct instance access instead of broken Traverse methods
-- **Auto Shear Wool** - New DLC cheat for Lambish/Yakish followers
-- **Clear Base Grass** - New cheat to remove grass/weeds from base
-- **Rubble Fix** - Uses proper structure types instead of CheatConsole
-- **All Notifications** - Every action now gives in-game feedback popup
-- **Snow Weather** - Added winter/snow weather option
+This major release brings a complete weather system rewrite, tons of new items and cheats, a new Combat/QOL category, and full assembly-verified API compatibility.
 
 ---
 
-## Features & Usage
-Press the ```M``` key to activate the cheat menu and click on any of the buttons to enable/disable the specific cheats or enter that specific cheat category. ```N``` key can be used to go back from a category. Both these keys can be changed in the configuration in the ```config``` folder.
+## ⚡ Major Features
 
-### Controller Support
-**Full gamepad/controller support** with visual hover glow! Navigate the menu using:
-- **D-Pad Up/Down** - Navigate between options (highlighted with red glow)
-- **Left Stick Click (L3)** - Open/close menu
-- **B/Circle Button** - Go back to previous menu (or close menu from main)
-- **A/Cross Button** - Select/activate option
+### Weather System Complete Rewrite
+- **Direct WeatherSystemController Integration** - Uses the game's native `WeatherType` and `WeatherStrength` enums
+- **All Weather Types Supported**:
+  - Rain (Light & Heavy)
+  - Wind
+  - Snow (Light Dusting & Blizzard)
+  - Heat Wave
+  - Clear (stops all weather)
+- **Season Control** - Switch between Spring and Winter seasons
 
-Controller buttons can be customized in the config file. Works with Xbox, PlayStation, Nintendo Switch Pro, and generic controllers!
+### New Combat/QOL Category
+- **Kill All Enemies** - Instantly eliminate all enemies in the current room
+- **Unlock All Weapons** - Unlock Axe, Dagger, Gauntlet, Hammer + all curse packs
+- **Unlock All Tarot Cards** - Unlock every tarot card in the game
+- **Unlock All Fleeces** - Get all fleece skins for the Lamb
+- **Unlock EVERYTHING** - One-click unlock for ALL upgrades, rituals, weapons, structures, and tarot
+- **Show All Map Locations** - Toggle to reveal all locations on the world map
+- **Enable Black Souls** - Activate the black souls currency system
+- **Enable Tarot Building** - Unlock the tarot card reading building
 
-To see what cheats/utilities the mod offers see below:
-[Available Cheats](doc/cheats.md)
+### New Resource Items (30+ New Items!)
+- **Materials**: Silk Thread (x50), Crystals (x50), Bones (x50), Lumber (x100), Stone (x100)
+- **Special Items**: God Tears (x10), Relics (x10), Talisman (x10), Trinket Cards (x10)
+- **Food & Flowers**: All Flowers, All Meals (18 types), All Seeds
+- **Fish**: All 11 fish types including DLC varieties
+- **Refined Materials**: Refined lumber, stone, gold, nuggets, rope (x50 each)
+- **Gold Coins**: x500 per use
+- **Give ALL Items**: One button to add x10 of every item type in the game!
 
-Latest changes: [1.0.7](doc/changelogs/1.0.7.md) - **Controller + Animation Update!**
+---
 
-**Note**: This version features a compact, animated menu with controller hover glow, slide animation, and full gamepad support. Compatible with Cult of the Lamb v1.5.16.1000+
+## 🎮 Controller Support Enhancements
 
-## Installation
-- Make sure you have BepInEx installed ([Guide](https://docs.bepinex.dev/articles/user_guide/installation/index.html))
-- Download the zip from the releases tab
-- Copy the CheatMenu folder to BepInEx/Plugins folder
-- **Important**: Some COTL mods require that the BepInEx configuration has a diferent entrypoint. Download this [file]() and place it in BepInEx/config
-- Start the game and enjoy the mod!
+### Rewired-Based Input System
+- Full integration with the game's native Rewired input system
+- Works with whatever controller the game detects automatically
+- **R3 (Right Stick Click)** - Open/Close menu
+- **A/Cross Button** - Select/Activate options
+- **B/Circle Button** - Go back (or close menu from main screen)
+- **D-Pad / Left Stick** - Navigate menu options
+- **Visual Feedback** - Red hover glow shows currently selected option
 
-### Dependencies
-[BepInEx 5](https://github.com/BepInEx/BepInEx/releases/tag/v5.4.21)
+### Controller Compatibility
+- Xbox One/Series controllers
+- PlayStation DualShock 4 & DualSense
+- Nintendo Switch Pro Controller
+- Steam Deck built-in controls
+- Generic USB/Bluetooth gamepads
 
-### Developer Dependencies  
-- [Gaze](https://github.com/wtetsu/gaze)  
-    - Used for file watching to run the build when changes occur.
-- [dotnet-script](https://github.com/filipw/dotnet-script)
-    - Used to run the readme generator
-- [pdb2mdb](https://gist.github.com/jbevain/ba23149da8369e4a966f)
-    - Used to create visual studio debugging files
+---
 
-### Developer Setup
-- Ensure dotnet is in your ```PATH```
-- Install [Gaze](https://github.com/wtetsu/gaze) and put it in your ```PATH```
-- Download [pdb2mdb](https://gist.github.com/jbevain/ba23149da8369e4a966f) and put it in the ```tools``` directory (even if you don't need the visual studio debugging symbols).
-- Set environment variable ```CULT_OF_THE_LAMB_PATH``` to the root directory of the game
-- Run either ```./build.bat``` or ```./watch.bat``` under scripts 
+## 🖥️ UI/UX Improvements
 
-### License / Credits
-Originally created by Wicked7000. Now maintained by **XUnfairX**.
+### Slide Animation
+- Menu slides in from the bottom-left corner with smooth easing
+- Animation plays on both open and close
+- Works even when game is paused (uses unscaledDeltaTime)
 
-Feel free to look around the code and modify for personal use. If you want to release a version of your code, please open an issue or pull request!
+### Compact Design
+- **Window Size**: 350x400px - more compact, less intrusive
+- **Fixed Position**: Bottom-left corner, no accidental dragging
+- **Improved Hints Bar**: Shows context-aware keybindings above the menu
+- **Cult Theme**: Dark burgundy/crimson styling matching game aesthetic
 
-If you just want to add a specific 'Cheat' to the mod, feel free to open a pull request or open an issue.
+### Visual Polish
+- Red highlight glow for controller-selected buttons
+- Clear [ON]/[OFF] toggle indicators
+- Category arrows (>> <<) for navigation clarity
+- Bone white text with golden accents
 
-### Ethics
-Cheats that unlock DLC content or content that is intended to be locked will not be added to this mod.
+---
+
+## 🔧 Technical Improvements
+
+### Assembly-Verified APIs
+- All game APIs verified against decompiled Assembly-CSharp.dll
+- Proper enum types used throughout (WeatherType, WeatherStrength, etc.)
+- Graceful error handling for missing methods
+
+### Code Quality
+- **RewiredInputHelper** - Clean abstraction for controller input
+- **Better Error Handling** - Try-catch protection on all risky operations
+- **Detailed Logging** - Clear warnings instead of crashes
+- **Compatibility Mode** - Mod functions even if some patches fail
+
+---
+
+## 📋 Complete Cheat List by Category
+
+### Combat/QOL
+- Kill All Enemies
+- Unlock All Weapons
+- Unlock All Tarot Cards
+- Enable Tarot Building
+- Enable Black Souls
+- Unlock All Fleeces
+- Unlock EVERYTHING
+- Show All Map Locations (Toggle)
+
+### Weather
+- Rain (Light/Heavy)
+- Wind
+- Snow (Light/Blizzard)
+- Heat Wave
+- Clear Weather
+- Season: Spring
+- Season: Winter
+
+### Resources (25+ options)
+- Basic Resources, Seeds, Fish, Food
+- Necklaces (all 18 types including DLC)
+- Materials & Refined Materials
+- Flowers, Meals, Trinkets
+- Give ALL Items
+
+### Cult (15+ options)
+- Building, Structure & Ritual management
+- Cleanup cheats (poop, vomit, bodies, trees, grass, rubble)
+- Teleport to Cult
+- Free Building Mode
+
+### Followers (10+ options)
+- Spawn, Kill, Revive followers
+- Faith & Hunger management
+- Sickness removal
+- Age manipulation
+
+### Health
+- Godmode
+- Heal, Add hearts (Black/Blue)
+- Die command
+
+### Misc
+- Noclip, Skip Hour
+- Debug displays (FPS, Follower, Structure)
+- Hide/Show UI
+
+### DLC
+- Auto Shear Wool (Woolhaven)
+
+---
+
+## 🔄 Migration from Previous Versions
+
+1. Delete old CheatMenu files from `BepInEx/plugins/CheatMenu`
+2. Install v1.1.0 as fresh installation
+3. Config will auto-generate with new options
+4. Previous keybinds may need reconfiguration
+
+---
+
+## 📦 Dependencies
+
+- **BepInEx 5.4.21+**
+- **Cult of the Lamb v1.5.16.1000+**
+
+---
+
+## 🙏 Credits
+
+- **Original Author**: Wicked7000
+- **Current Maintainer**: XUnfairX
+- **Repository**: https://github.com/firebirdjsb/cheat-menu-cotl
+
+---
+
+**Enjoy the most comprehensive Cult of the Lamb cheat menu! 🐑✨**
