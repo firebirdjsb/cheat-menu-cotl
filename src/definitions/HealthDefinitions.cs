@@ -88,4 +88,29 @@ public class HealthDefinitions : IDefinition{
             CultUtils.PlayNotification("You died!");
         }
     }
+
+    [CheatDetails("Add x1 Spirit Heart", "Adds a Spirit Heart to the Player")]
+    public static void AddSpiritHeart(){
+        try {
+            GameObject gameObject = GameObject.FindWithTag("Player");
+            if (gameObject != null)
+            {
+                Health health = gameObject.GetComponent<Health>();
+                HarmonyLib.Traverse healthTraverse = HarmonyLib.Traverse.Create(health);
+                HarmonyLib.Traverse spiritField = healthTraverse.Property("SpiritHearts");
+                if(spiritField.PropertyExists()){
+                    spiritField.SetValue(spiritField.GetValue<float>() + 2f);
+                } else {
+                    HarmonyLib.Traverse spiritField2 = healthTraverse.Field("SpiritHearts");
+                    if(spiritField2.FieldExists()){
+                        spiritField2.SetValue(spiritField2.GetValue<float>() + 2f);
+                    }
+                }
+                CultUtils.PlayNotification("Spirit heart added!");
+            }
+        } catch(System.Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to add spirit heart: {e.Message}");
+            CultUtils.PlayNotification("Spirit hearts not available in this version!");
+        }
+    }
 }

@@ -1,72 +1,62 @@
-using HarmonyLib;
 using System;
 using System.Reflection;
 using UnityEngine;
+using HarmonyLib;
 
 namespace CheatMenu;
 
 [CheatCategory(CheatCategoryEnum.WEATHER)]
 public class WeatherDefinitions : IDefinition{
 
-    private static bool TrySetWeatherViaCheatConsole(string methodName){
+    private static void SetWeather(string weatherName, string displayName){
         try {
-            MethodInfo method = typeof(CheatConsole).GetMethod(methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            if(method != null){
-                method.Invoke(null, null);
-                return true;
+            if(BiomeBaseManager.Instance == null){
+                CultUtils.PlayNotification("Weather system not available!");
+                return;
             }
-        } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"CheatConsole.{methodName} failed: {e.Message}");
-        }
-        return false;
-    }
 
-    private static bool TrySetWeatherViaBiomeManager(string weatherTypeName){
-        try {
-            if(BiomeBaseManager.Instance == null) return false;
+            // Try calling SimSetWeather directly via Traverse
+            Traverse biomeTraverse = Traverse.Create(BiomeBaseManager.Instance);
 
-            // Try SimSetWeather with enum parameter
-            Type weatherEnumType = typeof(BiomeBaseManager).GetNestedType("WeatherType", BindingFlags.Public | BindingFlags.NonPublic);
+            // Look for Weather enum on BiomeBaseManager or in the assembly
+            Type weatherEnumType = typeof(BiomeBaseManager).GetNestedType("Weather", BindingFlags.Public | BindingFlags.NonPublic);
             if(weatherEnumType == null){
-                // Try as a top-level enum
+                weatherEnumType = typeof(BiomeBaseManager).GetNestedType("WeatherType", BindingFlags.Public | BindingFlags.NonPublic);
+            }
+            if(weatherEnumType == null){
                 weatherEnumType = typeof(BiomeBaseManager).Assembly.GetType("WeatherType");
             }
+            if(weatherEnumType == null){
+                weatherEnumType = typeof(BiomeBaseManager).Assembly.GetType("BiomeBaseManager+Weather");
+            }
 
-            if(weatherEnumType != null && Enum.IsDefined(weatherEnumType, weatherTypeName)){
-                object weatherVal = Enum.Parse(weatherEnumType, weatherTypeName);
-                MethodInfo simMethod = typeof(BiomeBaseManager).GetMethod("SimSetWeather", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if(simMethod != null){
-                    simMethod.Invoke(BiomeBaseManager.Instance, new object[]{ weatherVal });
-                    return true;
+            if(weatherEnumType != null && Enum.IsDefined(weatherEnumType, weatherName)){
+                object weatherVal = Enum.Parse(weatherEnumType, weatherName);
+
+                // Try SetWeather first, then SimSetWeather
+                string[] methodNames = new[]{ "SetWeather", "SimSetWeather" };
+                foreach(string methodName in methodNames){
+                    MethodInfo method = typeof(BiomeBaseManager).GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if(method != null){
+                        method.Invoke(BiomeBaseManager.Instance, new object[]{ weatherVal });
+                        CultUtils.PlayNotification($"Weather set to {displayName}!");
+                        return;
+                    }
                 }
             }
 
-            // Fallback: try calling the method directly by name on the instance
-            string[] methodNames = new[] { $"Set{weatherTypeName}", weatherTypeName, $"Sim{weatherTypeName}" };
-            foreach(string name in methodNames){
-                MethodInfo directMethod = typeof(BiomeBaseManager).GetMethod(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if(directMethod != null && directMethod.GetParameters().Length == 0){
-                    directMethod.Invoke(BiomeBaseManager.Instance, null);
-                    return true;
+            // Fallback: try CheatConsole static methods
+            string[] consoleMethods = new[]{ weatherName, $"Set{weatherName}", $"Weather{weatherName}" };
+            foreach(string name in consoleMethods){
+                MethodInfo method = typeof(CheatConsole).GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                if(method != null && method.GetParameters().Length == 0){
+                    method.Invoke(null, null);
+                    CultUtils.PlayNotification($"Weather set to {displayName}!");
+                    return;
                 }
             }
-        } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"BiomeBaseManager weather set failed: {e.Message}");
-        }
-        return false;
-    }
 
-    private static void SetWeather(string cheatConsoleName, string weatherTypeName, string displayName){
-        try {
-            if(TrySetWeatherViaCheatConsole(cheatConsoleName)){
-                CultUtils.PlayNotification($"Weather set to {displayName}!");
-                return;
-            }
-            if(TrySetWeatherViaBiomeManager(weatherTypeName)){
-                CultUtils.PlayNotification($"Weather set to {displayName}!");
-                return;
-            }
-            CultUtils.PlayNotification($"Failed to set {displayName} - weather system not found!");
+            CultUtils.PlayNotification($"Failed to set {displayName} - weather method not found!");
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"Failed to set weather {displayName}: {e.Message}");
             CultUtils.PlayNotification($"Failed to set {displayName}!");
@@ -75,21 +65,21 @@ public class WeatherDefinitions : IDefinition{
 
     [CheatDetails("Weather: Rain", "Set weather to raining")]
     public static void WeatherRain(){
-        SetWeather("Rain", "Rain", "Rain");
+        SetWeather("Rain", "Rain");
     }
 
     [CheatDetails("Weather: Windy", "Set weather to windy")]
     public static void WeatherWindy(){
-        SetWeather("Wind", "Windy", "Windy");
+        SetWeather("Windy", "Windy");
     }
 
     [CheatDetails("Weather: Clear", "Set weather to clear")]
     public static void WeatherClear(){
-        SetWeather("ClearWeather", "Clear", "Clear");
+        SetWeather("Clear", "Clear");
     }
 
-    [CheatDetails("Weather: Snow", "Set weather to snowing (winter)")]
-    public static void WeatherSnow(){
-        SetWeather("Snow", "Snow", "Snow");
+    [CheatDetails("Weather: Blood Rain", "Set weather to blood rain")]
+    public static void WeatherBloodRain(){
+        SetWeather("BloodRain", "Blood Rain");
     }
 }

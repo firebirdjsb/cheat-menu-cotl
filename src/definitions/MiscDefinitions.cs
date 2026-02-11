@@ -198,4 +198,126 @@ public class MiscDefinitions : IDefinition{
             CultUtils.PlayNotification("Failed to unlock decorations!");
         }
     }
+
+    [CheatDetails("Unlock All Tarot Cards", "Unlocks all tarot cards")]
+    public static void UnlockAllTarotCards(){
+        try {
+            bool success = false;
+            MethodInfo method = typeof(CheatConsole).GetMethod("UnlockAllTarotCards", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if(method != null){
+                method.Invoke(null, null);
+                success = true;
+            }
+
+            if(!success){
+                // Fallback: iterate TarotCards enum and unlock each
+                foreach(var cardType in Enum.GetValues(typeof(TarotCards.Card))){
+                    try {
+                        TarotCards.Card card = (TarotCards.Card)cardType;
+                        if(!DataManager.Instance.PlayerFoundTrinkets.Contains(card)){
+                            DataManager.Instance.PlayerFoundTrinkets.Add(card);
+                        }
+                    } catch { }
+                }
+                success = true;
+            }
+
+            CultUtils.PlayNotification(success ? "All tarot cards unlocked!" : "Failed to unlock tarot cards!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to unlock tarot cards: {e.Message}");
+            CultUtils.PlayNotification("Failed to unlock tarot cards!");
+        }
+    }
+
+    [CheatDetails("Unlock All Weapon Skins", "Unlocks all weapon skins/forms")]
+    public static void UnlockAllWeaponSkins(){
+        try {
+            bool success = false;
+            MethodInfo method = typeof(CheatConsole).GetMethod("UnlockAllWeaponSkins", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if(method == null){
+                method = typeof(CheatConsole).GetMethod("UnlockAllWeapons", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            }
+            if(method != null){
+                method.Invoke(null, null);
+                success = true;
+            }
+
+            if(!success){
+                // Fallback: try to unlock via DataManager
+                Traverse dmTraverse = Traverse.Create(DataManager.Instance);
+                string[] possibleFields = new[] { "UnlockedWeaponSkins", "WeaponSkins", "UnlockedWeapons", "PlayerWeaponSkins" };
+                foreach(string fieldName in possibleFields){
+                    Traverse field = dmTraverse.Field(fieldName);
+                    if(field.FieldExists()){
+                        object list = field.GetValue();
+                        if(list != null && list.GetType().IsGenericType){
+                            MethodInfo addMethod = list.GetType().GetMethod("Add");
+                            MethodInfo containsMethod = list.GetType().GetMethod("Contains");
+                            Type elemType = list.GetType().GetGenericArguments()[0];
+                            if(addMethod != null && containsMethod != null && elemType.IsEnum){
+                                foreach(var val in Enum.GetValues(elemType)){
+                                    try {
+                                        if(!(bool)containsMethod.Invoke(list, new object[]{val})){
+                                            addMethod.Invoke(list, new object[]{val});
+                                        }
+                                    } catch { }
+                                }
+                                success = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            CultUtils.PlayNotification(success ? "All weapon skins unlocked!" : "Could not find weapon skin data!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to unlock weapon skins: {e.Message}");
+            CultUtils.PlayNotification("Failed to unlock weapon skins!");
+        }
+    }
+
+    [CheatDetails("Unlock All Follower Skins", "Unlocks all follower form/skin types")]
+    public static void UnlockAllFollowerSkins(){
+        try {
+            bool success = false;
+            MethodInfo method = typeof(CheatConsole).GetMethod("UnlockAllFollowerSkins", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if(method != null){
+                method.Invoke(null, null);
+                success = true;
+            }
+
+            if(!success){
+                Traverse dmTraverse = Traverse.Create(DataManager.Instance);
+                string[] possibleFields = new[] { "UnlockedFollowerSkins", "FollowerSkins", "UnlockedSkins", "PlayerFollowerSkins" };
+                foreach(string fieldName in possibleFields){
+                    Traverse field = dmTraverse.Field(fieldName);
+                    if(field.FieldExists()){
+                        object list = field.GetValue();
+                        if(list != null && list.GetType().IsGenericType){
+                            MethodInfo addMethod = list.GetType().GetMethod("Add");
+                            MethodInfo containsMethod = list.GetType().GetMethod("Contains");
+                            Type elemType = list.GetType().GetGenericArguments()[0];
+                            if(addMethod != null && containsMethod != null && elemType.IsEnum){
+                                foreach(var val in Enum.GetValues(elemType)){
+                                    try {
+                                        if(!(bool)containsMethod.Invoke(list, new object[]{val})){
+                                            addMethod.Invoke(list, new object[]{val});
+                                        }
+                                    } catch { }
+                                }
+                                success = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            CultUtils.PlayNotification(success ? "All follower skins unlocked!" : "Could not find follower skin data!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to unlock follower skins: {e.Message}");
+            CultUtils.PlayNotification("Failed to unlock follower skins!");
+        }
+    }
 }

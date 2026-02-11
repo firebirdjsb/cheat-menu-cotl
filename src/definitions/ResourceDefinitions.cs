@@ -120,4 +120,117 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.BONE, 50);
         CultUtils.PlayNotification("Bones added!");
     }
+
+    [CheatDetails("Give Lumber", "Gives x100 Lumber")]
+    public static void GiveLumber(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.LOG, 100);
+        CultUtils.PlayNotification("Lumber added!");
+    }
+
+    [CheatDetails("Give Stone", "Gives x100 Stone")]
+    public static void GiveStone(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.STONE, 100);
+        CultUtils.PlayNotification("Stone added!");
+    }
+
+    [CheatDetails("Give Silk", "Gives x50 Silk")]
+    public static void GiveSilk(){
+        try {
+            if(Enum.TryParse<InventoryItem.ITEM_TYPE>("SILK", out var silkType)){
+                CultUtils.AddInventoryItem(silkType, 50);
+                CultUtils.PlayNotification("Silk added!");
+            } else {
+                CultUtils.PlayNotification("Silk not available in this version!");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to add silk: {e.Message}");
+            CultUtils.PlayNotification("Silk not available in this version!");
+        }
+    }
+
+    [CheatDetails("Give Sin Shards", "Gives x50 Sin Shards (Sins DLC)")]
+    public static void GiveSinShards(){
+        try {
+            // Try multiple possible enum names for sin shards
+            string[] possibleNames = new[]{ "SIN_SHARD", "SINSHARD", "Sin_Shard", "SinShard" };
+            bool found = false;
+            foreach(string name in possibleNames){
+                if(Enum.TryParse<InventoryItem.ITEM_TYPE>(name, out var sinType)){
+                    CultUtils.AddInventoryItem(sinType, 50);
+                    CultUtils.PlayNotification("Sin shards added!");
+                    found = true;
+                    break;
+                }
+            }
+            if(!found){
+                // Search for any item containing "SIN" in the name
+                foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
+                    string itemName = itemType.ToString();
+                    if(itemName.Contains("SIN")){
+                        CultUtils.AddInventoryItem((InventoryItem.ITEM_TYPE)itemType, 50);
+                        found = true;
+                    }
+                }
+                CultUtils.PlayNotification(found ? "Sin items added!" : "Sin shards not available - Sins DLC may not be installed!");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to add sin shards: {e.Message}");
+            CultUtils.PlayNotification("Sin shards not available - Sins DLC may not be installed!");
+        }
+    }
+
+    [CheatDetails("Give Trinkets", "Gives x10 of each trinket type")]
+    public static void GiveTrinkets(){
+        try {
+            int addedCount = 0;
+            foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
+                string itemName = itemType.ToString();
+                if(itemName.StartsWith("TRINKET") || itemName.Contains("TRINKET")){
+                    CultUtils.AddInventoryItem((InventoryItem.ITEM_TYPE)itemType, 10);
+                    addedCount++;
+                }
+            }
+            CultUtils.PlayNotification($"Trinkets added ({addedCount} types)!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to add trinkets: {e.Message}");
+            CultUtils.PlayNotification("Failed to add some trinkets!");
+        }
+    }
+
+    [CheatDetails("Give Relics", "Gives x5 of each relic type")]
+    public static void GiveRelics(){
+        try {
+            int addedCount = 0;
+            foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
+                string itemName = itemType.ToString();
+                if(itemName.StartsWith("RELIC") || itemName.Contains("RELIC")){
+                    CultUtils.AddInventoryItem((InventoryItem.ITEM_TYPE)itemType, 5);
+                    addedCount++;
+                }
+            }
+            CultUtils.PlayNotification($"Relics added ({addedCount} types)!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to add relics: {e.Message}");
+            CultUtils.PlayNotification("Failed to add some relics!");
+        }
+    }
+
+    [CheatDetails("Give All Items", "Gives x10 of every single item type in the game")]
+    public static void GiveAllItems(){
+        try {
+            int addedCount = 0;
+            foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
+                InventoryItem.ITEM_TYPE type = (InventoryItem.ITEM_TYPE)itemType;
+                if(type == InventoryItem.ITEM_TYPE.NONE) continue;
+                try {
+                    CultUtils.AddInventoryItem(type, 10);
+                    addedCount++;
+                } catch { }
+            }
+            CultUtils.PlayNotification($"All items added ({addedCount} types)!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to add all items: {e.Message}");
+            CultUtils.PlayNotification("Failed to add some items!");
+        }
+    }
 }
