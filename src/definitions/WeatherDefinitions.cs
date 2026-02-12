@@ -30,9 +30,14 @@ public class WeatherDefinitions : IDefinition{
         SetWeather(WeatherSystemController.WeatherType.Raining, WeatherSystemController.WeatherStrength.Heavy, "Heavy Rain");
     }
 
-    [CheatDetails("Weather: Windy", "Set weather to windy")]
-    public static void WeatherWindy(){
-        SetWeather(WeatherSystemController.WeatherType.Windy, WeatherSystemController.WeatherStrength.Medium, "Windy");
+    [CheatDetails("Weather: Wind (Light)", "Set weather to light wind")]
+    public static void WeatherWindLight(){
+        SetWeather(WeatherSystemController.WeatherType.Windy, WeatherSystemController.WeatherStrength.Light, "Light Wind");
+    }
+
+    [CheatDetails("Weather: Wind (Heavy)", "Set weather to heavy wind")]
+    public static void WeatherWindHeavy(){
+        SetWeather(WeatherSystemController.WeatherType.Windy, WeatherSystemController.WeatherStrength.Heavy, "Heavy Wind");
     }
 
     [CheatDetails("Weather: Snow (Dusting)", "Set weather to dusting snow")]
@@ -60,9 +65,14 @@ public class WeatherDefinitions : IDefinition{
         SetWeather(WeatherSystemController.WeatherType.Snowing, WeatherSystemController.WeatherStrength.Extreme, "Blizzard");
     }
 
-    [CheatDetails("Weather: Heat", "Set weather to heat wave")]
-    public static void WeatherHeat(){
-        SetWeather(WeatherSystemController.WeatherType.Heat, WeatherSystemController.WeatherStrength.Medium, "Heat");
+    [CheatDetails("Weather: Heat (Light)", "Set weather to light heat")]
+    public static void WeatherHeatLight(){
+        SetWeather(WeatherSystemController.WeatherType.Heat, WeatherSystemController.WeatherStrength.Light, "Light Heat");
+    }
+
+    [CheatDetails("Weather: Heat (Heavy)", "Set weather to heavy heat wave")]
+    public static void WeatherHeatHeavy(){
+        SetWeather(WeatherSystemController.WeatherType.Heat, WeatherSystemController.WeatherStrength.Heavy, "Heavy Heat");
     }
 
     [CheatDetails("Weather: Clear", "Clear all weather effects")]

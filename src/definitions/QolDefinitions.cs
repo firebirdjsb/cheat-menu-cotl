@@ -10,9 +10,23 @@ namespace CheatMenu;
 public class CombatDefinitions : IDefinition{
 
     private static bool s_oneHitKillEnabled = false;
+    private static bool s_unlimitedRelicsEnabled = false;
+    private static bool s_unlimitedAmmoEnabled = false;
+
+    private static bool IsInDungeon(){
+        try {
+            return PlayerFarming.Instance != null && PlayerFarming.Location != FollowerLocation.Base;
+        } catch {
+            return false;
+        }
+    }
 
     [CheatDetails("Kill All Enemies", "Kills all enemies in the current room")]
     public static void KillAllEnemies(){
+        if(!IsInDungeon()){
+            CultUtils.PlayNotification("Must be in a dungeon to use this!");
+            return;
+        }
         List<Health> enemies = new List<Health>(Health.team2);
         enemies.AddRange(Health.killAll);
         int count = 0;
@@ -155,13 +169,40 @@ public class CombatDefinitions : IDefinition{
         }
     }
 
+    public static bool Prefix_PlayerRelic_ResetChargedAmount(PlayerRelic __instance){
+        if(!s_unlimitedRelicsEnabled) return true;
+        // Instead of resetting, fully charge the relic so it can be used again immediately
+        __instance.FullyCharge();
+        return false;
+    }
+
     [CheatDetails("Unlimited Relics", "Unlimited Relics (OFF)", "Unlimited Relics (ON)", "Relics never run out of charges during combat", true)]
     public static void UnlimitedRelics(bool flag){
+        if(flag && !IsInDungeon()){
+            CultUtils.PlayNotification("Must be in a dungeon to use this!");
+            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(CombatDefinitions), "UnlimitedRelics"), false);
+            return;
+        }
+        s_unlimitedRelicsEnabled = flag;
         try {
-            foreach(var player in PlayerFarming.players){
-                if(player != null && player.playerRelic != null){
-                    player.RelicChargeAmount = flag ? float.MaxValue : 0f;
+            if(flag){
+                // Fully charge all player relics immediately
+                foreach(var player in PlayerFarming.players){
+                    if(player != null && player.playerRelic != null){
+                        player.playerRelic.FullyCharge();
+                    }
                 }
+                // Patch ResetChargedAmount so relics re-charge after every use
+                MethodInfo patchMethod = typeof(CombatDefinitions).GetMethod("Prefix_PlayerRelic_ResetChargedAmount", BindingFlags.Static | BindingFlags.Public);
+                ReflectionHelper.PatchMethodPrefix(
+                    typeof(PlayerRelic),
+                    "ResetChargedAmount",
+                    patchMethod,
+                    BindingFlags.Instance | BindingFlags.Public,
+                    silent: true
+                );
+            } else {
+                ReflectionHelper.UnpatchTracked(typeof(PlayerRelic), "ResetChargedAmount");
             }
             CultUtils.PlayNotification(flag ? "Unlimited relics ON!" : "Unlimited relics OFF!");
         } catch(Exception e){
@@ -183,6 +224,11 @@ public class CombatDefinitions : IDefinition{
 
     [CheatDetails("One Hit Kill", "One Hit Kill (OFF)", "One Hit Kill (ON)", "All your attacks instantly kill enemies", true)]
     public static void OneHitKill(bool flag){
+        if(flag && !IsInDungeon()){
+            CultUtils.PlayNotification("Must be in a dungeon to use this!");
+            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(CombatDefinitions), "OneHitKill"), false);
+            return;
+        }
         s_oneHitKillEnabled = flag;
         if(flag){
             try {
@@ -205,6 +251,12 @@ public class CombatDefinitions : IDefinition{
 
     [CheatDetails("Unlimited Ammo", "Unlimited Ammo (OFF)", "Unlimited Ammo (ON)", "Arrows and ranged weapons never run out of ammo", true)]
     public static void UnlimitedAmmo(bool flag){
+        if(flag && !IsInDungeon()){
+            CultUtils.PlayNotification("Must be in a dungeon to use this!");
+            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(CombatDefinitions), "UnlimitedAmmo"), false);
+            return;
+        }
+        s_unlimitedAmmoEnabled = flag;
         try {
             if(flag){
                 DataManager.Instance.PLAYER_ARROW_AMMO = 99;
@@ -218,6 +270,11 @@ public class CombatDefinitions : IDefinition{
 
     [CheatDetails("Unlimited Fervour", "Unlimited Fervour (OFF)", "Unlimited Fervour (ON)", "Fervour never depletes when casting curses", true)]
     public static void UnlimitedFervour(bool flag){
+        if(flag && !IsInDungeon()){
+            CultUtils.PlayNotification("Must be in a dungeon to use this!");
+            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(CombatDefinitions), "UnlimitedFervour"), false);
+            return;
+        }
         try {
             SettingsManager.Settings.Accessibility.UnlimitedFervour = flag;
             CultUtils.PlayNotification(flag ? "Unlimited fervour ON!" : "Unlimited fervour OFF!");
@@ -229,6 +286,10 @@ public class CombatDefinitions : IDefinition{
 
     [CheatDetails("Clear Status Effects", "Removes poison, burn, ice, charm and electrified from the player")]
     public static void ClearStatusEffects(){
+        if(!IsInDungeon()){
+            CultUtils.PlayNotification("Must be in a dungeon to use this!");
+            return;
+        }
         try {
             foreach(var player in PlayerFarming.players){
                 if(player != null && player.health != null){
@@ -259,6 +320,17 @@ public class CombatDefinitions : IDefinition{
         } catch(Exception e){
             Debug.LogWarning($"Failed to unlock crown abilities: {e.Message}");
             CultUtils.PlayNotification("Failed to unlock crown abilities!");
+        }
+    }
+
+    [Update]
+    public static void CombatUpdate(){
+        if(s_unlimitedAmmoEnabled){
+            try {
+                if(DataManager.Instance != null && DataManager.Instance.PLAYER_ARROW_AMMO < 99){
+                    DataManager.Instance.PLAYER_ARROW_AMMO = 99;
+                }
+            } catch { }
         }
     }
 

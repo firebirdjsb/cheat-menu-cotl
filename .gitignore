@@ -1,8 +1,38 @@
+# Build output
 /libs/*
 /obj/*
-bin/*
+/bin/*
+/release/
+
+# IDE and tools
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Temporary files
+*.tmp
+*.log
+*_dump_listing.txt
+
+# Scripts output
 scripts/*.md
+
+# Tools
 tools/*
+
+# Release artifacts
 release.zip
-.vs/*
+*.zip
+
+# Assembly dumps
 /assembily-dumped
+/assembly-dumped
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NuGet packages
+*.nupkg
+packages/

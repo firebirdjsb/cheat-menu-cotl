@@ -71,32 +71,19 @@ public static class RewiredInputHelper {
     /// <summary>
     /// Gets vertical navigation input from the controller.
     /// Returns 1 for up, -1 for down, 0 for none.
-    /// Reads the left stick Y axis, D-pad axes, and D-pad buttons from
-    /// each connected joystick directly.
+    /// Reads the right stick Y axis only (D-pad is left for the game).
     /// </summary>
     public static int GetNavigationVertical(){
         var p = GetPlayer();
         if(p != null){
             try {
-                // Read all axes from every connected joystick and pick the one with the
-                // largest absolute value. This covers left stick, right stick AND D-pad
-                // regardless of how the game's Rewired InputManager maps them to actions.
                 float best = 0f;
                 foreach(Joystick j in p.controllers.Joysticks){
-                    // Left stick Y is typically axis index 1
-                    if(j.axisCount > 1){
-                        float v = j.GetAxisRaw(1);
+                    // Right stick Y is typically axis index 3
+                    if(j.axisCount > 3){
+                        float v = j.GetAxisRaw(3);
                         if(Mathf.Abs(v) > Mathf.Abs(best)) best = v;
                     }
-                    // Walk all axes looking for significant D-pad input
-                    for(int a = 4; a < j.axisCount; a++){
-                        float v = j.GetAxisRaw(a);
-                        if(Mathf.Abs(v) > Mathf.Abs(best)) best = v;
-                    }
-                    // D-pad as buttons: Up is typically button 4, Down is button 6
-                    // on many XInput/DirectInput controllers
-                    if(j.buttonCount > 4 && j.GetButton(4)) best = 1f;
-                    if(j.buttonCount > 6 && j.GetButton(6)) best = -1f;
                 }
                 if(best > 0.5f) return 1;
                 if(best < -0.5f) return -1;
@@ -112,6 +99,7 @@ public static class RewiredInputHelper {
     /// <summary>
     /// Gets horizontal navigation input from the controller.
     /// Returns 1 for right, -1 for left, 0 for none.
+    /// Reads the right stick X axis only (D-pad is left for the game).
     /// </summary>
     public static int GetNavigationHorizontal(){
         var p = GetPlayer();
@@ -119,17 +107,11 @@ public static class RewiredInputHelper {
             try {
                 float best = 0f;
                 foreach(Joystick j in p.controllers.Joysticks){
-                    if(j.axisCount > 0){
-                        float v = j.GetAxisRaw(0);
+                    // Right stick X is typically axis index 2
+                    if(j.axisCount > 2){
+                        float v = j.GetAxisRaw(2);
                         if(Mathf.Abs(v) > Mathf.Abs(best)) best = v;
                     }
-                    for(int a = 4; a < j.axisCount; a++){
-                        float v = j.GetAxisRaw(a);
-                        if(Mathf.Abs(v) > Mathf.Abs(best)) best = v;
-                    }
-                    // D-pad as buttons: Right is typically button 5, Left is button 7
-                    if(j.buttonCount > 5 && j.GetButton(5)) best = 1f;
-                    if(j.buttonCount > 7 && j.GetButton(7)) best = -1f;
                 }
                 if(best > 0.5f) return 1;
                 if(best < -0.5f) return -1;

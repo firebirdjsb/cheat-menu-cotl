@@ -1,204 +1,225 @@
-# ?? Controller Support Quick Reference
+# Controller Support Guide
 
-## Default Controller Layout
+## Quick Reference - v1.1.0
 
-### Xbox Controller
+The cheat menu now features **full Rewired-based controller support** with bug fixes for a seamless experience!
+
+### Key Updates in v1.1.0
+- **Fixed**: R3 button no longer triggers in-game "bahhh/bleat" action
+- **Fixed**: Navigation now uses **Right Stick** instead of D-Pad (avoids conflicts)
+- **New**: R3 suppression window prevents double-actions
+- **New**: Visual red glow shows selected buttons
+
+---
+
+## Controller Mappings (Updated)
+
+| Action | Button | Notes |
+|--------|--------|-------|
+| **Open/Close Menu** | R3 (Right Stick Click) | Button 9 - No longer triggers bahhh! |
+| **Navigate** | Right Stick | Axis 2 & 3 - D-Pad left for game |
+| **Select/Activate** | A / Cross | Button 0 - Suppressed during R3 toggle |
+| **Go Back** | B / Circle | Button 1 |
+| **Keyboard Fallback** | Arrow Keys | Always available |
+
+---
+
+## Supported Controllers
+
+### Xbox One/Series Controllers
 ```
         [LB]         [RB]
-         ?             ?
-    [LT] ?             ? [RT]
-         ?             ?
-         ?             ?
+    [LT]               [RT]
     
     [D-Pad]       [Y]
-       ?          ?
-     ?   ?    [X]   [B]  ? Go Back
-       ?          ?
-   Navigate    [A] ? Select
+              [X]   [B] ? Go Back
+           [A] ? Select
     
-    [Back] ? Open/Close Menu
-    [Start]
+    [View] [Menu]
+    
+    Click [Right Stick] ? Open/Close Menu
 ```
 
-### PlayStation Controller
+### PlayStation DualShock 4 & DualSense
 ```
         [L1]         [R1]
-         ?             ?
-    [L2] ?             ? [R2]
-         ?             ?
-         ?             ?
+    [L2]               [R2]
     
     [D-Pad]       [?]
-       ?          ?
-     ?   ?    [?]   [?]  ? Go Back
-       ?          ?
-   Navigate    [?] ? Select
+              [?]   [?] ? Go Back
+           [?] ? Select
     
-    [Select] ? Open/Close Menu
-    [Start]
+    [Share] [Options]
+    
+    Click [R3] ? Open/Close Menu
 ```
 
 ### Nintendo Switch Pro Controller
 ```
         [L]          [R]
-         ?            ?
-    [ZL] ?            ? [ZR]
-         ?            ?
-         ?            ?
+    [ZL]               [ZR]
     
     [D-Pad]      [X]
-       ?          ?
-     ?   ?    [Y]   [A]  ? Go Back
-       ?          ?
-   Navigate   [B] ? Select
+              [Y]   [A] ? Go Back
+           [B] ? Select
     
-    [-] ? Open/Close Menu
-    [+]
+    [-] [+]
+    
+    Click [Right Stick] ? Open/Close Menu
 ```
 
-## Button Mappings
+### Steam Deck Built-in Controls
+- **Right Stick**: Navigate menu options
+- **R3 (Click Right Stick)**: Open/Close menu
+- **A Button**: Select/Activate
+- **B Button**: Go Back
+- **View Button**: Alternative menu toggle
 
-| Action | Xbox | PlayStation | Switch | KeyCode |
-|--------|------|-------------|--------|---------|
-| **Open/Close Menu** | Back | Select | - (Minus) | JoystickButton6 |
-| **Go Back** | B | Circle (?) | A | JoystickButton1 |
-| **Select/Activate** | A | Cross (?) | B | JoystickButton0 |
-| **Navigate Up** | D-Pad ? | D-Pad ? | D-Pad ? | Vertical Axis |
-| **Navigate Down** | D-Pad ? | D-Pad ? | D-Pad ? | Vertical Axis |
+---
 
-## KeyCode Reference
+## Button Reference Table
 
-For configuration in BepInEx config file:
+| Button Index | KeyCode | Xbox | PlayStation | Switch | Common Use |
+|--------------|---------|------|-------------|--------|------------|
+| 0 | JoystickButton0 | A | Cross (?) | B | Select/Confirm |
+| 1 | JoystickButton1 | B | Circle (?) | A | Back/Cancel |
+| 2 | JoystickButton2 | X | Square (?) | Y | - |
+| 3 | JoystickButton3 | Y | Triangle (?) | X | - |
+| 4 | JoystickButton4 | LB | L1 | L | - |
+| 5 | JoystickButton5 | RB | R1 | R | - |
+| 6 | JoystickButton6 | View/Back | Share | - (Minus) | Alt Menu Toggle |
+| 7 | JoystickButton7 | Menu/Start | Options | + (Plus) | - |
+| 8 | JoystickButton8 | L3 | L3 | L3 | Left Stick Click |
+| 9 | JoystickButton9 | R3 | R3 | R3 | **Menu Toggle** |
 
-| Button | KeyCode | Common Use |
-|--------|---------|------------|
-| Button 0 | `JoystickButton0` | A / Cross / B |
-| Button 1 | `JoystickButton1` | B / Circle / A |
-| Button 2 | `JoystickButton2` | X / Square / Y |
-| Button 3 | `JoystickButton3` | Y / Triangle / X |
-| Button 4 | `JoystickButton4` | LB / L1 / L |
-| Button 5 | `JoystickButton5` | RB / R1 / R |
-| Button 6 | `JoystickButton6` | Back / Select / - |
-| Button 7 | `JoystickButton7` | Start / Start / + |
-| Button 8 | `JoystickButton8` | L3 (stick press) |
-| Button 9 | `JoystickButton9` | R3 (stick press) |
+---
 
 ## Configuration
 
-Edit `BepInEx/config/org.xunfairx.cheat_menu.cfg`:
+Config file location: `BepInEx/config/org.xunfairx.cheat_menu.cfg`
 
 ```ini
 [Controller]
 
-## Enable controller/gamepad support for menu navigation
+## Enable controller/gamepad support
 # Setting type: Boolean
 # Default value: true
 Enable Controller Support = true
-
-## Controller button to open/close menu (default: Back/Select button)
-# Setting type: KeyCode
-# Default value: JoystickButton6
-Menu Button = JoystickButton6
-
-## Controller button to go back (default: B/Circle button)
-# Setting type: KeyCode
-# Default value: JoystickButton1
-Back Button = JoystickButton1
-
-## Controller button to select/activate (default: A/Cross button)
-# Setting type: KeyCode
-# Default value: JoystickButton0
-Select Button = JoystickButton0
 ```
 
-## Custom Configurations
+### Custom Button Mappings (Advanced)
 
-### Using Triggers to Open Menu
+While the mod now uses Rewired directly (handles button mapping automatically), you can still customize keyboard fallbacks:
+
 ```ini
-Menu Button = JoystickButton4  # Use LB/L1
+[Keybinds]
+GuiKeybind = M
+BackCategory = N
+CloseGuiOnEscape = true
 ```
 
-### Using Start Button
-```ini
-Menu Button = JoystickButton7  # Use Start
-```
+---
 
-### Swap A and B
-```ini
-Select Button = JoystickButton1
-Back Button = JoystickButton0
-```
+## How It Works (Technical)
+
+### Rewired Integration (v1.1.0)
+The mod now uses **RewiredInputHelper** to read input directly from the game's Rewired Player object:
+
+1. **GetPlayer()** - Acquires Rewired Player 0
+2. **GetNavigationVertical/Horizontal()** - Reads Right Stick (axis 2 & 3)
+3. **GetToggleMenuPressed()** - Checks R3 (button 9) with suppression
+4. **GetSelectPressed()** - Checks A/Cross (button 0) but blocks if R3 held
+5. **GetBackPressed()** - Checks B/Circle (button 1)
+
+### Bug Fixes Applied
+- **R3 Suppression**: 300ms window after R3 press blocks in-game Bleat action
+- **A Button Guard**: Select input ignored while R3 is held down
+- **Navigation Delay**: 150ms delay between navigation inputs prevents scroll spam
+- **Right Stick Only**: Uses axis 2/3 instead of D-Pad to avoid game control conflicts
+
+---
 
 ## Troubleshooting
 
 ### Controller Not Detected
-1. Ensure controller is plugged in before launching game
-2. Test controller works in other games
-3. Try different USB port
-4. Update controller drivers
+1. **Ensure controller connected** before launching game
+2. **Check Rewired**: Game should recognize the controller
+3. **Verify in-game**: Test if game itself responds to controller
+4. **Check logs**: BepInEx console shows "[CheatMenu] Rewired player 0 acquired"
 
-### Wrong Buttons
-1. Check if controller is recognized as Xbox-style or DirectInput
-2. Test button numbers with a controller tester app
-3. Manually configure KeyCodes in config file
-4. Some controllers may have offset button numbers
+### Wrong Buttons Mapping
+- Mod uses Rewired, so mappings should match the game automatically
+- If issues persist, try reconfiguring controller in game settings
+- Check if controller is Steam Input or native mode
 
-### Navigation Too Fast
-The mod includes a 0.15s delay between navigations. If still too fast:
-1. Navigate more carefully with smaller stick movements
-2. Or code can be modified to increase `s_navigationDelay`
+### R3 Still Triggers Bahhh
+- Ensure you're on version 1.1.0
+- Check BepInEx logs for "[CheatMenu] PlayerFarming.Bleat successfully patched"
+- If patch failed, mod still works but R3 may trigger bahhh
 
-### Controller and Keyboard Conflict
-Both work simultaneously! This is intentional. To disable keyboard:
-1. There's no config option to disable keyboard currently
-2. You can simply use controller exclusively
+### Navigation Too Sensitive
+- Built-in 150ms delay should prevent this
+- Try smaller stick movements
+- Navigation only triggers above 0.5 axis threshold
 
-## Steam Deck Specific
-
-### Built-in Controls
-All Steam Deck built-in controls work perfectly:
-- **D-Pad**: Navigate menu
-- **A Button**: Select
-- **B Button**: Go Back
-- **View Button (left)**: Open/Close menu
-
-### Steam Input
-If using Steam Input:
-1. Set controller type to "Gamepad"
-2. Or use default "Steam Deck" layout
-3. Avoid keyboard+mouse emulation
-
-## Testing Your Controller
-
-1. Open cheat menu with configured button
-2. Try navigating with D-Pad
-3. Select an option with A/Cross/B
-4. Go back with B/Circle/A
-5. Close menu with Back/Select/-
-
-If any don't work, note which button numbers ARE detected and update config accordingly.
-
-## Generic Controller Tips
-
-For non-standard controllers:
-1. Download a button testing tool (like "Game Controller Tester")
-2. Press each button and note the button number
-3. Update config with correct KeyCodes
-4. Button 0-9 usually work, higher numbers may not
-
-## Future Features (Not Yet Implemented)
-
-Planned improvements:
-- Visual highlight showing selected button
-- Analog stick support (currently D-Pad only)
-- Shoulder button shortcuts
-- Trigger sensitivity adjustment
-- Controller-specific profiles
+### Menu Opens But Can't Navigate
+- Check if Right Stick is working (in-game camera should move)
+- Try keyboard arrow keys as fallback
+- Verify "Enable Controller Support = true" in config
 
 ---
 
-**Current Version**: 1.0.5  
-**Controller Support**: Full  
-**Tested Controllers**: Xbox One/Series, DualShock 4, DualSense, Switch Pro, Steam Deck  
+## Testing Your Setup
 
-?? Happy gaming with your controller! ?
+1. **Launch game** with controller connected
+2. **Enter gameplay** (not main menu)
+3. **Press R3** - Menu should slide in from bottom-left
+4. **Move Right Stick** - Red glow should highlight buttons
+5. **Press A/Cross** - Should activate selected option
+6. **Press B/Circle** - Should go back or close menu
+7. **Check in-game** - Pressing R3 should NOT trigger bahhh/bleat
+
+---
+
+## Compatibility Notes
+
+### What Works
+- ? Xbox One, Xbox Series X|S controllers
+- ? PlayStation DualShock 4
+- ? PlayStation DualSense (PS5 controller)
+- ? Nintendo Switch Pro Controller
+- ? Steam Deck built-in controls
+- ? Generic USB/Bluetooth gamepads
+- ? Simultaneous keyboard + controller input
+
+### Known Limitations
+- D-Pad navigation removed (conflicts with game controls)
+- Some generic controllers may require Steam Input
+- Button 9 (R3) must exist on controller
+- Analog stick required (digital-only controllers unsupported)
+
+---
+
+## Version History
+
+| Version | Controller Support Level |
+|---------|-------------------------|
+| 1.1.0 | **Full Rewired integration** with R3 suppression, right stick nav |
+| 1.0.5 | Basic controller support, D-Pad navigation |
+| 1.0.4 | Keyboard only |
+
+---
+
+## Credits
+
+- **Rewired Integration**: XUnfairX / firebirdjsb
+- **Original Controller Support**: Community feedback
+- **Bug Reports**: Thank you to all testers who reported the R3/bahhh issue!
+
+---
+
+**Current Version**: 1.1.0  
+**Controller Support**: Full Rewired Integration  
+**Tested**: Xbox, PlayStation, Switch Pro, Steam Deck, Generic USB controllers
+
+*Need help? Report issues on [GitHub](https://github.com/firebirdjsb/cheat-menu-cotl/issues)*

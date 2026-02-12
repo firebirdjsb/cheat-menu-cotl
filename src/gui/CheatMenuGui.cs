@@ -226,8 +226,8 @@ private static readonly int MENU_HEIGHT = 400;
         string hintText;
         if(CheatConfig.Instance.ControllerSupport.Value) {
             hintText = IsWithinCategory() 
-                ? $"[B] Back | [R3] Close | [Stick/D-Pad] Nav | [A] Select" 
-                : $"[R3] Toggle | [Stick/D-Pad] Nav | [A] Select";
+                ? $"[B] Back | [R3] Close | [Right Stick] Nav | [A] Select" 
+                : $"[R3] Toggle | [Right Stick] Nav | [A] Select";
         } else {
             hintText = IsWithinCategory() 
                 ? $"[{CheatConfig.Instance.BackCategory.Value.MainKey}] Back | [ESC] Close" 

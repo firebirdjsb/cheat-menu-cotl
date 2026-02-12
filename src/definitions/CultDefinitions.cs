@@ -294,83 +294,67 @@ public class CultDefinitions : IDefinition {
         CultUtils.PlayNotification(flag ? "All rituals unlocked!" : "Rituals reverted!");
     }
 
-    [CheatDetails("Change Doctrines", "Change Doctrines",  "Change Doctrines (Close)", "Allows the modification of selected doctrines", true)]
-    public static void ChangeAllDoctrines(bool flag){
-        if(flag) {
-            Regex replaceRegex = new("<.*?>");
-            var doctrinePairs = CultUtils.GetAllDoctrinePairs();
-            SermonCategory currentCategory = SermonCategory.None;
-            int[] pairStates = new int[4];
-            string categoryName = "";
-            int currentHeight = 20;            
-            string guiFunctionKey = "";
-
-            void Confirm()
-            {
-                CultUtils.ReapplyAllDoctrinesWithChanges(currentCategory, pairStates);
-                CultUtils.PlayNotification("Doctrines changed!");
-            }
-
-            void GuiContents()
-            {                
-                //Display selection page
-                if(currentCategory == SermonCategory.None){
-                    currentHeight = 100;
-                    GUI.Label(new Rect(10, 35, 575, 50), "Select a doctrine category below to modify", GUIUtils.GetGUILabelStyle(580, 0.85f));
-
-                    foreach(var value in Enum.GetValues(typeof(SermonCategory))){
-                        SermonCategory sermonCategory = (SermonCategory)value;
-                        string innerCategoryName = DoctrineUpgradeSystem.GetSermonCategoryLocalizedName(sermonCategory);
-                        if(innerCategoryName.StartsWith("DoctrineUpgradeSystem")){
-                            continue;
-                        }
-
-                        if(GUIUtils.Button(currentHeight, 580, innerCategoryName)){
-                            currentCategory = sermonCategory;
-                            categoryName = innerCategoryName;
-                            pairStates = CultUtils.GetDoctrineCategoryState(currentCategory);
-                        }
-                        currentHeight += GUIUtils.GetButtonHeight() + 5;
-                    }
-                } else {
-                    int level = DoctrineUpgradeSystem.GetLevelBySermon(currentCategory);
-                    
-                    GUI.Label(new Rect(10, 35, 575, 12), $"Current category level", GUIUtils.GetGUILabelStyle(580, 0.7f));
-                    GUI.Label(new Rect(10, 52, 575, 18), $"{categoryName}: {level}/4", GUIUtils.GetGUILabelStyle(580, 0.8f));
-                    GUI.Label(new Rect(10, 80, 570, 18), $"Select desired traits below and then confirm at the bottom to apply", GUIUtils.GetGUILabelStyle(580, 0.7f));
-                    currentHeight = 120;
-
-                    if(GUIUtils.Button(currentHeight, 580, "« Back")){
-                        currentCategory = SermonCategory.None;
-                    }
-                    currentHeight += GUIUtils.GetButtonHeight() + 5;
-
-                    var innerPairs = doctrinePairs[currentCategory];
-                    for(int idx = 0; idx < innerPairs.Count; idx++){
-                        var tupleSet = innerPairs[idx];
-                    
-                        string doctrineOneName = DoctrineUpgradeSystem.GetLocalizedName(tupleSet.Item1);
-                        string doctrineTwoName = DoctrineUpgradeSystem.GetLocalizedName(tupleSet.Item2);
-                        doctrineOneName = replaceRegex.Replace(doctrineOneName, "");
-                        doctrineTwoName = replaceRegex.Replace(doctrineTwoName, "");
-
-                        pairStates[idx] = GUIUtils.ToggleButton(new Rect(5, currentHeight, 580, 90), $"{doctrineOneName}", $"{doctrineTwoName}", pairStates[idx]);
-                        currentHeight += 95;
-                    }
-                    if(GUIUtils.Button(currentHeight, 580, "Confirm")){                        
-                        Confirm();
-                        GUIManager.CloseGuiFunction(guiFunctionKey);
-                        currentCategory = SermonCategory.None;
-                    }
-                    currentHeight += GUIUtils.GetButtonHeight() + 10;
+    [CheatDetails("Unlock All Clothing", "Unlocks all available follower clothing types")]
+    public static void UnlockAllClothing(){
+        try {
+            int count = 0;
+            foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
+                FollowerClothingType type = (FollowerClothingType)clothingType;
+                if(type != FollowerClothingType.None && type != FollowerClothingType.Count && !DataManager.Instance.ClothesUnlocked(type)){
+                    DataManager.Instance.AddNewClothes(type);
+                    count++;
                 }
+            }
+            DataManager.Instance.UnlockedTailor = true;
+            DataManager.Instance.RevealedTailor = true;
+            CultUtils.PlayNotification($"All clothing unlocked! ({count} new items)");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to unlock clothing: {e.Message}");
+            CultUtils.PlayNotification("Failed to unlock clothing!");
+        }
+    }
 
-                s_docterineGui.ScrollHeight = currentHeight;
+    [CheatDetails("Give All Clothing Items", "Unlocks all clothing and assigns each follower a random outfit")]
+    public static void GiveAllClothing(){
+        try {
+            int count = 0;
+            // First unlock all clothing types
+            foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
+                FollowerClothingType type = (FollowerClothingType)clothingType;
+                if(type != FollowerClothingType.None && type != FollowerClothingType.Count && !DataManager.Instance.ClothesUnlocked(type)){
+                    DataManager.Instance.AddNewClothes(type);
+                }
+            }
+            DataManager.Instance.UnlockedTailor = true;
+            DataManager.Instance.RevealedTailor = true;
+
+            // Build a list of wearable clothing types
+            List<FollowerClothingType> wearableTypes = new();
+            foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
+                FollowerClothingType type = (FollowerClothingType)clothingType;
+                if(type != FollowerClothingType.None && type != FollowerClothingType.Count && type != FollowerClothingType.Naked){
+                    wearableTypes.Add(type);
+                }
             }
 
-            guiFunctionKey = GUIManager.SetGuiWindowScrollableFunction(s_docterineGui, GuiContents);
-        } else {
-            GUIManager.RemoveGuiFunction();
+            // Assign each follower a clothing type from the list
+            var followers = DataManager.Instance.Followers;
+            for(int i = 0; i < followers.Count; i++){
+                FollowerClothingType clothing = wearableTypes[i % wearableTypes.Count];
+                followers[i].Clothing = clothing;
+                followers[i].Outfit = FollowerOutfitType.Custom;
+                count++;
+            }
+
+            // Give crafting materials so the player can craft more at the tailor
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.COTTON, 50);
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SILK_THREAD, 50);
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.WOOL, 30);
+
+            CultUtils.PlayNotification($"All clothing given! {count} follower(s) dressed, tailor materials added.");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to give clothing: {e.Message}");
+            CultUtils.PlayNotification("Failed to give clothing!");
         }
     }
 }
