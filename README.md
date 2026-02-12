@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # cheat-menu-cotl
 
 > **Version 1.1.0** - Weather Fix, New Items, QOL & Assembly Update!
@@ -214,3 +214,4 @@ This major release brings a complete weather system rewrite, tons of new items a
 ---
 
 **Enjoy the most comprehensive Cult of the Lamb cheat menu! 🐑✨**
+
