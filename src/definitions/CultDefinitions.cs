@@ -337,35 +337,41 @@ public class CultDefinitions : IDefinition {
                 }
             }
 
-            // Assign each follower a clothing type from the list - SAFELY
+            // Only assign clothing to followers that are currently in the scene
             var followers = DataManager.Instance.Followers;
             for(int i = 0; i < followers.Count; i++){
                 try {
                     FollowerInfo followerInfo = followers[i];
                     if(followerInfo == null) continue;
                     
-                    FollowerClothingType clothing = wearableTypes[i % wearableTypes.Count];
-                    
-                    // Only set clothing on the FollowerInfo - don't force outfit change
-                    // This avoids the NullReferenceException when follower isn't loaded
-                    followerInfo.Clothing = clothing;
-                    
-                    // Try to update the actual follower if they're loaded in the scene
+                    // Try to get the actual follower instance
                     Follower follower = CultUtils.GetFollowerFromInfo(followerInfo);
-                    if(follower != null && follower.Outfit != null){
+                    
+                    // Only update if follower is actually loaded in the scene
+                    if(follower != null && follower.gameObject != null && follower.gameObject.activeInHierarchy){
                         try {
-                            follower.Brain.Info.Outfit = FollowerOutfitType.Custom;
-                            follower.SetOutfit(FollowerOutfitType.Custom, false, Thought.None);
+                            FollowerClothingType clothing = wearableTypes[i % wearableTypes.Count];
+                            
+                            // Set on both the info and the actual follower
+                            followerInfo.Clothing = clothing;
+                            followerInfo.Outfit = FollowerOutfitType.Custom;
+                            
+                            // Only update the live follower if they have the outfit component
+                            if(follower.Outfit != null){
+                                follower.SetOutfit(FollowerOutfitType.Custom, false, Thought.None);
+                                count++;
+                            }
                         } catch(Exception e){
-                            // Follower not in scene or costume data missing - that's okay
                             UnityEngine.Debug.LogWarning($"[CheatMenu] Could not update follower {followerInfo.ID} outfit: {e.Message}");
                         }
                     } else {
-                        // Just set the outfit type in the info, it will apply when follower loads
+                        // For followers not in scene, just set the clothing data
+                        // They'll wear it when they load
+                        FollowerClothingType clothing = wearableTypes[i % wearableTypes.Count];
+                        followerInfo.Clothing = clothing;
                         followerInfo.Outfit = FollowerOutfitType.Custom;
+                        count++;
                     }
-                    
-                    count++;
                 } catch(Exception e){
                     UnityEngine.Debug.LogWarning($"[CheatMenu] Error setting clothing for follower {i}: {e.Message}");
                     // Continue with other followers
@@ -377,7 +383,7 @@ public class CultDefinitions : IDefinition {
             CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SILK_THREAD, 50);
             CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.WOOL, 30);
 
-            CultUtils.PlayNotification($"All clothing given! {count} follower(s) updated, materials added.");
+            CultUtils.PlayNotification($"All clothing unlocked! {count} follower(s) updated.");
         } catch(Exception e){
             Debug.LogWarning($"[CheatMenu] Failed to give clothing: {e.Message}");
             CultUtils.PlayNotification("Failed to give clothing!");

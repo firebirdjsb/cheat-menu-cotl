@@ -620,7 +620,8 @@ internal class CultUtils {
             follower.Brain.Info.FollowerRole = role;
             
             // Ensure follower has valid outfit data before setting
-            if(follower.Outfit != null){
+            // Only set outfit if the follower instance is fully loaded
+            if(follower.Outfit != null && follower.gameObject != null && follower.gameObject.activeInHierarchy){
                 follower.Brain.Info.Outfit = FollowerOutfitType.Follower;
                 
                 // Use safe outfit setting with null check
@@ -636,7 +637,16 @@ internal class CultUtils {
             {
                 follower.Brain.Info.WorkerPriority = WorkerPriority.Rubble;
                 follower.Brain.Stats.WorkerBeenGivenOrders = true;
-                follower.Brain.CheckChangeState();
+                
+                // Only call CheckChangeState if the brain is fully initialized
+                try {
+                    if(follower.Brain != null && follower.Brain.Info != null){
+                        follower.Brain.CheckChangeState();
+                    }
+                } catch(Exception e){
+                    UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to change worker state: {e.Message}");
+                    // Continue anyway
+                }
             }
 
             FollowerInfo newFollowerInfo = GetFollowerInfo(follower);
