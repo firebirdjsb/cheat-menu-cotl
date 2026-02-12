@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using HarmonyLib;
-using UnityAnnotationHelpers;
 
 namespace CheatMenu;
 
@@ -100,7 +99,7 @@ public static class ReflectionHelper {
         }
     }
 
-    public static string PatchMethodPrefix(Type classDef, string methodName, MethodInfo patchMethod, BindingFlags flags = BindingFlags.Default, Type[] typeParams = null){
+    public static string PatchMethodPrefix(Type classDef, string methodName, MethodInfo patchMethod, BindingFlags flags = BindingFlags.Default, Type[] typeParams = null, bool silent = false){
         if(patchMethod == null){
             UnityEngine.Debug.Log($"[ReflectionHelper] Can't patch method, passed patchMethod is null!");
             return null;
@@ -124,7 +123,11 @@ public static class ReflectionHelper {
         }
          
         if(methodInfo == null){
-            UnityEngine.Debug.LogError($"[ReflectionHelper] Method was not patched, unable to find method info {methodName} (Report To XUnfairX!)");
+            if(!silent){
+                UnityEngine.Debug.LogError($"[ReflectionHelper] Method was not patched, unable to find method info {methodName} (Report To XUnfairX!)");
+            } else {
+                UnityEngine.Debug.LogWarning($"[ReflectionHelper] Method was not patched, unable to find method info {methodName} (game version may have changed)");
+            }
             return null;
         }
 

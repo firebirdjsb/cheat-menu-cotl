@@ -7,112 +7,99 @@ namespace CheatMenu;
 [CheatCategory(CheatCategoryEnum.SPLITSCREEN)]
 public class SplitscreenDefinitions : IDefinition{
 
-    private static GameObject FindPlayer2(){
-        try {
-            // In COTL splitscreen, Player 2 is a second PlayerFarming instance
-            PlayerFarming[] allPlayers = UnityEngine.Object.FindObjectsOfType<PlayerFarming>();
-            if(allPlayers.Length > 1){
-                // First player is PlayerFarming.Instance, second is Player 2
-                foreach(var player in allPlayers){
-                    if(player != PlayerFarming.Instance){
-                        return player.gameObject;
-                    }
-                }
-            }
-        } catch { }
-
-        try {
-            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-            if(players.Length > 1){
-                return players[1];
-            }
-        } catch { }
-
-        return null;
-    }
-
-    private static Health GetPlayer2Health(){
-        GameObject p2 = FindPlayer2();
-        if(p2 != null){
-            return p2.GetComponent<Health>();
+    private static PlayerFarming GetPlayer2(){
+        if(PlayerFarming.players.Count > 1){
+            return PlayerFarming.players[1];
         }
         return null;
     }
 
     [CheatDetails("P2: Heal x1", "Heals a Red Heart of Player 2")]
     public static void P2HealRed(){
-        Health health = GetPlayer2Health();
-        if(health != null){
-            health.Heal(2f);
+        var p2 = GetPlayer2();
+        if(p2 != null){
+            p2.health.Heal(2f);
             CultUtils.PlayNotification("P2: Healed 1 red heart!");
         } else {
-            CultUtils.PlayNotification("Player 2 not found!");
+            CultUtils.PlayNotification("Player 2 not found! Start co-op first.");
+        }
+    }
+
+    [CheatDetails("P2: Full Heal", "Fully heals Player 2 to max HP")]
+    public static void P2FullHeal(){
+        var p2 = GetPlayer2();
+        if(p2 != null){
+            p2.health.Heal(999f);
+            CultUtils.PlayNotification("P2: Fully healed!");
+        } else {
+            CultUtils.PlayNotification("Player 2 not found! Start co-op first.");
+        }
+    }
+
+    [CheatDetails("P2: Add x1 Red Heart", "Permanently adds a Red Heart container to Player 2")]
+    public static void P2AddRedHeart(){
+        var p2 = GetPlayer2();
+        if(p2 != null){
+            p2.health.totalHP += 2f;
+            p2.health.Heal(2f);
+            CultUtils.PlayNotification("P2: Red heart added!");
+        } else {
+            CultUtils.PlayNotification("Player 2 not found! Start co-op first.");
         }
     }
 
     [CheatDetails("P2: Add x1 Blue Heart", "Adds a Blue Heart to Player 2")]
     public static void P2AddBlueHeart(){
-        Health health = GetPlayer2Health();
-        if(health != null){
-            health.BlueHearts += 2;
+        var p2 = GetPlayer2();
+        if(p2 != null){
+            p2.health.BlueHearts += 2;
             CultUtils.PlayNotification("P2: Blue heart added!");
         } else {
-            CultUtils.PlayNotification("Player 2 not found!");
+            CultUtils.PlayNotification("Player 2 not found! Start co-op first.");
         }
     }
 
     [CheatDetails("P2: Add x1 Black Heart", "Adds a Black Heart to Player 2")]
     public static void P2AddBlackHeart(){
-        Health health = GetPlayer2Health();
-        if(health != null){
-            health.BlackHearts += 2;
+        var p2 = GetPlayer2();
+        if(p2 != null){
+            p2.health.BlackHearts += 2;
             CultUtils.PlayNotification("P2: Black heart added!");
         } else {
-            CultUtils.PlayNotification("Player 2 not found!");
+            CultUtils.PlayNotification("Player 2 not found! Start co-op first.");
+        }
+    }
+
+    [CheatDetails("P2: Add x1 Spirit Heart", "Adds a Spirit Heart to Player 2")]
+    public static void P2AddSpiritHeart(){
+        var p2 = GetPlayer2();
+        if(p2 != null){
+            p2.health.TotalSpiritHearts += 2f;
+            CultUtils.PlayNotification("P2: Spirit heart added!");
+        } else {
+            CultUtils.PlayNotification("Player 2 not found! Start co-op first.");
+        }
+    }
+
+    [CheatDetails("P2: Godmode", "P2: Godmode (OFF)", "P2: Godmode (ON)", "Full invincibility for Player 2", true)]
+    public static void P2GodMode(bool flag){
+        var p2 = GetPlayer2();
+        if(p2 != null){
+            p2.health.GodMode = flag ? Health.CheatMode.God : Health.CheatMode.None;
+            CultUtils.PlayNotification(flag ? "P2: Godmode ON!" : "P2: Godmode OFF!");
+        } else {
+            CultUtils.PlayNotification("Player 2 not found! Start co-op first.");
         }
     }
 
     [CheatDetails("P2: Die", "Kills Player 2")]
     public static void P2Die(){
-        GameObject p2 = FindPlayer2();
+        var p2 = GetPlayer2();
         if(p2 != null){
-            Health health = p2.GetComponent<Health>();
-            health.DealDamage(9999f, p2, p2.transform.position, false, Health.AttackTypes.Melee, false, (Health.AttackFlags)0);
+            p2.health.DealDamage(9999f, p2.gameObject, p2.transform.position, false, Health.AttackTypes.Melee, false, (Health.AttackFlags)0);
             CultUtils.PlayNotification("P2: You died!");
         } else {
-            CultUtils.PlayNotification("Player 2 not found!");
-        }
-    }
-
-    [CheatDetails("P2: Godmode", "Gives Invincibility to Player 2", true)]
-    public static void P2GodMode(bool flag){
-        try {
-            GameObject p2 = FindPlayer2();
-            if(p2 != null){
-                Health health = p2.GetComponent<Health>();
-                if(health != null){
-                    Traverse.Create(health).Property("Invincible").SetValue(flag);
-                    CultUtils.PlayNotification(flag ? "P2: Godmode enabled!" : "P2: Godmode disabled!");
-                } else {
-                    CultUtils.PlayNotification("Player 2 health not found!");
-                }
-            } else {
-                CultUtils.PlayNotification("Player 2 not found!");
-            }
-        } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"P2 Godmode failed: {e.Message}");
-            CultUtils.PlayNotification("P2: Godmode failed!");
-        }
-    }
-
-    [CheatDetails("P2: Full Heal", "Fully heals Player 2")]
-    public static void P2FullHeal(){
-        Health health = GetPlayer2Health();
-        if(health != null){
-            health.Heal(999f);
-            CultUtils.PlayNotification("P2: Fully healed!");
-        } else {
-            CultUtils.PlayNotification("Player 2 not found!");
+            CultUtils.PlayNotification("Player 2 not found! Start co-op first.");
         }
     }
 }

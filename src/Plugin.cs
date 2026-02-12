@@ -1,10 +1,9 @@
 using BepInEx;
 using System;
-using UnityAnnotationHelpers;
 
 namespace CheatMenu;
 
-[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.0.7")]
+[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.2.0")]
 public class Plugin : BaseUnityPlugin
 {    
     private UnityAnnotationHelper _annotationHelper;

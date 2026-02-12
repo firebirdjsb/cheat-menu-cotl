@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityAnnotationHelpers;
 
 namespace CheatMenu;
 
@@ -227,8 +226,8 @@ private static readonly int MENU_HEIGHT = 400;
         string hintText;
         if(CheatConfig.Instance.ControllerSupport.Value) {
             hintText = IsWithinCategory() 
-                ? $"[B] Back | [Start] Close | [Stick/D-Pad] Nav | [A] Select" 
-                : $"[Start] Close | [Stick/D-Pad] Nav | [A] Select";
+                ? $"[B] Back | [R3] Close | [Stick/D-Pad] Nav | [A] Select" 
+                : $"[R3] Toggle | [Stick/D-Pad] Nav | [A] Select";
         } else {
             hintText = IsWithinCategory() 
                 ? $"[{CheatConfig.Instance.BackCategory.Value.MainKey}] Back | [ESC] Close" 
@@ -292,16 +291,16 @@ private static readonly int MENU_HEIGHT = 400;
     [Update]
     public static void Update()
     {                
-        // Handle animation
+        // Handle animation (use unscaledDeltaTime so it works while paused)
         if(s_animatingIn){
-            s_animationProgress += Time.deltaTime * s_animationSpeed;
+            s_animationProgress += Time.unscaledDeltaTime * s_animationSpeed;
             if(s_animationProgress >= 1f){
                 s_animationProgress = 1f;
                 s_animatingIn = false;
             }
         }
         if(s_animatingOut){
-            s_animationProgress -= Time.deltaTime * s_animationSpeed;
+            s_animationProgress -= Time.unscaledDeltaTime * s_animationSpeed;
             if(s_animationProgress <= 0f){
                 s_animationProgress = 0f;
                 s_animatingOut = false;
@@ -314,22 +313,23 @@ private static readonly int MENU_HEIGHT = 400;
 
         bool localGuiEnabled = GuiEnabled;
         bool keyDown = Input.GetKeyDown(CheatConfig.Instance.GuiKeybind.Value.MainKey);
-        bool controllerMenuDown = CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.GetMenuPressed();
+        // Controller open: R3 (Right Stick Click)
+        bool controllerComboDown = CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.GetToggleMenuPressed();
         
-        if(CultUtils.IsInGame() && (keyDown || controllerMenuDown)){
+        if(CultUtils.IsInGame() && (keyDown || controllerComboDown)){
             if(!GuiEnabled && !s_animatingIn){
                 StartOpenAnimation();
                 s_selectedButtonIndex = 0;
             } else if(GuiEnabled && !s_animatingOut) {
                 StartCloseAnimation();
             }
-        } else if((keyDown || controllerMenuDown) && !CultUtils.IsInGame()) {
+        } else if((keyDown || controllerComboDown) && !CultUtils.IsInGame()) {
             NotificationHandler.CreateNotification("Cheat Menu can only be opened once in game!", 2);
         }
         
         // Controller navigation when menu is open
         if(GuiEnabled && CheatConfig.Instance.ControllerSupport.Value && !s_animatingIn && !s_animatingOut) {
-            float currentTime = Time.time;
+            float currentTime = Time.unscaledTime;
             
             if(currentTime - s_lastNavigationTime > s_navigationDelay) {
                 int navVertical = RewiredInputHelper.GetNavigationVertical();
@@ -349,8 +349,8 @@ private static readonly int MENU_HEIGHT = 400;
                 }
             }
             
-            // Controller select button
-            if(RewiredInputHelper.GetSelectPressed()){
+            // Controller select button - suppress if R3 is held (toggle press window)
+            if(RewiredInputHelper.GetSelectPressed() && !RewiredInputHelper.IsR3Held()){
                 s_controllerSelectPressed = true;
             }
         }

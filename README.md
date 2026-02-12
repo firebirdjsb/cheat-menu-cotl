@@ -1,21 +1,18 @@
 # cheat-menu-cotl
 
-> ** **Version 1.0.7** - Controller + Animation Update! Slide animation, locked menu, full gamepad support with hover glow.
+> **Version 1.1.0** - Weather Fix, New Items, QOL & Assembly Update!
 
 Provides a list of cheats/utilities in an easily accessible **compact GUI**.
 
-## What's New in v1.0.7
+## What's New in v1.1.0
 
+- **Weather System Rewrite** - Uses `WeatherSystemController` directly with proper `WeatherType` and `WeatherStrength` enums. Supports Rain (Light/Heavy), Wind, Snow (Light/Blizzard), Heat, and Clear
+- **New QOL Category** - Season switching, clear all cooldowns, pause simulation, max all follower stats, unlock everything in one click
+- **New Resource Items** - Silk Thread, Sin Drinks, God Tears, Relics, Talisman, Soot, Trinket Cards, Flowers, DLC Necklaces, All Drinks, Give All Items
+- **Assembly Dump Integration** - All APIs verified against the actual decompiled game assembly for accuracy
+- **Controller Support** - Full Rewired-based gamepad input (D-pad, sticks, A/B/Start buttons)
 - **Slide Animation** - Menu slides in from bottom-left corner with easing
 - **Locked Position** - Menu is fixed in bottom-left, no accidental dragging
-- **Better Controller Support** - D-pad navigation with visual hover glow on selected items
-- **Even Smaller Menu** - 420x500px with 30px buttons and 2px spacing
-- **Weather Fix** - Uses direct instance access instead of broken Traverse methods
-- **Auto Shear Wool** - New DLC cheat for Lambish/Yakish followers
-- **Clear Base Grass** - New cheat to remove grass/weeds from base
-- **Rubble Fix** - Uses proper structure types instead of CheatConsole
-- **All Notifications** - Every action now gives in-game feedback popup
-- **Snow Weather** - Added winter/snow weather option
 
 ---
 
@@ -23,20 +20,20 @@ Provides a list of cheats/utilities in an easily accessible **compact GUI**.
 Press the ```M``` key to activate the cheat menu and click on any of the buttons to enable/disable the specific cheats or enter that specific cheat category. ```N``` key can be used to go back from a category. Both these keys can be changed in the configuration in the ```config``` folder.
 
 ### Controller Support
-**Full gamepad/controller support** with visual hover glow! Navigate the menu using:
-- **D-Pad Up/Down** - Navigate between options (highlighted with red glow)
-- **Left Stick Click (L3)** - Open/close menu
+**Full gamepad/controller support** via Rewired (the game's native input system)! Navigate the menu using:
+- **D-Pad / Left Stick** - Navigate between options (highlighted with red glow)
+- **R3 (Right Stick Click)** - Open/close menu
 - **B/Circle Button** - Go back to previous menu (or close menu from main)
 - **A/Cross Button** - Select/activate option
 
-Controller buttons can be customized in the config file. Works with Xbox, PlayStation, Nintendo Switch Pro, and generic controllers!
+Works with Xbox, PlayStation, Nintendo Switch Pro, and generic controllers!
 
 To see what cheats/utilities the mod offers see below:
 [Available Cheats](doc/cheats.md)
 
-Latest changes: [1.0.7](doc/changelogs/1.0.7.md) - **Controller + Animation Update!**
+Latest changes: [1.1.0](doc/changelogs/1.1.0.md) - **Weather Fix, New Items, QOL & Assembly Update!**
 
-**Note**: This version features a compact, animated menu with controller hover glow, slide animation, and full gamepad support. Compatible with Cult of the Lamb v1.5.16.1000+
+**Note**: This version uses APIs verified against the decompiled game assembly. Compatible with Cult of the Lamb latest version.
 
 ## Installation
 - Make sure you have BepInEx installed ([Guide](https://docs.bepinex.dev/articles/user_guide/installation/index.html))

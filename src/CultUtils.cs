@@ -222,21 +222,48 @@ internal class CultUtils {
         }
     }
 
+    private static bool IsLandscapeType(string typeName){
+        return typeName.Contains("GRASS") || typeName.Contains("WEED") || typeName.Contains("BUSH") 
+            || typeName.Contains("SHRUB") || typeName.Contains("FERN") || typeName.Contains("PLANT") 
+            || typeName.Contains("FOLIAGE") || typeName.Contains("STUMP") || typeName.Contains("SAPLING")
+            || typeName.Contains("DECORATION_ENVIRONMENT");
+    }
+
     public static void ClearBaseGrass(){
         try {
             int count = 0;
-            foreach(var grass in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.GRASS)){
-                grass.Remove();
-                count++;
+            foreach(var locValue in Enum.GetValues(typeof(FollowerLocation))){
+                FollowerLocation loc = (FollowerLocation)locValue;
+                foreach(var brainType in Enum.GetValues(typeof(StructureBrain.TYPES))){
+                    string typeName = brainType.ToString();
+                    if(IsLandscapeType(typeName)){
+                        try {
+                            var structures = StructureManager.GetAllStructuresOfType(loc, (StructureBrain.TYPES)brainType);
+                            foreach(var structure in structures){
+                                structure.Remove();
+                                count++;
+                            }
+                        } catch { }
+                    }
+                }
             }
-            foreach(var weed in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.WEEDS)){
-                weed.Remove();
-                count++;
+            // Fallback: iterate all structure brain types by name for any remaining
+            foreach(var brainType in Enum.GetValues(typeof(StructureBrain.TYPES))){
+                string typeName = brainType.ToString();
+                if(IsLandscapeType(typeName)){
+                    try {
+                        var remaining = StructureManager.GetAllStructuresOfType((StructureBrain.TYPES)brainType);
+                        foreach(var structure in remaining){
+                            structure.Remove();
+                            count++;
+                        }
+                    } catch { }
+                }
             }
-            PlayNotification($"Grass cleared! ({count} items)");
+            PlayNotification($"Landscape cleared! ({count} items)");
         } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to clear grass: {e.Message}");
-            PlayNotification("Failed to clear grass!");
+            UnityEngine.Debug.LogWarning($"Failed to clear landscape: {e.Message}");
+            PlayNotification("Failed to clear landscape!");
         }
     }
 

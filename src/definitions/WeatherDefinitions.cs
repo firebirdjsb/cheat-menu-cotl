@@ -1,85 +1,97 @@
 using System;
-using System.Reflection;
 using UnityEngine;
-using HarmonyLib;
 
 namespace CheatMenu;
 
 [CheatCategory(CheatCategoryEnum.WEATHER)]
 public class WeatherDefinitions : IDefinition{
 
-    private static void SetWeather(string weatherName, string displayName){
+    private static void SetWeather(WeatherSystemController.WeatherType weatherType, WeatherSystemController.WeatherStrength strength, string displayName){
         try {
-            if(BiomeBaseManager.Instance == null){
+            if(WeatherSystemController.Instance != null){
+                WeatherSystemController.Instance.SetWeather(weatherType, strength, 0f, true, true);
+                CultUtils.PlayNotification($"Weather set to {displayName}!");
+            } else {
                 CultUtils.PlayNotification("Weather system not available!");
-                return;
             }
-
-            // Try calling SimSetWeather directly via Traverse
-            Traverse biomeTraverse = Traverse.Create(BiomeBaseManager.Instance);
-
-            // Look for Weather enum on BiomeBaseManager or in the assembly
-            Type weatherEnumType = typeof(BiomeBaseManager).GetNestedType("Weather", BindingFlags.Public | BindingFlags.NonPublic);
-            if(weatherEnumType == null){
-                weatherEnumType = typeof(BiomeBaseManager).GetNestedType("WeatherType", BindingFlags.Public | BindingFlags.NonPublic);
-            }
-            if(weatherEnumType == null){
-                weatherEnumType = typeof(BiomeBaseManager).Assembly.GetType("WeatherType");
-            }
-            if(weatherEnumType == null){
-                weatherEnumType = typeof(BiomeBaseManager).Assembly.GetType("BiomeBaseManager+Weather");
-            }
-
-            if(weatherEnumType != null && Enum.IsDefined(weatherEnumType, weatherName)){
-                object weatherVal = Enum.Parse(weatherEnumType, weatherName);
-
-                // Try SetWeather first, then SimSetWeather
-                string[] methodNames = new[]{ "SetWeather", "SimSetWeather" };
-                foreach(string methodName in methodNames){
-                    MethodInfo method = typeof(BiomeBaseManager).GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    if(method != null){
-                        method.Invoke(BiomeBaseManager.Instance, new object[]{ weatherVal });
-                        CultUtils.PlayNotification($"Weather set to {displayName}!");
-                        return;
-                    }
-                }
-            }
-
-            // Fallback: try CheatConsole static methods
-            string[] consoleMethods = new[]{ weatherName, $"Set{weatherName}", $"Weather{weatherName}" };
-            foreach(string name in consoleMethods){
-                MethodInfo method = typeof(CheatConsole).GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                if(method != null && method.GetParameters().Length == 0){
-                    method.Invoke(null, null);
-                    CultUtils.PlayNotification($"Weather set to {displayName}!");
-                    return;
-                }
-            }
-
-            CultUtils.PlayNotification($"Failed to set {displayName} - weather method not found!");
         } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to set weather {displayName}: {e.Message}");
+            Debug.LogWarning($"Failed to set weather {displayName}: {e.Message}");
             CultUtils.PlayNotification($"Failed to set {displayName}!");
         }
     }
 
-    [CheatDetails("Weather: Rain", "Set weather to raining")]
-    public static void WeatherRain(){
-        SetWeather("Rain", "Rain");
+    [CheatDetails("Weather: Rain (Light)", "Set weather to light rain")]
+    public static void WeatherRainLight(){
+        SetWeather(WeatherSystemController.WeatherType.Raining, WeatherSystemController.WeatherStrength.Light, "Light Rain");
+    }
+
+    [CheatDetails("Weather: Rain (Heavy)", "Set weather to heavy rain")]
+    public static void WeatherRainHeavy(){
+        SetWeather(WeatherSystemController.WeatherType.Raining, WeatherSystemController.WeatherStrength.Heavy, "Heavy Rain");
     }
 
     [CheatDetails("Weather: Windy", "Set weather to windy")]
     public static void WeatherWindy(){
-        SetWeather("Windy", "Windy");
+        SetWeather(WeatherSystemController.WeatherType.Windy, WeatherSystemController.WeatherStrength.Medium, "Windy");
     }
 
-    [CheatDetails("Weather: Clear", "Set weather to clear")]
+    [CheatDetails("Weather: Snow (Dusting)", "Set weather to dusting snow")]
+    public static void WeatherSnowDusting(){
+        SetWeather(WeatherSystemController.WeatherType.Snowing, WeatherSystemController.WeatherStrength.Dusting, "Dusting Snow");
+    }
+
+    [CheatDetails("Weather: Snow (Light)", "Set weather to light snow")]
+    public static void WeatherSnowLight(){
+        SetWeather(WeatherSystemController.WeatherType.Snowing, WeatherSystemController.WeatherStrength.Light, "Light Snow");
+    }
+
+    [CheatDetails("Weather: Snow (Medium)", "Set weather to medium snow")]
+    public static void WeatherSnowMedium(){
+        SetWeather(WeatherSystemController.WeatherType.Snowing, WeatherSystemController.WeatherStrength.Medium, "Medium Snow");
+    }
+
+    [CheatDetails("Weather: Snow (Heavy)", "Set weather to heavy snow")]
+    public static void WeatherSnowHeavy(){
+        SetWeather(WeatherSystemController.WeatherType.Snowing, WeatherSystemController.WeatherStrength.Heavy, "Heavy Snow");
+    }
+
+    [CheatDetails("Weather: Blizzard", "Set weather to extreme blizzard")]
+    public static void WeatherBlizzard(){
+        SetWeather(WeatherSystemController.WeatherType.Snowing, WeatherSystemController.WeatherStrength.Extreme, "Blizzard");
+    }
+
+    [CheatDetails("Weather: Heat", "Set weather to heat wave")]
+    public static void WeatherHeat(){
+        SetWeather(WeatherSystemController.WeatherType.Heat, WeatherSystemController.WeatherStrength.Medium, "Heat");
+    }
+
+    [CheatDetails("Weather: Clear", "Clear all weather effects")]
     public static void WeatherClear(){
-        SetWeather("Clear", "Clear");
+        try {
+            if(WeatherSystemController.Instance != null){
+                WeatherSystemController.Instance.StopCurrentWeather(0f);
+                CultUtils.PlayNotification("Weather cleared!");
+            } else {
+                CultUtils.PlayNotification("Weather system not available!");
+            }
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to clear weather: {e.Message}");
+            CultUtils.PlayNotification("Failed to clear weather!");
+        }
     }
 
-    [CheatDetails("Weather: Blood Rain", "Set weather to blood rain")]
-    public static void WeatherBloodRain(){
-        SetWeather("BloodRain", "Blood Rain");
+    [CheatDetails("Season: Spring", "Change current season to Spring")]
+    public static void SetSeasonSpring(){
+        SeasonsManager.CurrentSeason = SeasonsManager.Season.Spring;
+        if(WeatherSystemController.Instance != null){
+            WeatherSystemController.Instance.StopCurrentWeather(0f);
+        }
+        CultUtils.PlayNotification("Season set to Spring!");
+    }
+
+    [CheatDetails("Season: Winter", "Change current season to Winter")]
+    public static void SetSeasonWinter(){
+        SeasonsManager.CurrentSeason = SeasonsManager.Season.Winter;
+        CultUtils.PlayNotification("Season set to Winter!");
     }
 }

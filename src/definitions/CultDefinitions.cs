@@ -3,7 +3,6 @@ using System;
 using System.Reflection;
 using UnityEngine;
 using System.Collections.Generic;
-using UnityAnnotationHelpers;
 using System.Text.RegularExpressions;
 
 namespace CheatMenu;
@@ -54,7 +53,7 @@ public class CultDefinitions : IDefinition {
         CultUtils.ClearBaseTrees();
     }
 
-    [CheatDetails("Clear Base Grass", "Removes all grass and weeds in the base")]
+    [CheatDetails("Clear Base Landscape", "Removes all grass, weeds, bushes, ferns, stumps and landscape entities from all areas")]
     public static void ClearBaseGrass(){
         CultUtils.ClearBaseGrass();
     }
@@ -184,16 +183,14 @@ public class CultDefinitions : IDefinition {
         }
     }
 
-    [CheatDetails("Harvest All Farms", "Instantly collects all grown crops from farm plots")]
+    [CheatDetails("Harvest All Farms", "Instantly harvests all ready crops from farm plots")]
     public static void HarvestAllFarms(){
         try {
             int count = 0;
-            var farmPlots = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.FARM_PLOT);
+            var farmPlots = StructureManager.GetAllStructuresOfType<Structures_FarmerPlot>();
             foreach(var farm in farmPlots){
-                Traverse farmTraverse = Traverse.Create(farm);
-                Traverse fullyGrown = farmTraverse.Property("FullyGrown");
-                if(fullyGrown.PropertyExists() && fullyGrown.GetValue<bool>()){
-                    farmTraverse.Method("Harvest").GetValue();
+                if(farm.IsFullyGrown){
+                    farm.Harvest();
                     count++;
                 }
             }
@@ -201,6 +198,24 @@ public class CultDefinitions : IDefinition {
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"Failed to harvest farms: {e.Message}");
             CultUtils.PlayNotification("Failed to harvest farms!");
+        }
+    }
+
+    [CheatDetails("Grow All Crops", "Instantly grows all planted crops to full")]
+    public static void GrowAllCrops(){
+        try {
+            int count = 0;
+            var farmPlots = StructureManager.GetAllStructuresOfType<Structures_FarmerPlot>();
+            foreach(var farm in farmPlots){
+                if(!farm.IsFullyGrown && farm.HasPlantedSeed()){
+                    farm.ForceFullyGrown();
+                    count++;
+                }
+            }
+            CultUtils.PlayNotification($"Grew {count} crop(s) to full!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to grow crops: {e.Message}");
+            CultUtils.PlayNotification("Failed to grow crops!");
         }
     }
 

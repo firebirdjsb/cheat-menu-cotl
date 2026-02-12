@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Collections.Generic;
 using System;
-using UnityAnnotationHelpers;
 
 namespace CheatMenu;
 
@@ -80,8 +79,14 @@ public enum CheatCategoryEnum {
     [StringEnum("DLC")]
     DLC,
 
+    [StringEnum("Farming")]
+    FARMING,
+
     [StringEnum("Splitscreen")]
     SPLITSCREEN,
+
+    [StringEnum("Combat")]
+    COMBAT,
 
     [StringEnum("Misc")]
     MISC

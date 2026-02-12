@@ -28,7 +28,7 @@ public class CheatConfig{
         ControllerSupport = config.Bind(
             new ConfigDefinition("Controller", "Enable Controller Support"),
             true,
-            new ConfigDescription("Enable controller/gamepad support for menu navigation. Uses the game's detected controller via Rewired. A=Select, B=Back, Start=Open/Close, Stick/D-Pad=Navigate")
+            new ConfigDescription("Enable controller/gamepad support for menu navigation. Uses the game's detected controller via Rewired. R3=Open/Close, A=Select, B=Back, Stick/D-Pad=Navigate.")
         );
         Instance = this;
     }

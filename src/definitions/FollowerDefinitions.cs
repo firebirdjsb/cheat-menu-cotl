@@ -1,3 +1,6 @@
+using System;
+using UnityEngine;
+
 namespace CheatMenu;
 
 [CheatCategory(CheatCategoryEnum.FOLLOWER)]
@@ -18,6 +21,18 @@ public class FollowerDefinitions : IDefinition{
     public static void SpawnArrivedFollower(){
         FollowerManager.CreateNewRecruit(FollowerLocation.Base, NotificationCentre.NotificationType.NewRecruit);
         CultUtils.PlayNotification("New follower arrived!");
+    }
+
+    [CheatDetails("Spawn Child Follower", "Spawns a child follower at the base")]
+    public static void SpawnChildFollower(){
+        try {
+            Follower follower = FollowerManager.CreateNewFollower(FollowerLocation.Base, PlayerFarming.Instance.transform.position, false);
+            follower.Brain.MakeChild();
+            CultUtils.PlayNotification("Child follower spawned!");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to spawn child: {e.Message}");
+            CultUtils.PlayNotification("Failed to spawn child!");
+        }
     }
 
     [CheatDetails("Turn all Followers Young", "Changes the age of all followers to young")]
@@ -50,6 +65,17 @@ public class FollowerDefinitions : IDefinition{
             CultUtils.KillFollower(CultUtils.GetFollower(follower), false);
         }
         CultUtils.PlayNotification("All followers killed!");
+    }
+
+    [CheatDetails("Kill Random Follower", "Kills a random follower")]
+    public static void KillRandomFollower(){
+        try {
+            HarmonyLib.Traverse.Create(typeof(CheatConsole)).Method("KillRandomFollower").GetValue();
+            CultUtils.PlayNotification("Random follower killed!");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to kill random follower: {e.Message}");
+            CultUtils.PlayNotification("Failed to kill random follower!");
+        }
     }
 
     [CheatDetails("Revive All Followers", "Revive all currently dead followers")]
@@ -89,7 +115,7 @@ public class FollowerDefinitions : IDefinition{
         CultUtils.ModifyFaith(0f, "Cleared faith :)");
     }
 
-    [CheatDetails("Remove Hunger", "Clears starvation from any followers and maximazes satiation for all followers")]
+    [CheatDetails("Remove Hunger", "Clears starvation from any followers and maximizes satiation for all followers")]
     public static void RemoveHunger(){
         foreach (var follower in DataManager.Instance.Followers)
         {
@@ -112,8 +138,8 @@ public class FollowerDefinitions : IDefinition{
                 HarmonyLib.Traverse.Create(follower).Field("XP").SetValue(0f);
             }
             CultUtils.PlayNotification("All followers leveled to max!");
-        } catch(System.Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to level followers: {e.Message}");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to level followers: {e.Message}");
             CultUtils.PlayNotification("Failed to level followers!");
         }
     }
@@ -125,13 +151,63 @@ public class FollowerDefinitions : IDefinition{
             {
                 Follower f = CultUtils.GetFollowerFromInfo(follower);
                 if(f != null && f.Brain != null){
-                    HarmonyLib.Traverse.Create(f.Brain).Method("AddAdoration", new System.Type[]{typeof(int), typeof(float)}).GetValue(0, 100f);
+                    HarmonyLib.Traverse.Create(f.Brain).Method("AddAdoration", new Type[]{typeof(int), typeof(float)}).GetValue(0, 100f);
                 }
             }
             CultUtils.PlayNotification("Follower loyalty increased!");
-        } catch(System.Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to increase loyalty: {e.Message}");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to increase loyalty: {e.Message}");
             CultUtils.PlayNotification("Failed to increase loyalty!");
         }
+    }
+
+    [CheatDetails("Make All Followers Immortal", "Adds the Immortal trait to all followers")]
+    public static void MakeAllFollowersImmortal(){
+        try {
+            int count = 0;
+            foreach(var follower in DataManager.Instance.Followers){
+                if(!follower.Traits.Contains(FollowerTrait.TraitType.Immortal)){
+                    follower.Traits.Add(FollowerTrait.TraitType.Immortal);
+                    count++;
+                }
+            }
+            CultUtils.PlayNotification($"{count} follower(s) made immortal!");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to make followers immortal: {e.Message}");
+            CultUtils.PlayNotification("Failed to make followers immortal!");
+        }
+    }
+
+    [CheatDetails("Max All Follower Stats", "Max out faith, satiation and clear starvation for all followers")]
+    public static void MaxAllFollowerStats(){
+        foreach(var follower in DataManager.Instance.Followers){
+            CultUtils.SetFollowerFaith(follower, 100f);
+            CultUtils.MaximizeSatiationAndRemoveStarvation(follower);
+            CultUtils.CureIllness(follower);
+        }
+        CultUtils.PlayNotification("All follower stats maxed!");
+    }
+
+    [CheatDetails("Remove Exhaustion", "Clears exhaustion from all followers so they can work again")]
+    public static void RemoveExhaustion(){
+        try {
+            int count = 0;
+            foreach(var follower in DataManager.Instance.Followers){
+                if(follower.Exhaustion > 0f){
+                    follower.Exhaustion = 0f;
+                    count++;
+                }
+            }
+            CultUtils.PlayNotification(count > 0 ? $"{count} follower(s) rested!" : "No exhausted followers!");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to remove exhaustion: {e.Message}");
+            CultUtils.PlayNotification("Failed to remove exhaustion!");
+        }
+    }
+
+    [CheatDetails("Give Follower Tokens", "Gives 10 follower tokens")]
+    public static void GiveFollowerTokens(){
+        DataManager.Instance.FollowerTokens += 10;
+        CultUtils.PlayNotification("10 follower tokens added!");
     }
 }

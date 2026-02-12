@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using HarmonyLib;
 
@@ -17,17 +15,16 @@ public class ResourceDefinitions : IDefinition{
 
     [CheatDetails("Give Commandment Stone", "Gives a Commandment Stone")]
     public static void GiveCommandmentStone(){
-        UnityEngine.Debug.Log("hi");
         CultUtils.GiveDocterineStone();
     }
 
-    [CheatDetails("Give Monster Heart", "Gives a heart of the heretic")]
+    [CheatDetails("Give Monster Heart", "Gives x10 hearts of the heretic")]
     public static void GiveMonsterHeart(){
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MONSTER_HEART, 10);
         CultUtils.PlayNotification("Monster hearts added!");
     }
 
-    [CheatDetails("Give Food", "Gives all farming based foods")]
+    [CheatDetails("Give Food", "Gives x10 of all farming-based foods")]
     public static void GiveFarmingFood(){
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.CAULIFLOWER, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.BERRY, 10);
@@ -38,20 +35,23 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification("Food added to inventory!");
     }
 
-    [CheatDetails("Give Fish", "Gives all types of fish (x10)")]
-    public static void GiveFish(){
+    [CheatDetails("Give All Fish", "Gives x10 of all fish types including DLC")]
+    public static void GiveAllFish(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_SMALL, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_BIG, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_CRAB, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_BLOWFISH, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_LOBSTER, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_OCTOPUS, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_SMALL, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_SQUID, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_SWORDFISH, 10);
-        CultUtils.PlayNotification("Fish added to inventory!");
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_BLOWFISH, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_COD, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_PIKE, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_CATFISH, 10);
+        CultUtils.PlayNotification("All fish added!");
     }
 
-    [CheatDetails("Give Fertiziler", "Gives x100 Fertiziler (Poop)")]
+    [CheatDetails("Give Fertilizer", "Gives x100 Fertilizer (Poop)")]
     public static void GivePoop(){
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.POOP, 100);
         CultUtils.PlayNotification("Fertilizer added!");
@@ -63,23 +63,36 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification("Follower meat added!");
     }
 
-    [CheatDetails("Give Follower Necklaces", "Gives one of each of the various follower necklaces")]
-    public static void GiveGifts(){
+    [CheatDetails("Give All Necklaces", "Gives one of every necklace type in the game")]
+    public static void GiveAllNecklaces(){
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_1, 1);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_2, 1);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_3, 1);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_4, 1);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_5, 1);
-        CultUtils.PlayNotification("Necklaces added!");
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Loyalty, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Demonic, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Dark, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Light, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Missionary, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Gold_Skull, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Bell, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Deaths_Door, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Winter, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Frozen, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Weird, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Targeted, 1);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DLC_NECKLACE, 1);
+        CultUtils.PlayNotification("All necklaces added!");
     }
 
-    [CheatDetails("Give Small Gift", "Gives you a 'small' gift x10")]
+    [CheatDetails("Give Small Gift", "Gives x10 small gifts")]
     public static void GiveSmallGift(){
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.GIFT_SMALL, 10);
         CultUtils.PlayNotification("Small gifts added!");
     }
 
-    [CheatDetails("Give Big Gift", "Gives you a 'big' gift x10")]
+    [CheatDetails("Give Big Gift", "Gives x10 big gifts")]
     public static void GiveBigGift(){
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.GIFT_MEDIUM, 10);
         CultUtils.PlayNotification("Big gifts added!");
@@ -91,7 +104,7 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification("500 gold coins added!");
     }
 
-    [CheatDetails("Give Seeds", "Gives x10 of common seed types")]
+    [CheatDetails("Give All Seeds", "Gives x10 of every seed type in the game")]
     public static void GiveSeeds(){
         try {
             int addedCount = 0;
@@ -104,7 +117,7 @@ public class ResourceDefinitions : IDefinition{
             }
             CultUtils.PlayNotification($"Seeds added ({addedCount} types)!");
         } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to add seeds: {e.Message}");
+            Debug.LogWarning($"Failed to add seeds: {e.Message}");
             CultUtils.PlayNotification("Failed to add some seeds!");
         }
     }
@@ -133,86 +146,88 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification("Stone added!");
     }
 
-    [CheatDetails("Give Silk", "Gives x50 Silk")]
+    [CheatDetails("Give Silk Thread", "Gives x50 Silk Thread")]
     public static void GiveSilk(){
-        try {
-            if(Enum.TryParse<InventoryItem.ITEM_TYPE>("SILK", out var silkType)){
-                CultUtils.AddInventoryItem(silkType, 50);
-                CultUtils.PlayNotification("Silk added!");
-            } else {
-                CultUtils.PlayNotification("Silk not available in this version!");
-            }
-        } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to add silk: {e.Message}");
-            CultUtils.PlayNotification("Silk not available in this version!");
-        }
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SILK_THREAD, 50);
+        CultUtils.PlayNotification("Silk thread added!");
     }
 
-    [CheatDetails("Give Sin Shards", "Gives x50 Sin Shards (Sins DLC)")]
-    public static void GiveSinShards(){
-        try {
-            // Try multiple possible enum names for sin shards
-            string[] possibleNames = new[]{ "SIN_SHARD", "SINSHARD", "Sin_Shard", "SinShard" };
-            bool found = false;
-            foreach(string name in possibleNames){
-                if(Enum.TryParse<InventoryItem.ITEM_TYPE>(name, out var sinType)){
-                    CultUtils.AddInventoryItem(sinType, 50);
-                    CultUtils.PlayNotification("Sin shards added!");
-                    found = true;
-                    break;
-                }
-            }
-            if(!found){
-                // Search for any item containing "SIN" in the name
-                foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
-                    string itemName = itemType.ToString();
-                    if(itemName.Contains("SIN")){
-                        CultUtils.AddInventoryItem((InventoryItem.ITEM_TYPE)itemType, 50);
-                        found = true;
-                    }
-                }
-                CultUtils.PlayNotification(found ? "Sin items added!" : "Sin shards not available - Sins DLC may not be installed!");
-            }
-        } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to add sin shards: {e.Message}");
-            CultUtils.PlayNotification("Sin shards not available - Sins DLC may not be installed!");
-        }
+    [CheatDetails("Give God Tears", "Gives x10 God Tears")]
+    public static void GiveGodTears(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.GOD_TEAR, 10);
+        CultUtils.PlayNotification("God tears added!");
     }
 
-    [CheatDetails("Give Trinkets", "Gives x10 of each trinket type")]
-    public static void GiveTrinkets(){
-        try {
-            int addedCount = 0;
-            foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
-                string itemName = itemType.ToString();
-                if(itemName.StartsWith("TRINKET") || itemName.Contains("TRINKET")){
-                    CultUtils.AddInventoryItem((InventoryItem.ITEM_TYPE)itemType, 10);
-                    addedCount++;
-                }
-            }
-            CultUtils.PlayNotification($"Trinkets added ({addedCount} types)!");
-        } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to add trinkets: {e.Message}");
-            CultUtils.PlayNotification("Failed to add some trinkets!");
-        }
+    [CheatDetails("Give Relics", "Gives x10 Relics")]
+    public static void GiveRelicsItem(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.RELIC, 10);
+        CultUtils.PlayNotification("Relics added!");
     }
 
-    [CheatDetails("Give Relics", "Gives x5 of each relic type")]
-    public static void GiveRelics(){
-        try {
-            int addedCount = 0;
-            foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
-                string itemName = itemType.ToString();
-                if(itemName.StartsWith("RELIC") || itemName.Contains("RELIC")){
-                    CultUtils.AddInventoryItem((InventoryItem.ITEM_TYPE)itemType, 5);
-                    addedCount++;
-                }
-            }
-            CultUtils.PlayNotification($"Relics added ({addedCount} types)!");
-        } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to add relics: {e.Message}");
-            CultUtils.PlayNotification("Failed to add some relics!");
-        }
+    [CheatDetails("Give Talisman", "Gives x10 Talisman pieces")]
+    public static void GiveTalisman(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.TALISMAN, 10);
+        CultUtils.PlayNotification("Talisman pieces added!");
+    }
+
+    [CheatDetails("Give Trinket Cards", "Gives x10 Trinket Cards")]
+    public static void GiveTrinketCards(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.TRINKET_CARD, 10);
+        CultUtils.PlayNotification("Trinket cards added!");
+    }
+
+    [CheatDetails("Give Flowers", "Gives x10 of each flower type")]
+    public static void GiveFlowers(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FLOWERS, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FLOWER_RED, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FLOWER_WHITE, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FLOWER_PURPLE, 10);
+        CultUtils.PlayNotification("Flowers added!");
+    }
+
+    [CheatDetails("Give All Meals", "Gives x10 of every cooked meal type")]
+    public static void GiveAllMeals(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GRASS, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MEAT, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GREAT, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GOOD_FISH, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_FOLLOWER_MEAT, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MUSHROOMS, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GREAT_FISH, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_BERRIES, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MEDIUM_VEG, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MEDIUM_MIXED, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GREAT_MIXED, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GREAT_MEAT, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_SPICY, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_EGG, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_SNOW_FRUIT, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MILK_BAD, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MILK_GOOD, 10);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MILK_GREAT, 10);
+        CultUtils.PlayNotification("All meals added!");
+    }
+
+    [CheatDetails("Give Refined Materials", "Gives x50 refined lumber, stone, gold, nuggets, rope")]
+    public static void GiveRefinedMaterials(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.LOG_REFINED, 50);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.STONE_REFINED, 50);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.GOLD_REFINED, 50);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.GOLD_NUGGET, 50);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.ROPE, 50);
+        CultUtils.PlayNotification("Refined materials added!");
+    }
+
+    [CheatDetails("Give Ability Points", "Gives 10 upgrade ability points")]
+    public static void GiveAbilityPoints(){
+        UpgradeSystem.AbilityPoints += 10;
+        CultUtils.PlayNotification("10 ability points added!");
+    }
+
+    [CheatDetails("Give Disciple Points", "Gives 10 disciple ability points")]
+    public static void GiveDisciplePoints(){
+        UpgradeSystem.DisciplePoints += 10;
+        CultUtils.PlayNotification("10 disciple points added!");
     }
 
     [CheatDetails("Give All Items", "Gives x10 of every single item type in the game")]
@@ -229,7 +244,7 @@ public class ResourceDefinitions : IDefinition{
             }
             CultUtils.PlayNotification($"All items added ({addedCount} types)!");
         } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to add all items: {e.Message}");
+            Debug.LogWarning($"Failed to add all items: {e.Message}");
             CultUtils.PlayNotification("Failed to add some items!");
         }
     }

@@ -1,7 +1,6 @@
 using System;
 using Rewired;
 using UnityEngine;
-using UnityAnnotationHelpers;
 
 namespace CheatMenu;
 
@@ -15,10 +14,20 @@ public static class RewiredInputHelper {
     private static Rewired.Player s_player;
     private static bool s_initialized = false;
 
+    // When R3 is consumed by the cheat menu, suppress the in-game action for a short window
+    private static float s_r3SuppressUntil = 0f;
+    private static readonly float R3_SUPPRESS_DURATION = 0.3f;
+
+    /// <summary>
+    /// Whether the in-game R3 action (e.g. bahhh/bleat) should be suppressed.
+    /// </summary>
+    public static bool ShouldSuppressR3 => Time.unscaledTime < s_r3SuppressUntil;
+
     [Init]
     public static void Init(){
         s_initialized = false;
         s_player = null;
+        s_r3SuppressUntil = 0f;
     }
 
     private static Rewired.Player GetPlayer(){
@@ -62,8 +71,8 @@ public static class RewiredInputHelper {
     /// <summary>
     /// Gets vertical navigation input from the controller.
     /// Returns 1 for up, -1 for down, 0 for none.
-    /// Reads the left stick Y axis and D-pad from the Rewired player
-    /// by scanning all connected joysticks directly.
+    /// Reads the left stick Y axis, D-pad axes, and D-pad buttons from
+    /// each connected joystick directly.
     /// </summary>
     public static int GetNavigationVertical(){
         var p = GetPlayer();
@@ -79,12 +88,15 @@ public static class RewiredInputHelper {
                         float v = j.GetAxisRaw(1);
                         if(Mathf.Abs(v) > Mathf.Abs(best)) best = v;
                     }
-                    // D-pad Y is typically axis index 7 on XInput, but can vary.
-                    // Walk all axes past index 1 looking for significant input.
+                    // Walk all axes looking for significant D-pad input
                     for(int a = 4; a < j.axisCount; a++){
                         float v = j.GetAxisRaw(a);
                         if(Mathf.Abs(v) > Mathf.Abs(best)) best = v;
                     }
+                    // D-pad as buttons: Up is typically button 4, Down is button 6
+                    // on many XInput/DirectInput controllers
+                    if(j.buttonCount > 4 && j.GetButton(4)) best = 1f;
+                    if(j.buttonCount > 6 && j.GetButton(6)) best = -1f;
                 }
                 if(best > 0.5f) return 1;
                 if(best < -0.5f) return -1;
@@ -115,6 +127,9 @@ public static class RewiredInputHelper {
                         float v = j.GetAxisRaw(a);
                         if(Mathf.Abs(v) > Mathf.Abs(best)) best = v;
                     }
+                    // D-pad as buttons: Right is typically button 5, Left is button 7
+                    if(j.buttonCount > 5 && j.GetButton(5)) best = 1f;
+                    if(j.buttonCount > 7 && j.GetButton(7)) best = -1f;
                 }
                 if(best > 0.5f) return 1;
                 if(best < -0.5f) return -1;
@@ -171,6 +186,43 @@ public static class RewiredInputHelper {
                     // 6 = Back/Select/Share, 7 = Start/Options
                     if(j.buttonCount > 7 && j.GetButtonDown(7)) return true;
                     if(j.buttonCount > 6 && j.GetButtonDown(6)) return true;
+                }
+            } catch { }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Check for R3 (Right Stick Click) press to open/close the cheat menu.
+    /// R3 is typically button 9. When detected, starts a suppression window
+    /// so the in-game bahhh/bleat action is blocked.
+    /// </summary>
+    public static bool GetToggleMenuPressed(){
+        var p = GetPlayer();
+        if(p != null){
+            try {
+                foreach(Joystick j in p.controllers.Joysticks){
+                    bool r3Pressed = j.buttonCount > 9 && j.GetButtonDown(9);
+                    if(r3Pressed){
+                        s_r3SuppressUntil = Time.unscaledTime + R3_SUPPRESS_DURATION;
+                        return true;
+                    }
+                }
+            } catch { }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Returns true if R3 (button 9) is currently held.
+    /// Used to suppress A-button select while the toggle press is active.
+    /// </summary>
+    public static bool IsR3Held(){
+        var p = GetPlayer();
+        if(p != null){
+            try {
+                foreach(Joystick j in p.controllers.Joysticks){
+                    if(j.buttonCount > 9 && j.GetButton(9)) return true;
                 }
             } catch { }
         }
