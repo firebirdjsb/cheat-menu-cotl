@@ -333,10 +333,18 @@ internal class CultUtils {
     }
 
     public static void ConvertDissenting(FollowerInfo followerInfo){
-        Follower thisFollower = GetFollowerFromInfo(followerInfo);
-        if(followerInfo.HasThought(Thought.Dissenter)){
-            thisFollower.RemoveCursedState(Thought.Dissenter);
-            SetFollowerFaith(followerInfo, 100);
+        try {
+            if(followerInfo == null) return;
+            
+            if(followerInfo.HasThought(Thought.Dissenter)){
+                Follower thisFollower = GetFollowerFromInfo(followerInfo);
+                if(thisFollower != null){
+                    thisFollower.RemoveCursedState(Thought.Dissenter);
+                }
+                SetFollowerFaith(followerInfo, 100);
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] ConvertDissenting error: {e.Message}");
         }
     }
 
@@ -374,11 +382,20 @@ internal class CultUtils {
     }
 
     public static void MaximizeSatiationAndRemoveStarvation(FollowerInfo followerInfo){
-        Follower thisFollower = GetFollowerFromInfo(followerInfo);
-        SetFollowerSatiation(followerInfo, 100);
-        SetFollowerStarvation(followerInfo, 0);
-        if(followerInfo.HasThought(Thought.BecomeStarving)){
-            thisFollower.RemoveCursedState(Thought.BecomeStarving);
+        try {
+            if(followerInfo == null) return;
+            
+            SetFollowerSatiation(followerInfo, 100);
+            SetFollowerStarvation(followerInfo, 0);
+            
+            if(followerInfo.HasThought(Thought.BecomeStarving)){
+                Follower thisFollower = GetFollowerFromInfo(followerInfo);
+                if(thisFollower != null){
+                    thisFollower.RemoveCursedState(Thought.BecomeStarving);
+                }
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] MaximizeSatiationAndRemoveStarvation error: {e.Message}");
         }
     }
 
@@ -447,22 +464,62 @@ internal class CultUtils {
     }
 
     public static void TurnFollowerYoung(FollowerInfo follower){
-        var thisFollower = CultUtils.GetFollowerFromInfo(follower);
-        thisFollower.RemoveCursedState(Thought.OldAge);
-        thisFollower.Brain.ClearThought(Thought.OldAge);
-        follower.Age = 0;
-        follower.OldAge = false;
-        thisFollower.Brain.CheckChangeState();
-        DataManager.Instance.Followers_Elderly_IDs.Remove(follower.ID);        
-        if(thisFollower.Outfit.CurrentOutfit == FollowerOutfitType.Old){
-            thisFollower.SetOutfit(FollowerOutfitType.Follower, false, Thought.None);
+        try {
+            if(follower == null){
+                UnityEngine.Debug.LogWarning("[CheatMenu] TurnFollowerYoung: follower is null");
+                return;
+            }
+
+            var thisFollower = CultUtils.GetFollowerFromInfo(follower);
+            if(thisFollower == null){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] TurnFollowerYoung: Could not find follower {follower.ID}");
+                return;
+            }
+
+            thisFollower.RemoveCursedState(Thought.OldAge);
+            thisFollower.Brain.ClearThought(Thought.OldAge);
+            follower.Age = 0;
+            follower.OldAge = false;
+            thisFollower.Brain.CheckChangeState();
+            DataManager.Instance.Followers_Elderly_IDs.Remove(follower.ID);
+            
+            // Only change outfit if follower is loaded and has outfit component
+            if(thisFollower.Outfit != null && thisFollower.Outfit.CurrentOutfit == FollowerOutfitType.Old){
+                try {
+                    thisFollower.SetOutfit(FollowerOutfitType.Follower, false, Thought.None);
+                } catch(Exception e){
+                    UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to set young outfit for follower {follower.ID}: {e.Message}");
+                    // Continue anyway - follower is still turned young, just outfit might not update
+                }
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] TurnFollowerYoung error: {e.Message}");
         }
     }
 
     public static void TurnFollowerOld(FollowerInfo follower){
-        Follower thisFollower = CultUtils.GetFollowerFromInfo(follower);
-        CultFaithManager.RemoveThought(Thought.OldAge);
-        thisFollower.Brain.ApplyCurseState(Thought.OldAge);
+        try {
+            if(follower == null){
+                UnityEngine.Debug.LogWarning("[CheatMenu] TurnFollowerOld: follower is null");
+                return;
+            }
+
+            Follower thisFollower = CultUtils.GetFollowerFromInfo(follower);
+            if(thisFollower == null){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] TurnFollowerOld: Could not find follower {follower.ID}");
+                return;
+            }
+
+            CultFaithManager.RemoveThought(Thought.OldAge);
+            
+            try {
+                thisFollower.Brain.ApplyCurseState(Thought.OldAge);
+            } catch(Exception e){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to apply old age curse for follower {follower.ID}: {e.Message}");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] TurnFollowerOld error: {e.Message}");
+        }
     }
 
     public static FollowerInfo GetFollowerInfo(Follower follower)
@@ -472,7 +529,15 @@ internal class CultUtils {
 
     public static Follower GetFollowerFromInfo(FollowerInfo follower)
     {
-        return FollowerManager.FindFollowerByID(follower.ID);
+        try {
+            if(follower == null){
+                return null;
+            }
+            return FollowerManager.FindFollowerByID(follower.ID);
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] GetFollowerFromInfo error for ID {(follower != null ? follower.ID.ToString() : "null")}: {e.Message}");
+            return null;
+        }
     }
 
 
@@ -543,21 +608,46 @@ internal class CultUtils {
 
     public static void SpawnFollower(FollowerRole role)
     {
-        Follower follower = FollowerManager.CreateNewFollower(PlayerFarming.Location, PlayerFarming.Instance.transform.position, false);
-        follower.Brain.Info.FollowerRole = role;
-        follower.Brain.Info.Outfit = FollowerOutfitType.Follower;
-        follower.SetOutfit(FollowerOutfitType.Follower, false, Thought.None);
+        try {
+            Follower follower = FollowerManager.CreateNewFollower(PlayerFarming.Location, PlayerFarming.Instance.transform.position, false);
+            
+            if(follower == null || follower.Brain == null || follower.Brain.Info == null){
+                UnityEngine.Debug.LogWarning("[CheatMenu] Failed to spawn follower - null reference");
+                PlayNotification("Failed to spawn follower!");
+                return;
+            }
 
-        if (role == FollowerRole.Worker)
-        {
-            follower.Brain.Info.WorkerPriority = WorkerPriority.Rubble;
-            follower.Brain.Stats.WorkerBeenGivenOrders = true;
-            follower.Brain.CheckChangeTask();
+            follower.Brain.Info.FollowerRole = role;
+            
+            // Ensure follower has valid outfit data before setting
+            if(follower.Outfit != null){
+                follower.Brain.Info.Outfit = FollowerOutfitType.Follower;
+                
+                // Use safe outfit setting with null check
+                try {
+                    follower.SetOutfit(FollowerOutfitType.Follower, false, Thought.None);
+                } catch(Exception e){
+                    UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to set follower outfit: {e.Message}");
+                    // Continue anyway, follower will use default outfit
+                }
+            }
+
+            if (role == FollowerRole.Worker)
+            {
+                follower.Brain.Info.WorkerPriority = WorkerPriority.Rubble;
+                follower.Brain.Stats.WorkerBeenGivenOrders = true;
+                follower.Brain.CheckChangeState();
+            }
+
+            FollowerInfo newFollowerInfo = GetFollowerInfo(follower);
+            if(newFollowerInfo != null){
+                SetFollowerIllness(newFollowerInfo, 0f);
+                SetFollowerHunger(newFollowerInfo, 100f);
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnFollower error: {e.Message}");
+            PlayNotification("Failed to spawn follower!");
         }
-
-        FollowerInfo newFollowerInfo = GetFollowerInfo(follower);
-        SetFollowerIllness(newFollowerInfo, 0f);
-        SetFollowerHunger(newFollowerInfo, 100f);
     }
 
     public static void ClearBodies(){
@@ -575,8 +665,18 @@ internal class CultUtils {
     }
 
     public static void CureIllness(FollowerInfo follower){
-        follower.Illness = 0f;
-        GetFollowerFromInfo(follower).RemoveCursedState(Thought.Ill);
+        try {
+            if(follower == null) return;
+            
+            follower.Illness = 0f;
+            
+            Follower actualFollower = GetFollowerFromInfo(follower);
+            if(actualFollower != null){
+                actualFollower.RemoveCursedState(Thought.Ill);
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] CureIllness error: {e.Message}");
+        }
     }
 
     public static void ModifyFaith(float value, string notifMessage, bool shouldNotify = true)
@@ -597,4 +697,9 @@ internal class CultUtils {
         CultFaithManager.Instance.BarController.SetBarSize(value / 85f, true, true, data);
     }
 }
+
+
+
+
+
 

@@ -337,13 +337,39 @@ public class CultDefinitions : IDefinition {
                 }
             }
 
-            // Assign each follower a clothing type from the list
+            // Assign each follower a clothing type from the list - SAFELY
             var followers = DataManager.Instance.Followers;
             for(int i = 0; i < followers.Count; i++){
-                FollowerClothingType clothing = wearableTypes[i % wearableTypes.Count];
-                followers[i].Clothing = clothing;
-                followers[i].Outfit = FollowerOutfitType.Custom;
-                count++;
+                try {
+                    FollowerInfo followerInfo = followers[i];
+                    if(followerInfo == null) continue;
+                    
+                    FollowerClothingType clothing = wearableTypes[i % wearableTypes.Count];
+                    
+                    // Only set clothing on the FollowerInfo - don't force outfit change
+                    // This avoids the NullReferenceException when follower isn't loaded
+                    followerInfo.Clothing = clothing;
+                    
+                    // Try to update the actual follower if they're loaded in the scene
+                    Follower follower = CultUtils.GetFollowerFromInfo(followerInfo);
+                    if(follower != null && follower.Outfit != null){
+                        try {
+                            follower.Brain.Info.Outfit = FollowerOutfitType.Custom;
+                            follower.SetOutfit(FollowerOutfitType.Custom, false, Thought.None);
+                        } catch(Exception e){
+                            // Follower not in scene or costume data missing - that's okay
+                            UnityEngine.Debug.LogWarning($"[CheatMenu] Could not update follower {followerInfo.ID} outfit: {e.Message}");
+                        }
+                    } else {
+                        // Just set the outfit type in the info, it will apply when follower loads
+                        followerInfo.Outfit = FollowerOutfitType.Custom;
+                    }
+                    
+                    count++;
+                } catch(Exception e){
+                    UnityEngine.Debug.LogWarning($"[CheatMenu] Error setting clothing for follower {i}: {e.Message}");
+                    // Continue with other followers
+                }
             }
 
             // Give crafting materials so the player can craft more at the tailor
@@ -351,9 +377,9 @@ public class CultDefinitions : IDefinition {
             CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SILK_THREAD, 50);
             CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.WOOL, 30);
 
-            CultUtils.PlayNotification($"All clothing given! {count} follower(s) dressed, tailor materials added.");
+            CultUtils.PlayNotification($"All clothing given! {count} follower(s) updated, materials added.");
         } catch(Exception e){
-            Debug.LogWarning($"Failed to give clothing: {e.Message}");
+            Debug.LogWarning($"[CheatMenu] Failed to give clothing: {e.Message}");
             CultUtils.PlayNotification("Failed to give clothing!");
         }
     }
