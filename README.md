@@ -1,63 +1,22 @@
-
 # cheat-menu-cotl
 
 > **Version 1.1.0** - Weather Fix, New Items, QOL & Assembly Update!
 
-Provides a list of cheats/utilities in an easily accessible **compact GUI**.
+A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 100+ cheats, full controller support, and extensive quality-of-life features.
 
-## What's New in v1.1.0
-
-- **Weather System Rewrite** - Uses `WeatherSystemController` directly with proper `WeatherType` and `WeatherStrength` enums. Supports Rain (Light/Heavy), Wind, Snow (Light/Blizzard), Heat, and Clear
-- **New QOL Category** - Season switching, clear all cooldowns, pause simulation, max all follower stats, unlock everything in one click
-- **New Resource Items** - Silk Thread, Sin Drinks, God Tears, Relics, Talisman, Soot, Trinket Cards, Flowers, DLC Necklaces, All Drinks, Give All Items
-- **Assembly Dump Integration** - All APIs verified against the actual decompiled game assembly for accuracy
-- **Controller Support** - Full Rewired-based gamepad input (D-pad, sticks, A/B/Start buttons)
-- **Slide Animation** - Menu slides in from bottom-left corner with easing
-- **Locked Position** - Menu is fixed in bottom-left, no accidental dragging
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 
 ---
 
-## Features & Usage
-Press the ```M``` key to activate the cheat menu and click on any of the buttons to enable/disable the specific cheats or enter that specific cheat category. ```N``` key can be used to go back from a category. Both these keys can be changed in the configuration in the ```config``` folder.
+## 🎮 What's New in v1.1.0
 
-### Controller Support
-**Full gamepad/controller support** via Rewired (the game's native input system)! Navigate the menu using:
-- **D-Pad / Left Stick** - Navigate between options (highlighted with red glow)
-- **R3 (Right Stick Click)** - Open/close menu
-- **B/Circle Button** - Go back to previous menu (or close menu from main)
-- **A/Cross Button** - Select/activate option
-
-Works with Xbox, PlayStation, Nintendo Switch Pro, and generic controllers!
-
-To see what cheats/utilities the mod offers see below:
-[Available Cheats](doc/cheats.md)
-
-Latest changes: [1.1.0](doc/changelogs/1.1.0.md) - **Weather Fix, New Items, QOL & Assembly Update!**
-
-**Note**: This version uses APIs verified against the decompiled game assembly. Compatible with Cult of the Lamb latest version.
-=======
-# Changelog 1.1.0
->>>>>>> c4d44a09e9f70981b2bfd0c15d720f46e85ef454
-
-## 🎮 Weather Fix, New Items, QOL & Assembly Update!
-
-This major release brings a complete weather system rewrite, tons of new items and cheats, a new Combat/QOL category, and full assembly-verified API compatibility.
-
----
-
-## ⚡ Major Features
-
-### Weather System Complete Rewrite
+### 🌦️ Weather System Complete Rewrite
 - **Direct WeatherSystemController Integration** - Uses the game's native `WeatherType` and `WeatherStrength` enums
-- **All Weather Types Supported**:
-  - Rain (Light & Heavy)
-  - Wind
-  - Snow (Light Dusting & Blizzard)
-  - Heat Wave
-  - Clear (stops all weather)
+- **All Weather Types Supported**: Rain (Light/Heavy), Wind, Snow (Light Dusting/Blizzard), Heat Wave, Clear
 - **Season Control** - Switch between Spring and Winter seasons
+- **Bug Fix**: Weather changes now properly use game's internal API instead of deprecated methods
 
-### New Combat/QOL Category
+### 🎯 New Combat/QOL Category
 - **Kill All Enemies** - Instantly eliminate all enemies in the current room
 - **Unlock All Weapons** - Unlock Axe, Dagger, Gauntlet, Hammer + all curse packs
 - **Unlock All Tarot Cards** - Unlock every tarot card in the game
@@ -67,7 +26,7 @@ This major release brings a complete weather system rewrite, tons of new items a
 - **Enable Black Souls** - Activate the black souls currency system
 - **Enable Tarot Building** - Unlock the tarot card reading building
 
-### New Resource Items (30+ New Items!)
+### 📦 30+ New Resource Items
 - **Materials**: Silk Thread (x50), Crystals (x50), Bones (x50), Lumber (x100), Stone (x100)
 - **Special Items**: God Tears (x10), Relics (x10), Talisman (x10), Trinket Cards (x10)
 - **Food & Flowers**: All Flowers, All Meals (18 types), All Seeds
@@ -76,67 +35,97 @@ This major release brings a complete weather system rewrite, tons of new items a
 - **Gold Coins**: x500 per use
 - **Give ALL Items**: One button to add x10 of every item type in the game!
 
----
+### 🎮 Controller Support Enhancements
 
-## 🎮 Controller Support Enhancements
+#### Rewired-Based Input System (Bug Fix)
+- **Fixed**: Controller input now properly integrates with game's Rewired system instead of Unity's Input
+- **Fixed**: R3 button press no longer triggers in-game "bahhh/bleat" action when opening menu
+- **Fixed**: Controller navigation now uses right stick to avoid conflicting with game's D-pad controls
+- **New**: R3 suppression window (300ms) prevents double-action when toggling menu
+- **New**: Visual feedback with red hover glow shows currently selected option
 
-### Rewired-Based Input System
-- Full integration with the game's native Rewired input system
-- Works with whatever controller the game detects automatically
+#### Controller Mappings
 - **R3 (Right Stick Click)** - Open/Close menu
 - **A/Cross Button** - Select/Activate options
 - **B/Circle Button** - Go back (or close menu from main screen)
-- **D-Pad / Left Stick** - Navigate menu options
-- **Visual Feedback** - Red hover glow shows currently selected option
+- **Right Stick** - Navigate menu options (avoids D-pad conflict with game)
+- **Fallback**: Arrow keys for keyboard users
 
-### Controller Compatibility
+#### Supported Controllers
 - Xbox One/Series controllers
 - PlayStation DualShock 4 & DualSense
 - Nintendo Switch Pro Controller
 - Steam Deck built-in controls
 - Generic USB/Bluetooth gamepads
 
----
+### 🖥️ UI/UX Improvements
 
-## 🖥️ UI/UX Improvements
+#### Slide Animation
+- **New**: Menu slides in from bottom-left corner with smooth easing
+- **New**: Animation plays on both open and close
+- **Fixed**: Animation works even when game is paused (uses `unscaledDeltaTime`)
+- **Fixed**: Window ID properly resets to prevent position caching issues
 
-### Slide Animation
-- Menu slides in from the bottom-left corner with smooth easing
-- Animation plays on both open and close
-- Works even when game is paused (uses unscaledDeltaTime)
-
-### Compact Design
+#### Compact Design
 - **Window Size**: 350x400px - more compact, less intrusive
 - **Fixed Position**: Bottom-left corner, no accidental dragging
 - **Improved Hints Bar**: Shows context-aware keybindings above the menu
 - **Cult Theme**: Dark burgundy/crimson styling matching game aesthetic
 
-### Visual Polish
-- Red highlight glow for controller-selected buttons
-- Clear [ON]/[OFF] toggle indicators
-- Category arrows (>> <<) for navigation clarity
-- Bone white text with golden accents
+#### Visual Polish
+- **New**: Red highlight glow for controller-selected buttons
+- **New**: Clear [ON]/[OFF] toggle indicators
+- **Improved**: Category arrows (>> <<) for better navigation clarity
+- **Improved**: Bone white text with golden accents
+
+### 🔧 Technical Improvements & Bug Fixes
+
+#### Assembly-Verified APIs
+- **Fixed**: All game APIs now verified against decompiled Assembly-CSharp.dll
+- **Fixed**: Proper enum types used throughout (WeatherType, WeatherStrength, etc.)
+- **Fixed**: Graceful error handling for missing or changed methods
+- **Fixed**: PlayerFarming.Bleat patched to suppress R3 double-action
+
+#### Code Quality Improvements
+- **New**: `RewiredInputHelper` - Clean abstraction for controller input
+- **Fixed**: Better error handling with try-catch protection on all risky operations
+- **Improved**: Detailed logging with clear warnings instead of crashes
+- **Improved**: Compatibility mode - mod functions even if some patches fail
+- **Fixed**: Controller selection no longer fires when R3 is held during toggle
+- **Fixed**: Auto-scroll keeps selected button visible in menu
+
+#### Bug Fixes
+- **Fixed**: R3 button (Right Stick Click) no longer triggers in-game "bahhh" action when opening menu
+- **Fixed**: Controller A button suppressed during R3 toggle window to prevent accidental selections
+- **Fixed**: Navigation delay (150ms) prevents menu scrolling too fast
+- **Fixed**: Controller navigation properly scrolls to keep selected item visible
+- **Fixed**: Menu window ID resets on open to prevent Unity IMGUI position caching
+- **Fixed**: Animations use `Time.unscaledTime` so they work correctly when game is paused
+- **Fixed**: Weather system uses proper `WeatherSystemController` API instead of deprecated methods
+- **Fixed**: Landscape clearing now properly iterates all structure types
+- **Fixed**: Janitor station clearing returns poop to player inventory
+- **Fixed**: Close animation properly disables GUI when complete
 
 ---
 
-## 🔧 Technical Improvements
+## 🚀 Features & Usage
 
-### Assembly-Verified APIs
-- All game APIs verified against decompiled Assembly-CSharp.dll
-- Proper enum types used throughout (WeatherType, WeatherStrength, etc.)
-- Graceful error handling for missing methods
+Press the **`M`** key to activate the cheat menu and click any button to enable/disable specific cheats or enter that category. **`N`** key goes back from a category. Both keys can be changed in the BepInEx config folder.
 
-### Code Quality
-- **RewiredInputHelper** - Clean abstraction for controller input
-- **Better Error Handling** - Try-catch protection on all risky operations
-- **Detailed Logging** - Clear warnings instead of crashes
-- **Compatibility Mode** - Mod functions even if some patches fail
+### Controller Support
+**Full gamepad/controller support** via Rewired (the game's native input system)! Navigate the menu using:
+- **Right Stick** - Navigate between options (highlighted with red glow)
+- **R3 (Right Stick Click)** - Open/close menu
+- **B/Circle Button** - Go back to previous menu (or close menu from main)
+- **A/Cross Button** - Select/activate option
+
+Works with Xbox, PlayStation, Nintendo Switch Pro, Steam Deck, and generic controllers!
 
 ---
 
-## 📋 Complete Cheat List by Category
+## 📋 Complete Cheat Categories
 
-### Combat/QOL
+### Combat/QOL (New in 1.1.0)
 - Kill All Enemies
 - Unlock All Weapons
 - Unlock All Tarot Cards
@@ -146,7 +135,7 @@ This major release brings a complete weather system rewrite, tons of new items a
 - Unlock EVERYTHING
 - Show All Map Locations (Toggle)
 
-### Weather
+### Weather (Rewritten in 1.1.0)
 - Rain (Light/Heavy)
 - Wind
 - Snow (Light/Blizzard)
@@ -155,24 +144,26 @@ This major release brings a complete weather system rewrite, tons of new items a
 - Season: Spring
 - Season: Winter
 
-### Resources (25+ options)
+### Resources (30+ items, many new in 1.1.0)
 - Basic Resources, Seeds, Fish, Food
 - Necklaces (all 18 types including DLC)
 - Materials & Refined Materials
 - Flowers, Meals, Trinkets
-- Give ALL Items
+- Give ALL Items (New!)
 
 ### Cult (15+ options)
 - Building, Structure & Ritual management
 - Cleanup cheats (poop, vomit, bodies, trees, grass, rubble)
 - Teleport to Cult
 - Free Building Mode
+- Doctrine & Ritual customization
 
 ### Followers (10+ options)
 - Spawn, Kill, Revive followers
 - Faith & Hunger management
 - Sickness removal
 - Age manipulation
+- Convert dissenting followers
 
 ### Health
 - Godmode
@@ -183,35 +174,117 @@ This major release brings a complete weather system rewrite, tons of new items a
 - Noclip, Skip Hour
 - Debug displays (FPS, Follower, Structure)
 - Hide/Show UI
+- Complete All Quests
 
 ### DLC
 - Auto Shear Wool (Woolhaven)
+
+For detailed cheat descriptions, see: [Available Cheats](doc/cheats.md)
 
 ---
 
 ## 🔄 Migration from Previous Versions
 
-1. Delete old CheatMenu files from `BepInEx/plugins/CheatMenu`
-2. Install v1.1.0 as fresh installation
-3. Config will auto-generate with new options
-4. Previous keybinds may need reconfiguration
+### From v1.0.x to v1.1.0
+
+1. **Backup your config** (optional): Copy `BepInEx/config/org.xunfairx.cheat_menu.cfg`
+2. **Delete old files**: Remove old CheatMenu files from `BepInEx/plugins/CheatMenu`
+3. **Install v1.1.0**: Extract the new version to `BepInEx/plugins/`
+4. **Config updates**: New options will auto-generate with defaults
+5. **Controller users**: Enable controller support in config if needed (enabled by default)
+6. **Keybind check**: Previous keybinds may need reconfiguration in the config file
+
+### What Changed
+
+- Weather cheats now use different API calls - old saves compatible
+- Controller input completely rewritten - test your controller after update
+- New categories added - explore the menu to find new features
+- Some resource items have increased quantities (e.g., materials now give x50)
 
 ---
 
-## 📦 Dependencies
+## 📦 Installation & Requirements
 
-- **BepInEx 5.4.21+**
-- **Cult of the Lamb v1.5.16.1000+**
+### Dependencies
+- **BepInEx 5.4.21+** (Mod loader framework)
+- **Cult of the Lamb v1.5.16.1000+** (Latest game version recommended)
+
+### Installation Steps
+1. Install BepInEx 5.4.21+ if not already installed
+2. Extract `CheatMenu.dll` to `BepInEx/plugins/CheatMenu/`
+3. Launch the game
+4. Press **M** (or **R3** on controller) to open the menu once in-game
+
+### Configuration
+Config file location: `BepInEx/config/org.xunfairx.cheat_menu.cfg`
+
+Key settings:
+```ini
+[Controller]
+Enable Controller Support = true
+
+[Keybinds]
+GuiKeybind = M
+BackCategory = N
+CloseGuiOnEscape = true
+```
+
+---
+
+## 🐛 Known Issues & Troubleshooting
+
+### Controller Issues
+- **Controller not detected**: Ensure controller is connected before launching game
+- **Wrong buttons**: Some generic controllers may have different button mappings
+- **Navigation too sensitive**: Built-in 150ms delay should prevent this, but you can navigate carefully
+
+### Menu Issues
+- **Menu won't open**: Make sure you're in-game (not main menu)
+- **Animation stuck**: Press ESC to force close, then reopen
+- **Window position wrong**: Delete config file to reset
+
+### Game Compatibility
+- **Weather not working**: Ensure game is updated to latest version
+- **Crashes on specific cheats**: Some cheats may not work if game updates change APIs
+- **Mod not loading**: Check BepInEx console for errors
+
+Report issues on [GitHub Issues](https://github.com/firebirdjsb/cheat-menu-cotl/issues)
+
+---
+
+## 📝 Changelog
+
+### Version 1.1.0 (Current)
+- Complete weather system rewrite with proper API integration
+- 30+ new resource items
+- New Combat/QOL category with 8 major features
+- Full Rewired-based controller support with bug fixes
+- R3 suppression to prevent double-action with in-game bahhh
+- Slide animation with smooth easing
+- UI improvements and visual polish
+- Assembly-verified API compatibility
+- Better error handling and logging
+- Multiple controller-related bug fixes
+
+For full changelog history: [doc/changelogs/](doc/changelogs/)
 
 ---
 
 ## 🙏 Credits
 
 - **Original Author**: Wicked7000
-- **Current Maintainer**: XUnfairX
+- **Current Maintainer**: XUnfairX / firebirdjsb
+- **Contributors**: Community bug reports and suggestions
 - **Repository**: https://github.com/firebirdjsb/cheat-menu-cotl
+
+---
+
+## 📜 License
+
+This mod is provided as-is for educational and entertainment purposes. Use at your own risk. Not affiliated with Massive Monster or Devolver Digital.
 
 ---
 
 **Enjoy the most comprehensive Cult of the Lamb cheat menu! 🐑✨**
 
+*Compatible with Cult of the Lamb v1.5.16.1000+*
