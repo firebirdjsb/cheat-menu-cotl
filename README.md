@@ -1,6 +1,6 @@
 # cheat-menu-cotl
 
-> **Version 1.1.1** - Follower Costume Bug Fix
+> **Version 1.1.2** - Additional Follower Fixes
 
 A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 100+ cheats, full controller support, and extensive quality-of-life features.
 
@@ -8,16 +8,15 @@ A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily 
 
 ---
 
-## 🎮 What's New in v1.1.1
+## 🎮 What's New in v1.1.2
 
-### 🐛 Critical Bug Fix
-- **Fixed**: Follower costume NullReferenceException spam in BepInEx logs
-- **Fixed**: SpawnFollower now properly validates follower components before setting outfits
-- **Fixed**: GiveAllClothing safely handles follower outfit updates with proper null checks
-- **Fixed**: TurnFollowerYoung/Old functions now handle outfit changes gracefully
-- **Improved**: All follower-related operations have comprehensive error handling
+### 🐛 Additional Bug Fixes
+- **Fixed**: FollowerBrainInfo.Protection NullReferenceException for followers not in scene
+- **Fixed**: GiveAllClothing now only updates followers that are active in the current scene
+- **Fixed**: SpawnFollower checks if follower is active before calling CheckChangeState()
+- **Improved**: Scene-awareness - operations only affect loaded followers
 
-This patch release resolves the issue where follower outfit changes would spam `NullReferenceException` errors in logs when followers transitioned between tasks.
+This patch addresses additional follower-related errors discovered after v1.1.1 release.
 
 ---
 
@@ -203,10 +202,16 @@ For detailed cheat descriptions, see: [Available Cheats](doc/cheats.md)
 
 1. **Backup your config** (optional): Copy `BepInEx/config/org.xunfairx.cheat_menu.cfg`
 2. **Delete old files**: Remove old CheatMenu files from `BepInEx/plugins/CheatMenu`
-3. **Install v1.1.1**: Extract the new version to `BepInEx/plugins/`
+3. **Install v1.1.2**: Extract the new version to `BepInEx/plugins/`
 4. **Config updates**: New options will auto-generate with defaults
 5. **Controller users**: Enable controller support in config if needed (enabled by default)
 6. **Keybind check**: Previous keybinds may need reconfiguration in the config file
+
+### From v1.1.0/v1.1.1 to v1.1.2
+
+- Simple drop-in replacement - just replace the DLL
+- No config changes required
+- Fixes additional follower scene-awareness issues
 
 ### From v1.1.0 to v1.1.1
 
@@ -275,7 +280,14 @@ Report issues on [GitHub Issues](https://github.com/firebirdjsb/cheat-menu-cotl/
 
 ## 📝 Changelog
 
-### Version 1.1.1 (Current - Patch Release)
+### Version 1.1.2 (Current - Patch Release)
+- **Fixed**: FollowerBrainInfo.Protection NullReferenceException for followers not in scene
+- **Fixed**: GiveAllClothing now only updates followers active in the current scene
+- **Fixed**: SpawnFollower checks if follower is active before calling CheckChangeState()
+- **Improved**: Scene-awareness checks prevent accessing unloaded follower data
+- **Improved**: Deferred outfit updates for followers not in scene
+
+### Version 1.1.1 (Patch Release)
 - **Fixed**: Follower costume NullReferenceException spam in BepInEx logs
 - **Fixed**: SpawnFollower now properly validates follower components
 - **Fixed**: GiveAllClothing safely handles outfit updates with null checks

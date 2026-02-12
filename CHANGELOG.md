@@ -2,7 +2,23 @@
 
 All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in this file.
 
-## [1.1.1] - 2024 (Current Release - Patch)
+## [1.1.2] - 2024 (Current Release - Patch)
+
+### Bug Fixes
+- **Fixed**: FollowerBrainInfo.Protection NullReferenceException for followers not in scene
+- **Fixed**: GiveAllClothing now only updates followers that are active in the current scene
+- **Fixed**: SpawnFollower checks if follower is active before calling CheckChangeState()
+- **Improved**: Scene-awareness checks prevent accessing unloaded follower data
+
+### Technical Details
+- Added `gameObject.activeInHierarchy` checks before updating follower outfits
+- Wrapped `CheckChangeState()` calls in try-catch with initialization validation
+- Deferred outfit updates for followers not in scene - they apply when they load
+- Better detection of which followers are actually loaded and accessible
+
+---
+
+## [1.1.1] - 2024 (Patch Release)
 
 ### Bug Fixes
 - **Fixed**: Follower costume NullReferenceException spam in BepInEx logs
@@ -177,6 +193,7 @@ All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in
 
 | Version | Release Date | Key Features |
 |---------|--------------|--------------|
+| 1.1.2 | 2024 | Follower scene management fixes (patch release) |
 | 1.1.1 | 2024 | Follower costume bug fix (patch release) |
 | 1.1.0 | 2024 | Weather rewrite, Combat/QOL category, 30+ new items, controller bug fixes |
 | 1.0.6 | 2024 | Compact UI, documentation cleanup |
