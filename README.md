@@ -1,6 +1,6 @@
 # cheat-menu-cotl
 
-> **Version 1.1.0** - Weather Fix, New Items, QOL & Assembly Update!
+> **Version 1.1.1** - Follower Costume Bug Fix
 
 A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 100+ cheats, full controller support, and extensive quality-of-life features.
 
@@ -8,7 +8,20 @@ A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily 
 
 ---
 
-## 🎮 What's New in v1.1.0
+## 🎮 What's New in v1.1.1
+
+### 🐛 Critical Bug Fix
+- **Fixed**: Follower costume NullReferenceException spam in BepInEx logs
+- **Fixed**: SpawnFollower now properly validates follower components before setting outfits
+- **Fixed**: GiveAllClothing safely handles follower outfit updates with proper null checks
+- **Fixed**: TurnFollowerYoung/Old functions now handle outfit changes gracefully
+- **Improved**: All follower-related operations have comprehensive error handling
+
+This patch release resolves the issue where follower outfit changes would spam `NullReferenceException` errors in logs when followers transitioned between tasks.
+
+---
+
+## 🎮 What's in v1.1.0
 
 ### 🌦️ Weather System Complete Rewrite
 - **Direct WeatherSystemController Integration** - Uses the game's native `WeatherType` and `WeatherStrength` enums
@@ -105,6 +118,7 @@ A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily 
 - **Fixed**: Landscape clearing now properly iterates all structure types
 - **Fixed**: Janitor station clearing returns poop to player inventory
 - **Fixed**: Close animation properly disables GUI when complete
+- **Fixed** (v1.1.1): Follower costume NullReferenceException spam eliminated
 
 ---
 
@@ -185,14 +199,20 @@ For detailed cheat descriptions, see: [Available Cheats](doc/cheats.md)
 
 ## 🔄 Migration from Previous Versions
 
-### From v1.0.x to v1.1.0
+### From v1.0.x to v1.1.x
 
 1. **Backup your config** (optional): Copy `BepInEx/config/org.xunfairx.cheat_menu.cfg`
 2. **Delete old files**: Remove old CheatMenu files from `BepInEx/plugins/CheatMenu`
-3. **Install v1.1.0**: Extract the new version to `BepInEx/plugins/`
+3. **Install v1.1.1**: Extract the new version to `BepInEx/plugins/`
 4. **Config updates**: New options will auto-generate with defaults
 5. **Controller users**: Enable controller support in config if needed (enabled by default)
 6. **Keybind check**: Previous keybinds may need reconfiguration in the config file
+
+### From v1.1.0 to v1.1.1
+
+- Simple drop-in replacement - just replace the DLL
+- No config changes required
+- Fixes follower costume bug that was causing log spam
 
 ### What Changed
 
@@ -200,6 +220,7 @@ For detailed cheat descriptions, see: [Available Cheats](doc/cheats.md)
 - Controller input completely rewritten - test your controller after update
 - New categories added - explore the menu to find new features
 - Some resource items have increased quantities (e.g., materials now give x50)
+- Follower operations now have proper null checking and error handling
 
 ---
 
@@ -254,7 +275,14 @@ Report issues on [GitHub Issues](https://github.com/firebirdjsb/cheat-menu-cotl/
 
 ## 📝 Changelog
 
-### Version 1.1.0 (Current)
+### Version 1.1.1 (Current - Patch Release)
+- **Fixed**: Follower costume NullReferenceException spam in BepInEx logs
+- **Fixed**: SpawnFollower now properly validates follower components
+- **Fixed**: GiveAllClothing safely handles outfit updates with null checks
+- **Fixed**: TurnFollowerYoung/Old functions handle outfit changes gracefully
+- **Improved**: Comprehensive error handling for all follower operations
+
+### Version 1.1.0
 - Complete weather system rewrite with proper API integration
 - 30+ new resource items
 - New Combat/QOL category with 8 major features

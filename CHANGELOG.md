@@ -2,7 +2,25 @@
 
 All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in this file.
 
-## [1.1.0] - 2024 (Current Release)
+## [1.1.1] - 2024 (Current Release - Patch)
+
+### Bug Fixes
+- **Fixed**: Follower costume NullReferenceException spam in BepInEx logs
+- **Fixed**: SpawnFollower now properly validates follower components before setting outfits
+- **Fixed**: GiveAllClothing safely handles follower outfit updates with proper null checks
+- **Fixed**: TurnFollowerYoung/Old functions now handle outfit changes gracefully
+- **Improved**: All follower-related operations have comprehensive error handling
+
+### Technical Details
+- Added null checks to 8 methods in CultUtils.cs
+- Completely rewrote GiveAllClothing() in CultDefinitions.cs
+- All follower outfit changes now wrapped in try-catch blocks
+- Scene-aware follower updates (only updates loaded followers)
+- Better error logging with [CheatMenu] prefix
+
+---
+
+## [1.1.0] - 2024
 
 ### Major Features
 - **Weather System Complete Rewrite** - Direct WeatherSystemController integration with native enums
@@ -159,6 +177,7 @@ All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in
 
 | Version | Release Date | Key Features |
 |---------|--------------|--------------|
+| 1.1.1 | 2024 | Follower costume bug fix (patch release) |
 | 1.1.0 | 2024 | Weather rewrite, Combat/QOL category, 30+ new items, controller bug fixes |
 | 1.0.6 | 2024 | Compact UI, documentation cleanup |
 | 1.0.5 | 2024 | Controller support, Cult theme |
@@ -170,10 +189,16 @@ All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in
 
 ## Migration Notes
 
-### From 1.0.x to 1.1.0
+### From 1.1.0 to 1.1.1
+- Simple drop-in replacement
+- Just replace the DLL file
+- No config changes needed
+- Fixes follower costume log spam
+
+### From 1.0.x to 1.1.x
 1. Backup your config file (optional)
 2. Delete old CheatMenu files from BepInEx/plugins/CheatMenu
-3. Install v1.1.0 as fresh installation
+3. Install v1.1.1 as fresh installation
 4. Config will auto-generate with new options
 5. Test controller support (enabled by default)
 6. Reconfigure keybinds if needed
