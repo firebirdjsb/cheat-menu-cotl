@@ -1,6 +1,6 @@
 # cheat-menu-cotl
 
-> **Version 1.2.0** - Major Update 🎉🐑
+> **Version 1.2.0** - Major Wolf Update 🎉🐑
 
 A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, and extensive quality-of-life features.
 
