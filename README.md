@@ -1,6 +1,11 @@
 # cheat-menu-cotl
 
 > **Version 1.2.0** - Major Wolf Update 🎉🐑
+there are still bugs with this menu especially with clothing and some other neiche things please report or fix by adding a pull request 
+
+
+
+check the companion tab for a new buddy to go on adventures with
 
 A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, and extensive quality-of-life features.
 
