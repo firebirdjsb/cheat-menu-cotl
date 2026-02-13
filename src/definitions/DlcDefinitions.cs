@@ -128,17 +128,6 @@ public class DlcDefinitions : IDefinition{
         CultUtils.PlayNotification("Story collectibles added!");
     }
 
-    [CheatDetails("Unlock Winter Mode", "Unlocks the winter survival game mode")]
-    public static void UnlockWinterMode(){
-        try {
-            Traverse.Create(typeof(CheatConsole)).Method("UnlockWinterMode").GetValue();
-            CultUtils.PlayNotification("Winter mode unlocked!");
-        } catch(Exception e){
-            Debug.LogWarning($"Failed to unlock winter mode: {e.Message}");
-            CultUtils.PlayNotification("Failed to unlock winter mode!");
-        }
-    }
-
     [CheatDetails("Reset DLC Dungeon", "Resets the DLC dungeon map progress")]
     public static void ResetDlcMap(){
         try {
@@ -199,4 +188,31 @@ public class DlcDefinitions : IDefinition{
             CultUtils.PlayNotification("Failed to finish missions!");
         }
     }
+
+    [CheatDetails("Unlock Winter Mode", "Unlocks the winter survival game mode")]
+    public static void UnlockWinterMode(){
+        try {
+            Type persistenceType = null;
+            foreach(var asm in AppDomain.CurrentDomain.GetAssemblies()){
+                persistenceType = asm.GetType("PersistenceManager");
+                if(persistenceType != null) break;
+            }
+            if(persistenceType != null){
+                var persistentData = Traverse.Create(persistenceType).Property("PersistentData").GetValue();
+                if(persistentData != null){
+                    Traverse.Create(persistentData).Property("UnlockedWinterMode").SetValue(true);
+                    Traverse.Create(persistenceType).Method("Save").GetValue();
+                    CultUtils.PlayNotification("Winter mode unlocked!");
+                } else {
+                    CultUtils.PlayNotification("PersistentData not available!");
+                }
+            } else {
+                CultUtils.PlayNotification("PersistenceManager not found!");
+            }
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] Failed to unlock winter mode: {e.Message}");
+            CultUtils.PlayNotification("Failed to unlock winter mode!");
+        }
+    }
+
 }

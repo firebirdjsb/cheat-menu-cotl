@@ -55,38 +55,32 @@ public enum CheatCategoryEnum {
     [StringEnum("NONE")]
     NONE,
 
-    [StringEnum("Resources")]
-    RESOURCE,
-    
-    [StringEnum("Rituals")]
-    RITUALS,
-
     [StringEnum("Health")]
     HEALTH,
 
-    [StringEnum("Structures")]
-    STRUCTURES,
+    [StringEnum("Combat")]
+    COMBAT,
 
-    [StringEnum("Weather")]
-    WEATHER,
-
-    [StringEnum("Follower")]
-    FOLLOWER,
+    [StringEnum("Resources")]
+    RESOURCE,
 
     [StringEnum("Cult")]
     CULT,
 
-    [StringEnum("DLC")]
-    DLC,
+    [StringEnum("Follower")]
+    FOLLOWER,
 
     [StringEnum("Farming")]
     FARMING,
 
+    [StringEnum("Weather")]
+    WEATHER,
+
+    [StringEnum("DLC")]
+    DLC,
+
     [StringEnum("Splitscreen")]
     SPLITSCREEN,
-
-    [StringEnum("Combat")]
-    COMBAT,
 
     [StringEnum("Misc")]
     MISC

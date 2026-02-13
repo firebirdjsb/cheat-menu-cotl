@@ -50,9 +50,11 @@ public static class DefinitionManager{
             categoryCheats[cheat.CategoryEnum] = defs;
         }
 
-        //Sort all cheat groups
+        //Sort all cheat groups by SortOrder first, then alphabetically by title
         foreach(var cheatGroup in categoryCheats){
             cheatGroup.Value.Sort(delegate(Definition a, Definition b) {
+                int orderCompare = a.Details.SortOrder.CompareTo(b.Details.SortOrder);
+                if(orderCompare != 0) return orderCompare;
                 return String.Compare(a.Details.Title, b.Details.Title);
             });
         }
@@ -78,13 +80,17 @@ public static class DefinitionManager{
         List<Definition> methods = GetAllCheatMethods();
         Dictionary<CheatCategoryEnum, List<Definition>> groupedCheats = GroupCheatsByCategory(methods);
 
+        // Sort categories by enum value for consistent menu ordering
+        List<CheatCategoryEnum> sortedCategories = new List<CheatCategoryEnum>(groupedCheats.Keys);
+        sortedCategories.Sort((a, b) => ((int)a).CompareTo((int)b));
+
         Label startOfInnerCategoryButtons = ilGenerator.DefineLabel();  
         Label endOfFunction = ilGenerator.DefineLabel();
 
         ilGenerator.EmitCall(OpCodes.Call, isWithinCategory, null); // [] -> [bool];
         ilGenerator.Emit(OpCodes.Brtrue, startOfInnerCategoryButtons);
         
-        foreach(var category in groupedCheats.Keys){
+        foreach(var category in sortedCategories){
             ilGenerator.Emit(OpCodes.Ldstr, category.GetCategoryName()); // [] -> ["category"]
             ilGenerator.EmitCall(OpCodes.Call, guiUtilsCategoryButton, null); // ["category"] -> [bool]
             ilGenerator.Emit(OpCodes.Pop); // [bool] -> []

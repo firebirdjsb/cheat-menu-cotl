@@ -117,4 +117,43 @@ public class MiscDefinitions : IDefinition{
             CultUtils.PlayNotification("Not in a knucklebones game!");
         }
     }
+
+    [CheatDetails("Stop Time In Crusade", "Stop Time (OFF)", "Stop Time (ON)", "Stops base time from passing while in a crusade", true)]
+    public static void StopTimeInCrusade(bool flag){
+        try {
+            SettingsManager.Settings.Accessibility.StopTimeInCrusade = flag;
+            CultUtils.PlayNotification(flag ? "Time stops during crusades!" : "Time passes during crusades!");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to toggle crusade time stop: {e.Message}");
+            CultUtils.PlayNotification("Failed to toggle crusade time!");
+        }
+    }
+
+    private static float s_originalRunSpeed = -1f;
+
+    [CheatDetails("Player Speed x2", "Speed x2 (OFF)", "Speed x2 (ON)", "Doubles the player's movement speed without affecting the world", true)]
+    public static void PlayerSpeedDouble(bool flag){
+        try {
+            if(PlayerFarming.Instance != null){
+                var controller = PlayerFarming.Instance.playerController;
+                if(flag){
+                    if(s_originalRunSpeed < 0f){
+                        s_originalRunSpeed = controller.DefaultRunSpeed;
+                    }
+                    controller.RunSpeed = s_originalRunSpeed * 2f;
+                    controller.DefaultRunSpeed = s_originalRunSpeed * 2f;
+                } else {
+                    if(s_originalRunSpeed >= 0f){
+                        controller.RunSpeed = s_originalRunSpeed;
+                        controller.DefaultRunSpeed = s_originalRunSpeed;
+                    }
+                    s_originalRunSpeed = -1f;
+                }
+            }
+            CultUtils.PlayNotification(flag ? "Player speed x2!" : "Player speed normal!");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to set player speed: {e.Message}");
+            CultUtils.PlayNotification("Failed to toggle player speed!");
+        }
+    }
 }

@@ -1,123 +1,36 @@
 # cheat-menu-cotl
 
-> **Version 1.1.2** - Additional Follower Fixes
+> **Version 1.2.0** - Major Update 🎉🐑
 
-A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 100+ cheats, full controller support, and extensive quality-of-life features.
+A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, and extensive quality-of-life features.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 
 ---
 
-## 🎮 What's New in v1.1.2
+## 🎮 What's New in v1.2.0 - MAJOR UPDATE
 
-### 🐛 Additional Bug Fixes
-- **Fixed**: FollowerBrainInfo.Protection NullReferenceException for followers not in scene
-- **Fixed**: GiveAllClothing now only updates followers that are active in the current scene
-- **Fixed**: SpawnFollower checks if follower is active before calling CheckChangeState()
-- **Improved**: Scene-awareness - operations only affect loaded followers
+### 🗂️ Complete Menu Reorganization
+- **Reorganized all categories** into a logical flow: Health → Combat → Resources → Cult → Follower → Farming → Weather → DLC → Splitscreen → Misc
+- **Fixed misplaced items**: Souls, Black Souls, and Arrows moved from Health → Resources; Player Speed and Stop Time moved from Combat → Misc
+- **Removed unused categories** (Rituals, Structures) that had no cheats assigned
+- **Consistent category ordering** - categories now always appear in the same order
 
-This patch addresses additional follower-related errors discovered after v1.1.1 release.
+### 🌦️ Weather Menu Overhaul
+- **Logically grouped** weather items: Clear → Rain (Light/Heavy) → Wind (Light/Heavy) → Snow (Dusting/Light/Medium/Heavy/Blizzard) → Heat (Light/Heavy) → Seasons
+- **Cleaned up names** - removed redundant "Weather:" prefix for cleaner display
+- **Custom sort ordering** ensures related weather types stay together instead of being scattered alphabetically
 
----
+### ⚔️ Combat Category (Refined)
+- Focused on combat-specific cheats: Kill All Enemies, One Hit Kill, Unlimited Relics/Ammo/Fervour
+- Dungeon tools: Auto Reveal Map, Reveal Map, Clear Status Effects
+- Unlock progression: Weapons, Tarot Cards, Fleeces, Crown Abilities, EVERYTHING
+- Removed non-combat items (Player Speed, Stop Time) to proper categories
 
-## 🎮 What's in v1.1.0
-
-### 🌦️ Weather System Complete Rewrite
-- **Direct WeatherSystemController Integration** - Uses the game's native `WeatherType` and `WeatherStrength` enums
-- **All Weather Types Supported**: Rain (Light/Heavy), Wind, Snow (Light Dusting/Blizzard), Heat Wave, Clear
-- **Season Control** - Switch between Spring and Winter seasons
-- **Bug Fix**: Weather changes now properly use game's internal API instead of deprecated methods
-
-### 🎯 New Combat/QOL Category
-- **Kill All Enemies** - Instantly eliminate all enemies in the current room
-- **Unlock All Weapons** - Unlock Axe, Dagger, Gauntlet, Hammer + all curse packs
-- **Unlock All Tarot Cards** - Unlock every tarot card in the game
-- **Unlock All Fleeces** - Get all fleece skins for the Lamb
-- **Unlock EVERYTHING** - One-click unlock for ALL upgrades, rituals, weapons, structures, and tarot
-- **Show All Map Locations** - Toggle to reveal all locations on the world map
-- **Enable Black Souls** - Activate the black souls currency system
-- **Enable Tarot Building** - Unlock the tarot card reading building
-
-### 📦 30+ New Resource Items
-- **Materials**: Silk Thread (x50), Crystals (x50), Bones (x50), Lumber (x100), Stone (x100)
-- **Special Items**: God Tears (x10), Relics (x10), Talisman (x10), Trinket Cards (x10)
-- **Food & Flowers**: All Flowers, All Meals (18 types), All Seeds
-- **Fish**: All 11 fish types including DLC varieties
-- **Refined Materials**: Refined lumber, stone, gold, nuggets, rope (x50 each)
-- **Gold Coins**: x500 per use
-- **Give ALL Items**: One button to add x10 of every item type in the game!
-
-### 🎮 Controller Support Enhancements
-
-#### Rewired-Based Input System (Bug Fix)
-- **Fixed**: Controller input now properly integrates with game's Rewired system instead of Unity's Input
-- **Fixed**: R3 button press no longer triggers in-game "bahhh/bleat" action when opening menu
-- **Fixed**: Controller navigation now uses right stick to avoid conflicting with game's D-pad controls
-- **New**: R3 suppression window (300ms) prevents double-action when toggling menu
-- **New**: Visual feedback with red hover glow shows currently selected option
-
-#### Controller Mappings
-- **R3 (Right Stick Click)** - Open/Close menu
-- **A/Cross Button** - Select/Activate options
-- **B/Circle Button** - Go back (or close menu from main screen)
-- **Right Stick** - Navigate menu options (avoids D-pad conflict with game)
-- **Fallback**: Arrow keys for keyboard users
-
-#### Supported Controllers
-- Xbox One/Series controllers
-- PlayStation DualShock 4 & DualSense
-- Nintendo Switch Pro Controller
-- Steam Deck built-in controls
-- Generic USB/Bluetooth gamepads
-
-### 🖥️ UI/UX Improvements
-
-#### Slide Animation
-- **New**: Menu slides in from bottom-left corner with smooth easing
-- **New**: Animation plays on both open and close
-- **Fixed**: Animation works even when game is paused (uses `unscaledDeltaTime`)
-- **Fixed**: Window ID properly resets to prevent position caching issues
-
-#### Compact Design
-- **Window Size**: 350x400px - more compact, less intrusive
-- **Fixed Position**: Bottom-left corner, no accidental dragging
-- **Improved Hints Bar**: Shows context-aware keybindings above the menu
-- **Cult Theme**: Dark burgundy/crimson styling matching game aesthetic
-
-#### Visual Polish
-- **New**: Red highlight glow for controller-selected buttons
-- **New**: Clear [ON]/[OFF] toggle indicators
-- **Improved**: Category arrows (>> <<) for better navigation clarity
-- **Improved**: Bone white text with golden accents
-
-### 🔧 Technical Improvements & Bug Fixes
-
-#### Assembly-Verified APIs
-- **Fixed**: All game APIs now verified against decompiled Assembly-CSharp.dll
-- **Fixed**: Proper enum types used throughout (WeatherType, WeatherStrength, etc.)
-- **Fixed**: Graceful error handling for missing or changed methods
-- **Fixed**: PlayerFarming.Bleat patched to suppress R3 double-action
-
-#### Code Quality Improvements
-- **New**: `RewiredInputHelper` - Clean abstraction for controller input
-- **Fixed**: Better error handling with try-catch protection on all risky operations
-- **Improved**: Detailed logging with clear warnings instead of crashes
-- **Improved**: Compatibility mode - mod functions even if some patches fail
-- **Fixed**: Controller selection no longer fires when R3 is held during toggle
-- **Fixed**: Auto-scroll keeps selected button visible in menu
-
-#### Bug Fixes
-- **Fixed**: R3 button (Right Stick Click) no longer triggers in-game "bahhh" action when opening menu
-- **Fixed**: Controller A button suppressed during R3 toggle window to prevent accidental selections
-- **Fixed**: Navigation delay (150ms) prevents menu scrolling too fast
-- **Fixed**: Controller navigation properly scrolls to keep selected item visible
-- **Fixed**: Menu window ID resets on open to prevent Unity IMGUI position caching
-- **Fixed**: Animations use `Time.unscaledTime` so they work correctly when game is paused
-- **Fixed**: Weather system uses proper `WeatherSystemController` API instead of deprecated methods
-- **Fixed**: Landscape clearing now properly iterates all structure types
-- **Fixed**: Janitor station clearing returns poop to player inventory
-- **Fixed**: Close animation properly disables GUI when complete
-- **Fixed** (v1.1.1): Follower costume NullReferenceException spam eliminated
+### 🔧 Technical Improvements
+- **New `SortOrder` system** for precise item ordering within categories via `CheatDetails` attribute
+- **Deterministic category rendering** - enum order controls category button order
+- **Cleaner codebase** - removed dead enum values and properly separated concerns
 
 ---
 
@@ -138,65 +51,99 @@ Works with Xbox, PlayStation, Nintendo Switch Pro, Steam Deck, and generic contr
 
 ## 📋 Complete Cheat Categories
 
-### Combat/QOL (New in 1.1.0)
-- Kill All Enemies
-- Unlock All Weapons
-- Unlock All Tarot Cards
-- Enable Tarot Building
-- Enable Black Souls
-- Unlock All Fleeces
-- Unlock EVERYTHING
-- Show All Map Locations (Toggle)
-
-### Weather (Rewritten in 1.1.0)
-- Rain (Light/Heavy)
-- Wind
-- Snow (Light/Blizzard)
-- Heat Wave
-- Clear Weather
-- Season: Spring
-- Season: Winter
-
-### Resources (30+ items, many new in 1.1.0)
-- Basic Resources, Seeds, Fish, Food
-- Necklaces (all 18 types including DLC)
-- Materials & Refined Materials
-- Flowers, Meals, Trinkets
-- Give ALL Items (New!)
-
-### Cult (15+ options)
-- Building, Structure & Ritual management
-- Cleanup cheats (poop, vomit, bodies, trees, grass, rubble)
-- Teleport to Cult
-- Free Building Mode
-- Doctrine & Ritual customization
-
-### Followers (10+ options)
-- Spawn, Kill, Revive followers
-- Faith & Hunger management
-- Sickness removal
-- Age manipulation
-- Convert dissenting followers
-
 ### Health
-- Godmode
-- Heal, Add hearts (Black/Blue)
-- Die command
+- Godmode, Demigod Mode, Immortal Mode (toggles)
+- Heal x1, Full Heal
+- Add hearts: Red, Blue, Black, Spirit, Fire, Ice
+- Unlimited HP (toggle)
+- Die
+
+### Combat
+- Kill All Enemies, One Hit Kill (toggle)
+- Unlimited Relics, Unlimited Ammo, Unlimited Fervour (toggles)
+- Auto Reveal Dungeon Map, Reveal Dungeon Map
+- Clear Status Effects
+- Unlock All Weapons, Tarot Cards, Fleeces, Crown Abilities
+- Enable Tarot Building, Enable Black Souls
+- Unlock EVERYTHING
+
+### Resources (40+ items)
+- Basic Resources, Seeds, Fish (11 types), Food, All Meals (18 types)
+- Necklaces (all 18 types including DLC)
+- Materials, Refined Materials, Flowers, Trinkets
+- Crystals, Bones, Lumber, Stone, Silk Thread
+- God Tears, Relics, Talisman, Gold Coins
+- Souls, Black Souls, Arrows
+- Ability Points, Disciple Points
+- Give ALL Items
+
+### Cult (20+ options)
+- Teleport, Rename Cult, Allow Shrine Creation
+- Building management: Free Building, Build All, Unlock All, Repair All
+- Cleanup: Rubble, Trees, Landscape, Vomit, Poop, Dead Bodies, Outhouses
+- Farming: Harvest All, Grow All Crops
+- Rituals: Change Rituals (GUI), Clear Doctrines, All Rituals toggle
+- Clothing: Unlock All, Give All Clothing Items
+- Auto Clear Ritual Cooldowns
+
+### Followers (15+ options)
+- Spawn (Worker, Worshipper, Arrived, Child)
+- Kill All, Kill Random, Revive All
+- Remove Sickness, Remove Hunger, Remove Exhaustion
+- Convert Dissenting, Max Faith, Clear Faith
+- Level Up All, Increase Loyalty, Make Immortal
+- Max All Stats, Give Follower Tokens
+- Age manipulation (Young/Old)
+- Reset All Outfits (emergency fix)
+
+### Farming (20+ options)
+- Spawn animals: Goat, Cow, Llama, Turtle, Crab, Spider, Snail
+- Give x5 All Animals, All Wool, Eggs & Yolks, Special Poop, Milk
+- Collect Products, Feed All, Clean All Pens, Force Grow
+- Add Hearts to Animals, Ascend All Animals
+- Friendly Wolf: Spawn, Dismiss, Pet, Dungeon Combat toggle
+
+### Weather (14 options)
+- Clear Weather
+- Rain (Light, Heavy)
+- Wind (Light, Heavy)
+- Snow (Dusting, Light, Medium, Heavy), Blizzard
+- Heat (Light, Heavy)
+- Season: Spring, Winter
+
+### DLC (15+ options)
+- Seeds, Drinks, Brewing Ingredients, Forge Materials
+- Sin Items, Broken Weapons, Legendary Fragments
+- Collectibles, Necklace, Flockade Pieces, Story Items
+- Reset DLC Dungeon, Fill/Empty Furnace
+- Make Spies Leave, Finish Missions, Unlock Winter Mode
+
+### Splitscreen
+- Full Player 2 support: Heal, Hearts, Godmode, Die
 
 ### Misc
-- Noclip, Skip Hour
-- Debug displays (FPS, Follower, Structure)
-- Hide/Show UI
-- Complete All Quests
-
-### DLC
-- Auto Shear Wool (Woolhaven)
+- Noclip, FPS/Follower/Structure Debug
+- Hide/Show UI, Skip Hour/Day, Skip To Night/Dawn
+- Complete All Quests, End Knucklebones
+- Game Speed x2/x4, Pause Simulation
+- Player Speed x2, Stop Time In Crusade
 
 For detailed cheat descriptions, see: [Available Cheats](doc/cheats.md)
 
 ---
 
 ## 🔄 Migration from Previous Versions
+
+### From v1.1.x to v1.2.0
+
+1. **Backup your config** (optional): Copy `BepInEx/config/org.xunfairx.cheat_menu.cfg`
+2. **Delete old files**: Remove old CheatMenu files from `BepInEx/plugins/CheatMenu`
+3. **Install v1.2.0**: Extract the new version to `BepInEx/plugins/`
+4. **Menu changes**: Categories are reorganized - some cheats moved to different categories:
+   - Souls/Black Souls/Arrows are now in **Resources** (were in Health)
+   - Player Speed x2 and Stop Time In Crusade are now in **Misc** (were in Combat)
+   - Weather items renamed (no more "Weather:" prefix)
+5. **Config compatible**: No config changes required
 
 ### From v1.0.x to v1.1.x
 
@@ -259,6 +206,21 @@ CloseGuiOnEscape = true
 
 ## 🐛 Known Issues & Troubleshooting
 
+### 🚨 LOADING SCREEN FREEZE (v1.1.2 Issue - FIXED in v1.1.3)
+
+**If your game hangs on the loading screen after using "Give All Clothing Items":**
+
+1. **Install v1.1.3** (this version)
+2. **Start the game** - It should reach the main menu
+3. **Load your save** - Even if it hangs at loading screen
+4. **Wait ~10 seconds** at the frozen loading screen
+5. **Press M** (or R3 on controller) to open the cheat menu
+6. **Navigate to Followers category**
+7. **Click "Reset All Follower Outfits"**
+8. **Save and reload your game**
+
+Your game should now load normally! Follower clothing will be reset to default but all unlocks are preserved.
+
 ### Controller Issues
 - **Controller not detected**: Ensure controller is connected before launching game
 - **Wrong buttons**: Some generic controllers may have different button mappings
@@ -280,7 +242,47 @@ Report issues on [GitHub Issues](https://github.com/firebirdjsb/cheat-menu-cotl/
 
 ## 📝 Changelog
 
-### Version 1.1.2 (Current - Patch Release)
+### Version 1.2.0 (Current - MAJOR UPDATE 🎉)
+- **Menu Reorganization**: All categories reordered logically (Health → Combat → Resources → Cult → Follower → Farming → Weather → DLC → Splitscreen → Misc)
+- **Fixed misplaced items**: Souls/Black Souls/Arrows moved Health → Resources; Player Speed/Stop Time moved Combat → Misc
+- **Weather overhaul**: Items grouped by type (Clear → Rain → Wind → Snow → Heat → Seasons) with custom sort ordering
+- **Removed unused categories**: Rituals and Structures enums removed (cheats live inside Cult category)
+- **New SortOrder system**: `CheatDetails` attribute now supports `sortOrder` parameter for precise menu ordering
+- **Consistent category display**: Categories render in enum declaration order instead of arbitrary dictionary order
+- **Cleaned up names**: Weather items no longer have redundant "Weather:" prefix
+- **150+ cheats** across 10 well-organized categories
+
+### Version 1.1.5 (Cheaters Edition 🐑)
+- **Easter Egg**: Game version displays as "Cheaters Edition 🐑" in main menu
+- **Added**: Automatic DLC authentication for all packs (Cultist, Sinful, Pilgrim, Heretic, **Woolhaven**)
+- **Fixed**: "Clear Poop" cheat now properly grants XP to cleaning tool/hat
+- **Fixed**: Janitor station clearing increments `SoulCount` to match game implementation
+- **Improved**: DLC authentication now runs when DataManager is ready (not too early)
+- **Improved**: Version text patching with better error handling and logging
+- **Benefit**: All cheats work regardless of DLC ownership including Woolhaven content
+- **Fun**: Playful "Cheaters Edition" label shows you're using the mod!
+
+### Version 1.1.4 (ENHANCED PROTECTION)
+- **Added**: Defensive patch on Follower.Init() to validate skeleton data before outfit application
+- **Protection**: Automatically resets outfits to safe defaults if skeleton isn't initialized
+- **Assembly-Verified**: Fix based on actual decompiled game code showing missing null checks
+- **Scope**: Protects against crashes from ANY mod or game bug, not just CheatMenu
+- **Benefit**: Extra layer of protection on top of all v1.1.3 fixes
+- **Technical**: Uses HarmonyLib Traverse to avoid spine-unity assembly dependency
+
+**✅ This release provides maximum protection against follower loading issues!**
+
+### Version 1.1.3 (CRITICAL PATCH)
+- **CRITICAL FIX**: Game hanging at loading screen after using "Give All Clothing Items"
+- **Fixed**: NullReferenceException in FollowerBrain.SetFollowerCostume during spawn
+- **Fixed**: GiveAllClothing now ONLY affects followers currently loaded in scene
+- **Added**: "Reset All Follower Outfits" emergency fix cheat in Follower category
+- **Changed**: GiveAllClothing description now accurately states it only affects loaded followers
+- **Improved**: Better error messages and follower count in clothing cheat notification
+
+**⚠️ If you used "Give All Clothing Items" in v1.1.2 and can't load your save, see troubleshooting above!**
+
+### Version 1.1.2 (Patch Release)
 - **Fixed**: FollowerBrainInfo.Protection NullReferenceException for followers not in scene
 - **Fixed**: GiveAllClothing now only updates followers active in the current scene
 - **Fixed**: SpawnFollower checks if follower is active before calling CheckChangeState()
@@ -327,4 +329,4 @@ This mod is provided as-is for educational and entertainment purposes. Use at yo
 
 **Enjoy the most comprehensive Cult of the Lamb cheat menu! 🐑✨**
 
-*Compatible with Cult of the Lamb v1.5.16.1000+*
+*Compatible with Cult of the Lamb v1.5.16.1000+ | 150+ cheats across 10 categories*

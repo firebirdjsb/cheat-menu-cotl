@@ -210,4 +210,38 @@ public class FollowerDefinitions : IDefinition{
         DataManager.Instance.FollowerTokens += 10;
         CultUtils.PlayNotification("10 follower tokens added!");
     }
+
+    [CheatDetails("Reset All Follower Outfits", "EMERGENCY: Resets all follower outfits to default (fixes loading issues caused by clothing cheat)")]
+    public static void ResetAllFollowerOutfits(){
+        try {
+            int count = 0;
+            // Reset ALL followers (alive, dead, elderly) to default outfit
+            foreach(var follower in DataManager.Instance.Followers){
+                if(follower.Outfit != FollowerOutfitType.Follower){
+                    follower.Outfit = FollowerOutfitType.Follower;
+                    follower.Clothing = FollowerClothingType.Naked;
+                    count++;
+                }
+            }
+            foreach(var follower in DataManager.Instance.Followers_Dead){
+                if(follower.Outfit != FollowerOutfitType.Follower){
+                    follower.Outfit = FollowerOutfitType.Follower;
+                    follower.Clothing = FollowerClothingType.Naked;
+                    count++;
+                }
+            }
+            foreach(var followerID in DataManager.Instance.Followers_Elderly_IDs){
+                FollowerInfo info = DataManager.Instance.Followers.Find(f => f.ID == followerID);
+                if(info != null && info.Outfit != FollowerOutfitType.Old){
+                    info.Outfit = FollowerOutfitType.Old;
+                    info.Clothing = FollowerClothingType.Naked;
+                }
+            }
+            CultUtils.PlayNotification($"Reset {count} follower outfit(s) to default!");
+            UnityEngine.Debug.Log($"[CheatMenu] Reset {count} follower outfits - game should now load properly");
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to reset follower outfits: {e.Message}");
+            CultUtils.PlayNotification("Failed to reset outfits!");
+        }
+    }
 }

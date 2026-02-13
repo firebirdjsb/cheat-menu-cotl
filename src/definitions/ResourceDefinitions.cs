@@ -230,6 +230,37 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification("10 disciple points added!");
     }
 
+    [CheatDetails("Give 100 Souls", "Gives 100 souls to the Player")]
+    public static void GiveSouls(){
+        if(PlayerFarming.Instance != null){
+            PlayerFarming.Instance.GetSoul(100);
+            CultUtils.PlayNotification("100 souls added!");
+        }
+    }
+
+    [CheatDetails("Give 200 Black Souls", "Gives 200 black souls (sin currency)")]
+    public static void GiveBlackSouls(){
+        try {
+            DataManager.Instance.BlackSouls += 200;
+            if(PlayerFarming.Instance != null){
+                PlayerFarming.Instance.GetBlackSoul(200, true, true);
+            }
+            CultUtils.PlayNotification("200 black souls added!");
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] GiveBlackSouls error: {e.Message}");
+            CultUtils.PlayNotification("Failed to add black souls!");
+        }
+    }
+
+    [CheatDetails("Give Arrows", "Gives arrows / unlocks arrow ability")]
+    public static void GiveArrows(){
+        if(!UpgradeSystem.GetUnlocked(UpgradeSystem.Type.Combat_Arrows)){
+            UpgradeSystem.UnlockAbility(UpgradeSystem.Type.Combat_Arrows, false);
+        }
+        DataManager.Instance.PLAYER_ARROW_AMMO = 99;
+        CultUtils.PlayNotification("Arrows added!");
+    }
+
     [CheatDetails("Give All Items", "Gives x10 of every single item type in the game")]
     public static void GiveAllItems(){
         try {

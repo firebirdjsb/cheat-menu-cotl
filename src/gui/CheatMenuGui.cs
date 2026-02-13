@@ -75,6 +75,7 @@ private static readonly int MENU_HEIGHT = 400;
 
     public static bool IsWithinSpecificCategory(string categoryString){
         var categoryEnum = CheatCategoryEnumExtensions.GetEnumFromName(categoryString);
+        if(!ShouldShowCategory(categoryEnum)) return false;
         return categoryEnum.Equals(CurrentCategory);
     }
 
@@ -93,7 +94,16 @@ private static readonly int MENU_HEIGHT = 400;
         return hoverStyle;
     }
 
+    private static bool ShouldShowCategory(CheatCategoryEnum category){
+        return CultUtils.IsInGame();
+    }
+
     public static bool CategoryButton(string categoryText){
+        var categoryEnum = CheatCategoryEnumExtensions.GetEnumFromName(categoryText);
+        if(!ShouldShowCategory(categoryEnum)){
+            return false;
+        }
+
         int buttonHeight = GUIUtils.GetButtonHeight();
         int spacing = GUIUtils.GetButtonSpacing();
         int thisButtonIndex = s_currentButtonCounter++;
@@ -108,7 +118,7 @@ private static readonly int MENU_HEIGHT = 400;
         }
 
         if(btn){
-            CurrentCategory = CheatCategoryEnumExtensions.GetEnumFromName(categoryText);
+            CurrentCategory = categoryEnum;
             s_selectedButtonIndex = 0;
         }
         return btn;
@@ -316,15 +326,13 @@ private static readonly int MENU_HEIGHT = 400;
         // Controller open: R3 (Right Stick Click)
         bool controllerComboDown = CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.GetToggleMenuPressed();
         
-        if(CultUtils.IsInGame() && (keyDown || controllerComboDown)){
-            if(!GuiEnabled && !s_animatingIn){
+        if(keyDown || controllerComboDown){
+            if(!GuiEnabled && !s_animatingIn && CultUtils.IsInGame()){
                 StartOpenAnimation();
                 s_selectedButtonIndex = 0;
             } else if(GuiEnabled && !s_animatingOut) {
                 StartCloseAnimation();
             }
-        } else if((keyDown || controllerComboDown) && !CultUtils.IsInGame()) {
-            NotificationHandler.CreateNotification("Cheat Menu can only be opened once in game!", 2);
         }
         
         // Controller navigation when menu is open
@@ -355,7 +363,7 @@ private static readonly int MENU_HEIGHT = 400;
             }
         }
         
-        if(GuiEnabled && !s_animatingOut && Input.GetKeyDown(CheatConfig.Instance.BackCategory.Value.MainKey) && CurrentCategory!= CheatCategoryEnum.NONE)
+        if(GuiEnabled && !s_animatingOut && Input.GetKeyDown(CheatConfig.Instance.BackCategory.Value.MainKey) && CurrentCategory != CheatCategoryEnum.NONE)
         {
             CurrentCategory = CheatCategoryEnum.NONE;
             GUIManager.ClearAllGuiBasedCheats();

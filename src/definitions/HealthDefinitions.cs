@@ -96,31 +96,6 @@ public class HealthDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Give 100 Souls", "Gives 100 souls to the Player")]
-    public static void GiveSouls(){
-        if(PlayerFarming.Instance != null){
-            PlayerFarming.Instance.GetSoul(100);
-            CultUtils.PlayNotification("100 souls added!");
-        }
-    }
-
-    [CheatDetails("Give 200 Black Souls", "Gives 200 black souls (sin currency)")]
-    public static void GiveBlackSouls(){
-        if(PlayerFarming.Instance != null){
-            PlayerFarming.Instance.GetBlackSoul(200, true, true);
-            CultUtils.PlayNotification("200 black souls added!");
-        }
-    }
-
-    [CheatDetails("Give Arrows", "Gives arrows / unlocks arrow ability")]
-    public static void GiveArrows(){
-        if(!UpgradeSystem.GetUnlocked(UpgradeSystem.Type.Combat_Arrows)){
-            UpgradeSystem.UnlockAbility(UpgradeSystem.Type.Combat_Arrows, false);
-        }
-        DataManager.Instance.PLAYER_ARROW_AMMO = 99;
-        CultUtils.PlayNotification("Arrows added!");
-    }
-
     [CheatDetails("Unlimited HP", "Unlimited HP (OFF)", "Unlimited HP (ON)", "Uses the game's built-in accessibility unlimited HP option", true)]
     public static void UnlimitedHP(bool flag){
         try {

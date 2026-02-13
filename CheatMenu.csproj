@@ -35,6 +35,9 @@
 	  <Reference Include="Assembly-CSharp">
 	    <HintPath>F:\SteamLibrary\steamapps\common\Cult of the Lamb\Cult Of The Lamb_Data\Managed\Assembly-CSharp.dll</HintPath>
 	  </Reference>
+	  <Reference Include="spine-unity">
+	    <HintPath>F:\SteamLibrary\steamapps\common\Cult of the Lamb\Cult Of The Lamb_Data\Managed\spine-unity.dll</HintPath>
+	  </Reference>
 	  <Reference Include="Rewired_Core">
 	    <HintPath>F:\SteamLibrary\steamapps\common\Cult of the Lamb\Cult Of The Lamb_Data\Managed\Rewired_Core.dll</HintPath>
 	  </Reference>

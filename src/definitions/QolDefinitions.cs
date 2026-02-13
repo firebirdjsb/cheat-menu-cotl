@@ -12,6 +12,7 @@ public class CombatDefinitions : IDefinition{
     private static bool s_oneHitKillEnabled = false;
     private static bool s_unlimitedRelicsEnabled = false;
     private static bool s_unlimitedAmmoEnabled = false;
+    private static bool s_ammoPatched = false;
 
     private static bool IsInDungeon(){
         try {
@@ -135,10 +136,49 @@ public class CombatDefinitions : IDefinition{
         CultUtils.PlayNotification("EVERYTHING unlocked!");
     }
 
-    [CheatDetails("Show All Map Locations", "Show Maps (OFF)", "Show Maps (ON)", "Reveals all locations on the world map and all rooms in the current dungeon", true)]
+    private static bool s_mapRevealEnabled = false;
+    private static bool s_mapRevealPatched = false;
+
+    /// <summary>
+    /// Harmony postfix for MiniMap.StartMap - automatically reveals the dungeon map
+    /// every time a new floor/room set is generated while the toggle is on.
+    /// </summary>
+    public static void Postfix_MiniMap_StartMap(MiniMap __instance){
+        if(!s_mapRevealEnabled) return;
+        try {
+            __instance.DiscoverAll();
+        } catch { }
+    }
+
+    private static void PatchMiniMapReveal(){
+        if(s_mapRevealPatched) return;
+        try {
+            MethodInfo patchMethod = typeof(CombatDefinitions).GetMethod("Postfix_MiniMap_StartMap", BindingFlags.Static | BindingFlags.Public);
+            ReflectionHelper.PatchMethodPostfix(
+                typeof(MiniMap),
+                "StartMap",
+                patchMethod,
+                BindingFlags.Instance | BindingFlags.Public,
+                silent: true
+            );
+            s_mapRevealPatched = true;
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] Failed to patch MiniMap.StartMap: {e.Message}");
+        }
+    }
+
+    private static void UnpatchMiniMapReveal(){
+        if(!s_mapRevealPatched) return;
+        ReflectionHelper.UnpatchTracked(typeof(MiniMap), "StartMap");
+        s_mapRevealPatched = false;
+    }
+
+    [CheatDetails("Auto Reveal Dungeon Map", "Map Reveal (OFF)", "Map Reveal (ON)", "Automatically reveals the dungeon map on every new floor", true)]
     public static void ShowAllMapLocations(bool flag){
+        s_mapRevealEnabled = flag;
         CheatConsole.ShowAllMapLocations = flag;
         if(flag){
+            PatchMiniMapReveal();
             try {
                 if(MiniMap.Instance != null){
                     MiniMap.Instance.DiscoverAll();
@@ -146,8 +186,10 @@ public class CombatDefinitions : IDefinition{
             } catch(Exception e){
                 Debug.LogWarning($"Map reveal failed: {e.Message}");
             }
+        } else {
+            UnpatchMiniMapReveal();
         }
-        CultUtils.PlayNotification(flag ? "All map locations visible!" : "Map locations hidden!");
+        CultUtils.PlayNotification(flag ? "Auto map reveal ON!" : "Auto map reveal OFF!");
     }
 
     [CheatDetails("Reveal Dungeon Map", "Reveals all rooms on the current dungeon floor map")]
@@ -249,7 +291,90 @@ public class CombatDefinitions : IDefinition{
         CultUtils.PlayNotification(flag ? "One hit kill ON!" : "One hit kill OFF!");
     }
 
-    [CheatDetails("Unlimited Ammo", "Unlimited Ammo (OFF)", "Unlimited Ammo (ON)", "Arrows and ranged weapons never run out of ammo", true)]
+    /// <summary>
+    /// Harmony prefix for BlunderAmmo.UseAmmo - prevents ammo consumption and instantly refills.
+    /// </summary>
+    public static bool Prefix_BlunderAmmo_UseAmmo(BlunderAmmo __instance, ref bool __result){
+        if(!s_unlimitedAmmoEnabled) return true;
+        try {
+            // Refill to max instead of consuming
+            if(__instance.gameObject.activeInHierarchy){
+                __instance.SetBlunderAmmo((float)__instance.blunderAmmoTotal);
+            }
+        } catch { }
+        __result = true;
+        return false;
+    }
+
+    /// <summary>
+    /// Harmony prefix for PlayerArrows.RestockArrow - instant full restock when unlimited ammo is on.
+    /// </summary>
+    public static bool Prefix_PlayerArrows_RestockArrow(PlayerArrows __instance){
+        if(!s_unlimitedAmmoEnabled) return true;
+        // Skip the slow one-by-one restock, just fully restock instantly
+        __instance.RestockAllArrows();
+        return false;
+    }
+
+    private static void RefillAllAmmoImmediate(){
+        try {
+            if(PlayerFarming.Instance == null) return;
+            // Refill arrows via PlayerArrows component (respects TOTAL_AMMO caps properly)
+            var playerArrows = PlayerFarming.Instance.GetComponent<PlayerArrows>();
+            if(playerArrows != null){
+                playerArrows.RestockAllArrows();
+            }
+            // Refill blunderbuss ammo via PlayerWeapon.blunderAmmo
+            // Only access when the BlunderAmmo component is active and initialized
+            // to avoid null reference errors from AmmoChanged accessing inactive UI elements
+            if(PlayerFarming.Instance.playerWeapon != null && PlayerFarming.Instance.playerWeapon.blunderAmmo != null){
+                var blunderAmmo = PlayerFarming.Instance.playerWeapon.blunderAmmo;
+                if(blunderAmmo.gameObject.activeInHierarchy && blunderAmmo.blunderAmmo < (float)blunderAmmo.blunderAmmoTotal){
+                    blunderAmmo.SetBlunderAmmo((float)blunderAmmo.blunderAmmoTotal);
+                }
+            }
+        } catch { }
+    }
+
+    private static void PatchAmmoMethods(){
+        if(s_ammoPatched) return;
+        try {
+            // Patch BlunderAmmo.UseAmmo to prevent ammo consumption
+            MethodInfo blunderPatch = typeof(CombatDefinitions).GetMethod("Prefix_BlunderAmmo_UseAmmo", BindingFlags.Static | BindingFlags.Public);
+            ReflectionHelper.PatchMethodPrefix(
+                typeof(BlunderAmmo),
+                "UseAmmo",
+                blunderPatch,
+                BindingFlags.Instance | BindingFlags.Public,
+                silent: true
+            );
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] Failed to patch BlunderAmmo.UseAmmo: {e.Message}");
+        }
+        try {
+            // Patch PlayerArrows.RestockArrow to make reloading instant
+            MethodInfo arrowPatch = typeof(CombatDefinitions).GetMethod("Prefix_PlayerArrows_RestockArrow", BindingFlags.Static | BindingFlags.Public);
+            ReflectionHelper.PatchMethodPrefix(
+                typeof(PlayerArrows),
+                "RestockArrow",
+                arrowPatch,
+                BindingFlags.Instance | BindingFlags.Public,
+                silent: true
+            );
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] Failed to patch PlayerArrows.RestockArrow: {e.Message}");
+        }
+        s_ammoPatched = true;
+    }
+
+    private static void UnpatchAmmoMethods(){
+        if(!s_ammoPatched) return;
+        ReflectionHelper.UnpatchTracked(typeof(BlunderAmmo), "UseAmmo");
+        ReflectionHelper.UnpatchTracked(typeof(PlayerArrows), "RestockArrow");
+        s_ammoPatched = false;
+    }
+
+    [CheatDetails("Unlimited Ammo", "Unlimited Ammo (OFF)", "Unlimited Ammo (ON)", "Arrows and blunderbuss never run out of ammo", true)]
     public static void UnlimitedAmmo(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
@@ -259,7 +384,10 @@ public class CombatDefinitions : IDefinition{
         s_unlimitedAmmoEnabled = flag;
         try {
             if(flag){
-                DataManager.Instance.PLAYER_ARROW_AMMO = 99;
+                PatchAmmoMethods();
+                RefillAllAmmoImmediate();
+            } else {
+                UnpatchAmmoMethods();
             }
             CultUtils.PlayNotification(flag ? "Unlimited ammo ON!" : "Unlimited ammo OFF!");
         } catch(Exception e){
@@ -327,49 +455,8 @@ public class CombatDefinitions : IDefinition{
     public static void CombatUpdate(){
         if(s_unlimitedAmmoEnabled){
             try {
-                if(DataManager.Instance != null && DataManager.Instance.PLAYER_ARROW_AMMO < 99){
-                    DataManager.Instance.PLAYER_ARROW_AMMO = 99;
-                }
+                RefillAllAmmoImmediate();
             } catch { }
-        }
-    }
-
-    [CheatDetails("Stop Time In Crusade", "Stop Time (OFF)", "Stop Time (ON)", "Stops base time from passing while in a crusade", true)]
-    public static void StopTimeInCrusade(bool flag){
-        try {
-            SettingsManager.Settings.Accessibility.StopTimeInCrusade = flag;
-            CultUtils.PlayNotification(flag ? "Time stops during crusades!" : "Time passes during crusades!");
-        } catch(Exception e){
-            Debug.LogWarning($"Failed to toggle crusade time stop: {e.Message}");
-            CultUtils.PlayNotification("Failed to toggle crusade time!");
-        }
-    }
-
-    private static float s_originalRunSpeed = -1f;
-
-    [CheatDetails("Player Speed x2", "Speed x2 (OFF)", "Speed x2 (ON)", "Doubles the player's movement speed without affecting the world", true)]
-    public static void PlayerSpeedDouble(bool flag){
-        try {
-            if(PlayerFarming.Instance != null){
-                var controller = PlayerFarming.Instance.playerController;
-                if(flag){
-                    if(s_originalRunSpeed < 0f){
-                        s_originalRunSpeed = controller.DefaultRunSpeed;
-                    }
-                    controller.RunSpeed = s_originalRunSpeed * 2f;
-                    controller.DefaultRunSpeed = s_originalRunSpeed * 2f;
-                } else {
-                    if(s_originalRunSpeed >= 0f){
-                        controller.RunSpeed = s_originalRunSpeed;
-                        controller.DefaultRunSpeed = s_originalRunSpeed;
-                    }
-                    s_originalRunSpeed = -1f;
-                }
-            }
-            CultUtils.PlayNotification(flag ? "Player speed x2!" : "Player speed normal!");
-        } catch(Exception e){
-            Debug.LogWarning($"Failed to set player speed: {e.Message}");
-            CultUtils.PlayNotification("Failed to toggle player speed!");
         }
     }
 }

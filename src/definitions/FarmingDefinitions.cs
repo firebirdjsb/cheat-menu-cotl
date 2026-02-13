@@ -206,4 +206,40 @@ public class FarmingDefinitions : IDefinition{
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MILK, 20);
         CultUtils.PlayNotification("Milk added!");
     }
+
+    [CheatDetails("Force Grow All Animals", "Instantly matures all baby animals and makes them harvest-ready")]
+    public static void ForceGrowAllAnimals(){
+        CultUtils.ForceGrowAllAnimals();
+    }
+
+    [CheatDetails("Spawn Friendly Wolf", "Spawns a tame wolf that follows you (limit 1)")]
+    public static void SpawnFriendlyWolf(){
+        CultUtils.SpawnFriendlyWolf();
+    }
+
+    [CheatDetails("Dismiss Wolf", "Dismisses your friendly wolf or clears all spawned wolves")]
+    public static void DismissFriendlyWolf(){
+        CultUtils.DismissFriendlyWolf();
+    }
+
+    [CheatDetails("Pet Wolf", "Pet your friendly wolf!")]
+    public static void PetFriendlyWolf(){
+        CultUtils.PetFriendlyWolf();
+    }
+
+    [CheatDetails("Wolf Dungeon Combat", "Combat (OFF)", "Combat (ON)", "Wolf attacks enemies in dungeons", true)]
+    public static void ToggleWolfDungeonCombat(bool flag){
+        CultUtils.WolfDungeonCombat = flag;
+        CultUtils.PlayNotification(flag ? "Wolf dungeon combat ON!" : "Wolf dungeon combat OFF!");
+    }
+
+    [CheatDetails("Add Hearts to Animals", "Adds a neon pink heart above all ranch animals")]
+    public static void AddHalosToAnimals(){
+        CultUtils.AddHalosToAnimals();
+    }
+
+    [CheatDetails("Ascend All Animals", "Ascends all ranch animals with full animation, sound effects, and visual resource drops")]
+    public static void AscendAllAnimals(){
+        CultUtils.AscendAllAnimals();
+    }
 }

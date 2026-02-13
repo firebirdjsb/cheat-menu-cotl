@@ -1,10 +1,12 @@
 ﻿using Lamb.UI;
 using System;
+using System.Collections;
 using src.Extensions;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Reflection;
 using HarmonyLib;
+using Spine.Unity;
 
 namespace CheatMenu;
 
@@ -275,8 +277,44 @@ internal class CultUtils {
     }
 
     public static async void ClearPoop(){
+        int poopCount = 0;
+        // Clear regular poop
         foreach(var poop in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.POOP)){
             poop.Remove();
+            poopCount++;
+        }
+        // Clear giant poop piles and any other poop-related structure types
+        foreach(var brainType in Enum.GetValues(typeof(StructureBrain.TYPES))){
+            string typeName = brainType.ToString();
+            if(typeName.Contains("POOP") && (StructureBrain.TYPES)brainType != StructureBrain.TYPES.POOP){
+                try {
+                    var poopStructures = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, (StructureBrain.TYPES)brainType);
+                    foreach(var ps in poopStructures){
+                        ps.Remove();
+                        poopCount++;
+                    }
+                } catch { }
+            }
+        }
+        // Clear nursery/daycare poop via Interaction_Daycare (the game calls them "Daycares")
+        try {
+            foreach(var daycare in Interaction_Daycare.Daycares){
+                if(daycare == null || daycare.Structure == null) continue;
+                var inventory = daycare.Structure.Inventory;
+                if(inventory != null && inventory.Count > 0){
+                    foreach(var item in inventory){
+                        if(item.type == (int)InventoryItem.ITEM_TYPE.POOP && item.quantity > 0){
+                            AddInventoryItem(InventoryItem.ITEM_TYPE.POOP, item.quantity);
+                            poopCount++;
+                        }
+                    }
+                    inventory.RemoveAll(i => i.type == (int)InventoryItem.ITEM_TYPE.POOP);
+                    // Update the visual poop states on the daycare
+                    daycare.UpdatePoopStates();
+                }
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to clear nursery poop: {e.Message}");
         }
         ClearJanitorStations();
         await AsyncHelper.WaitSeconds(1);
@@ -285,34 +323,52 @@ internal class CultUtils {
                 pickup.PickMeUp();
             }
         }
-        PlayNotification("Poop cleared!");
+        PlayNotification($"Poop cleared! ({poopCount} sources)");
     }
 
     public static void ClearJanitorStations(){
         try {
-            int count = 0;
-            foreach(var brainType in Enum.GetValues(typeof(StructureBrain.TYPES))){
-                string typeName = brainType.ToString();
-                if(typeName.Contains("JANITOR")){
-                    var stations = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, (StructureBrain.TYPES)brainType);
-                    foreach(var station in stations){
-                        if(station.Data != null && station.Data.Inventory != null){
-                            foreach(var item in station.Data.Inventory){
-                                if(item.type == (int)InventoryItem.ITEM_TYPE.POOP){
-                                    AddInventoryItem(InventoryItem.ITEM_TYPE.POOP, item.quantity);
-                                }
-                            }
-                            station.Data.Inventory.Clear();
-                            count++;
-                        }
-                    }
+            int stationCount = 0;
+            int totalSouls = 0;
+
+            // Find all janitor station brains and collect their SoulCount
+            var janitorStations = StructureManager.GetAllStructuresOfType<Structures_JanitorStation>();
+            foreach(var janitorStation in janitorStations){
+                if(janitorStation != null && janitorStation.SoulCount > 0){
+                    totalSouls += janitorStation.SoulCount;
+                    stationCount++;
                 }
             }
-            if(count > 0){
-                PlayNotification($"Janitor stations cleared! ({count})");
+
+            // Collect the souls and grant ChoreXP via the game's proper method
+            if(totalSouls > 0 && PlayerFarming.Instance != null){
+                // Reset SoulCount on all stations
+                foreach(var janitorStation in janitorStations){
+                    if(janitorStation != null){
+                        janitorStation.SoulCount = 0;
+                    }
+                }
+
+                // Force the scene JanitorStation objects to refresh their gauge naturally
+                // by resetting previousSoulCount so Update() detects the change and calls
+                // gauge.SetPosition() itself, preserving the gauge's GameObject state
+                foreach(var sceneStation in JanitorStation.JanitorStations){
+                    if(sceneStation != null){
+                        Traverse.Create(sceneStation).Field("previousSoulCount").SetValue(-1);
+                    }
+                }
+
+                // Grant ChoreXP through the game's proper system
+                PlayerFarming.Instance.playerChoreXPBarController.AddChoreXP(PlayerFarming.Instance, (float)totalSouls);
+            }
+
+            if(stationCount > 0 || totalSouls > 0){
+                PlayNotification($"Janitor stations collected! ({totalSouls} XP from {stationCount} stations)");
+            } else {
+                PlayNotification("No janitor stations with XP found!");
             }
         } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"Failed to clear janitor stations: {e.Message}");
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to clear janitor stations: {e.Message}");
         }
     }
 
@@ -371,14 +427,31 @@ internal class CultUtils {
         List<StructureBrain> outhouse1 = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.OUTHOUSE);
         List<StructureBrain> outhouse2 = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.OUTHOUSE_2);
         StructureBrain[] outhouses = CheatUtils.Concat(outhouse1.ToArray(), outhouse2.ToArray());
+        int totalPoop = 0;
         foreach(var outhouse in outhouses){
             if (outhouse is Structures_Outhouse outhouseStructure)
             {
-                AddInventoryItem(InventoryItem.ITEM_TYPE.POOP, outhouseStructure.GetPoopCount());
+                int poopCount = outhouseStructure.GetPoopCount();
+                if(poopCount > 0){
+                    AddInventoryItem(InventoryItem.ITEM_TYPE.POOP, poopCount);
+                    totalPoop += poopCount;
+                }
                 outhouseStructure.Data.Inventory.Clear();
             }
         }
-        PlayNotification("Outhouses cleared!");
+
+        // Update the visual gauges on all outhouse interactions in the scene
+        try {
+            foreach(var outhouseInteraction in Interaction_Outhouse.Outhouses){
+                if(outhouseInteraction != null){
+                    outhouseInteraction.UpdateGauge();
+                }
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to update outhouse gauges: {e.Message}");
+        }
+
+        PlayNotification(totalPoop > 0 ? $"Outhouses cleared! ({totalPoop} poop)" : "Outhouses already clean!");
     }
 
     public static void MaximizeSatiationAndRemoveStarvation(FollowerInfo followerInfo){
@@ -661,17 +734,58 @@ internal class CultUtils {
     }
 
     public static void ClearBodies(){
-        foreach(DeadWorshipper deadWorshipper in DeadWorshipper.DeadWorshippers){
-            AddInventoryItem(InventoryItem.ITEM_TYPE.FOLLOWER_MEAT, 5);
-            AddInventoryItem(InventoryItem.ITEM_TYPE.BONE, 2);
-		    if (deadWorshipper.followerInfo.Necklace != InventoryItem.ITEM_TYPE.NONE)
-		    {
-                AddInventoryItem(deadWorshipper.followerInfo.Necklace, 1);
-		    }
-		    deadWorshipper.followerInfo.Necklace = InventoryItem.ITEM_TYPE.NONE;
-            StructureManager.RemoveStructure(deadWorshipper.Structure.Brain);
+        int followerBodies = 0;
+        var deadWorshippers = new List<DeadWorshipper>(DeadWorshipper.DeadWorshippers);
+        foreach(DeadWorshipper deadWorshipper in deadWorshippers){
+            if(deadWorshipper == null || deadWorshipper.followerInfo == null) continue;
+            try {
+                AddInventoryItem(InventoryItem.ITEM_TYPE.FOLLOWER_MEAT, 5);
+                AddInventoryItem(InventoryItem.ITEM_TYPE.BONE, 2);
+                if (deadWorshipper.followerInfo.Necklace != InventoryItem.ITEM_TYPE.NONE)
+                {
+                    AddInventoryItem(deadWorshipper.followerInfo.Necklace, 1);
+                }
+                deadWorshipper.followerInfo.Necklace = InventoryItem.ITEM_TYPE.NONE;
+                StructureManager.RemoveStructure(deadWorshipper.Structure.Brain);
+                followerBodies++;
+            } catch(Exception e){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to clear dead follower: {e.Message}");
+            }
         }
-        PlayNotification("Dead bodies cleared!");
+
+        int animalBodies = 0;
+        try {
+            var deadAnimals = new List<Interaction_Ranchable>(Interaction_Ranchable.DeadRanchables);
+            foreach(var deadAnimal in deadAnimals){
+                if(deadAnimal == null || deadAnimal.Animal == null) continue;
+                if(deadAnimal.CurrentState == Interaction_Ranchable.State.Dead){
+                    try {
+                        List<InventoryItem> meatLoot = Interaction_Ranchable.GetMeatLoot(deadAnimal.Animal);
+                        foreach(var item in meatLoot){
+                            AddInventoryItem((InventoryItem.ITEM_TYPE)item.type, item.quantity);
+                        }
+                        AddInventoryItem(InventoryItem.ITEM_TYPE.BONE, Structures_Ranch.GetAnimalGrowthState(deadAnimal.Animal));
+                        if(deadAnimal.ranch != null){
+                            deadAnimal.ranch.Brain.RemoveAnimal(deadAnimal.Animal);
+                        }
+                        DataManager.Instance.BreakingOutAnimals.Remove(deadAnimal.Animal);
+                        DataManager.Instance.DeadAnimalsTemporaryList.Add(deadAnimal.Animal);
+                        UnityEngine.Object.Destroy(deadAnimal.gameObject);
+                        animalBodies++;
+                    } catch(Exception e){
+                        UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to clear dead animal: {e.Message}");
+                    }
+                }
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to clear dead animals: {e.Message}");
+        }
+
+        if(followerBodies == 0 && animalBodies == 0){
+            PlayNotification("No dead bodies found!");
+        } else {
+            PlayNotification($"Bodies cleared! ({followerBodies} follower, {animalBodies} animal)");
+        }
     }
 
     public static void CureIllness(FollowerInfo follower){
@@ -687,6 +801,834 @@ internal class CultUtils {
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"[CheatMenu] CureIllness error: {e.Message}");
         }
+    }
+
+    public static void ForceGrowAllAnimals(){
+        try {
+            int count = 0;
+            var animals = AnimalData.GetAnimals();
+            foreach(var animal in animals){
+                if(animal.Age < 2){
+                    animal.Age = 2;
+                }
+                animal.GrowthStage = 0;
+                animal.WorkedReady = true;
+                animal.WorkedToday = false;
+                animal.Satiation = Interaction_Ranchable.MAX_HUNGER;
+                Interaction_Ranchable ranchable = Interaction_Ranch.GetAnimal(animal);
+                if(ranchable != null){
+                    ranchable.UpdateSkin();
+                }
+                count++;
+            }
+            PlayNotification(count > 0 ? $"Force grew {count} animal(s)!" : "No animals to grow!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] ForceGrowAllAnimals error: {e.Message}");
+            PlayNotification("Failed to force grow animals!");
+        }
+    }
+
+    public static Interaction_WolfBase FriendlyWolf = null;
+    public static bool WolfDungeonCombat = true;
+    private static string s_wolfCurrentAnim = "";
+    private static bool s_wolfIsRunning = false;
+    private static Vector3 s_wolfVelocity = Vector3.zero;
+    private static float s_wolfAttackCooldown = 0f;
+    private static bool s_wolfPetting = false;
+
+    private static bool s_wolfShouldExist = false;
+    private static bool s_wolfRespawning = false;
+    private static float s_wolfAnimHoldTimer = 0f;
+    private const float WOLF_ANIM_HOLD_MIN = 0.15f;
+    private static string s_wolfAttackAnimName = null;
+    private static float s_wolfCombatTransitionTimer = 0f;
+    private const float WOLF_COMBAT_TRANSITION_MIN = 0.7f;
+
+    private const float WOLF_FOLLOW_SPEED = 4.5f;
+    private const float WOLF_TELEPORT_DIST = 8f;
+    private const float WOLF_START_FOLLOW_DIST = 3.5f;
+    private const float WOLF_STOP_FOLLOW_DIST = 1.8f;
+    private const float WOLF_SMOOTH_TIME = 0.35f;
+    private const float WOLF_ATTACK_RANGE = 1.5f;
+    private const float WOLF_DETECT_RANGE = 6f;
+    private const float WOLF_ATTACK_COOLDOWN = 1.8f;
+    private const float WOLF_ATTACK_DAMAGE = 2f;
+    private static Health s_wolfTargetEnemy = null;
+
+    public static void SpawnFriendlyWolf(){
+        SpawnFriendlyWolfInternal(true);
+    }
+
+    private static void SpawnFriendlyWolfInternal(bool userInitiated){
+        try {
+            if(PlayerFarming.Instance == null){
+                if(userInitiated) PlayNotification("Must be in game!");
+                return;
+            }
+
+            // Only allow 1 friendly wolf at a time
+            if(FriendlyWolf != null){
+                if(userInitiated) PlayNotification("You already have a friendly wolf!");
+                return;
+            }
+
+            Vector3 spawnPos = PlayerFarming.Instance.transform.position;
+
+            Interaction_WolfBase.WolfTarget = 1;
+            Interaction_WolfBase.WolfCount = 0;
+            Interaction_WolfBase.WolfFled = 0;
+            Interaction_WolfBase.WolfDied = 0;
+
+            s_wolfRespawning = true;
+            Interaction_WolfBase.SpawnWolf(spawnPos, null, false, (Interaction_WolfBase wolf) => {
+                s_wolfRespawning = false;
+                if(wolf != null){
+                    wolf.CurrentState = Interaction_WolfBase.State.Animating;
+                    wolf.SecondaryInteractable = false;
+                    FriendlyWolf = wolf;
+                    s_wolfCurrentAnim = "";
+                    s_wolfIsRunning = false;
+                    s_wolfVelocity = Vector3.zero;
+                    s_wolfAttackCooldown = 0f;
+                    s_wolfPetting = false;
+                    s_wolfAnimHoldTimer = 0f;
+                    s_wolfShouldExist = true;
+                    s_wolfAttackAnimName = null;
+                    s_wolfCombatTransitionTimer = 0f;
+
+                    // Discover the correct attack animation name from the wolf's skeleton
+                    DiscoverWolfAttackAnimation(wolf);
+
+                    Interaction_WolfBase.ResetWolvesEnounterData();
+                    UnityEngine.Debug.Log("[CheatMenu] Friendly wolf spawned and following player!");
+                }
+            });
+
+            if(userInitiated) PlayNotification("Friendly wolf spawned!");
+        } catch(Exception e){
+            s_wolfRespawning = false;
+            UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnFriendlyWolf error: {e.Message}");
+            if(userInitiated) PlayNotification("Failed to spawn friendly wolf!");
+        }
+    }
+
+    public static void DismissFriendlyWolf(){
+        try {
+            s_wolfShouldExist = false;
+            s_wolfRespawning = false;
+            if(FriendlyWolf != null){
+                UnityEngine.Object.Destroy(FriendlyWolf.gameObject);
+                FriendlyWolf = null;
+                s_wolfPetting = false;
+                PlayNotification("Friendly wolf dismissed!");
+            } else {
+                var wolves = new List<Interaction_WolfBase>(Interaction_WolfBase.Wolfs);
+                int count = 0;
+                foreach(var wolf in wolves){
+                    if(wolf != null){
+                        UnityEngine.Object.Destroy(wolf.gameObject);
+                        count++;
+                    }
+                }
+                Interaction_WolfBase.Wolfs.Clear();
+                Interaction_WolfBase.ResetWolvesEnounterData();
+                PlayNotification(count > 0 ? $"Dismissed {count} wolf/wolves!" : "No wolves to dismiss!");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] DismissFriendlyWolf error: {e.Message}");
+            PlayNotification("Failed to dismiss wolf!");
+        }
+    }
+
+    public static void PetFriendlyWolf(){
+        try {
+            if(FriendlyWolf == null){
+                PlayNotification("No friendly wolf to pet!");
+                return;
+            }
+            if(PlayerFarming.Instance == null){
+                PlayNotification("Must be in game!");
+                return;
+            }
+            if(s_wolfPetting){
+                return;
+            }
+            GameManager.GetInstance().StartCoroutine(PetWolfCoroutine());
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] PetFriendlyWolf error: {e.Message}");
+            PlayNotification("Failed to pet wolf!");
+        }
+    }
+
+    private static IEnumerator PetWolfCoroutine(){
+        s_wolfPetting = true;
+        var player = PlayerFarming.Instance;
+        var wolf = FriendlyWolf;
+
+        if(player == null || wolf == null){
+            s_wolfPetting = false;
+            yield break;
+        }
+
+        // Calculate a position in front of the wolf for the player to walk to
+        float wolfToPlayerAngle = Utils.GetAngle(wolf.transform.position, player.transform.position);
+        float petDist = 1.2f;
+        Vector3 petTarget = wolf.transform.position + new Vector3(
+            Mathf.Cos(wolfToPlayerAngle * Mathf.Deg2Rad) * petDist,
+            Mathf.Sin(wolfToPlayerAngle * Mathf.Deg2Rad) * petDist, 0f);
+
+        // Make the player run toward the pet position
+        float moveSpeed = 6f;
+        float timeout = 3f;
+        float elapsed = 0f;
+        float arrivalThreshold = 0.3f;
+
+        while(elapsed < timeout){
+            if(player == null || wolf == null || !(bool)(UnityEngine.Object)wolf){
+                s_wolfPetting = false;
+                yield break;
+            }
+
+            Vector3 currentPos = player.transform.position;
+            float remaining = Vector3.Distance(currentPos, petTarget);
+            if(remaining <= arrivalThreshold) break;
+
+            // Face and move toward the target
+            float moveAngle = Utils.GetAngle(currentPos, petTarget);
+            player.state.facingAngle = moveAngle;
+            player.state.CURRENT_STATE = StateMachine.State.Moving;
+
+            Vector3 dir = (petTarget - currentPos).normalized;
+            player.transform.position = currentPos + dir * Mathf.Min(moveSpeed * Time.deltaTime, remaining);
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if(player == null || wolf == null || !(bool)(UnityEngine.Object)wolf){
+            s_wolfPetting = false;
+            yield break;
+        }
+
+        // Face the wolf
+        float angle = Utils.GetAngle(player.transform.position, wolf.transform.position);
+        player.state.facingAngle = angle;
+
+        // Play pet animation on the player
+        player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
+        player.simpleSpineAnimator.Animate("pet-dog", 0, false);
+
+        // Make the wolf idle and face the player
+        var stateMachine = Traverse.Create(wolf).Field("stateMachine").GetValue<StateMachine>();
+        if(stateMachine != null){
+            float wolfAngle = Utils.GetAngle(wolf.transform.position, player.transform.position);
+            stateMachine.facingAngle = wolfAngle;
+            stateMachine.LookAngle = wolfAngle;
+        }
+        SetWolfAnimation(wolf.Spine, "idle", true);
+
+        try {
+            AudioManager.Instance.PlayOneShot("event:/dlc/animal/shared/calm", wolf.transform.position);
+        } catch { }
+
+        yield return new WaitForSeconds(1f);
+
+        // Emit hearts
+        try {
+            BiomeConstants.Instance.EmitHeartPickUpVFX(wolf.transform.position, 0f, "red", "burst_big", false);
+            AudioManager.Instance.PlayOneShot("event:/followers/love_hearts", wolf.transform.position);
+        } catch { }
+
+        CameraManager.instance.ShakeCameraForDuration(0.3f, 0.4f, 0.3f, true);
+
+        yield return new WaitForSeconds(0.8f);
+
+        player.state.CURRENT_STATE = StateMachine.State.Idle;
+        s_wolfPetting = false;
+        PlayNotification("Good wolf!");
+    }
+
+    /// <summary>
+    /// Called from the Update loop to check if the friendly wolf needs respawning
+    /// after a scene change or dungeon transition.
+    /// </summary>
+    [Update]
+    public static void UpdateFriendlyWolf(){
+        if(!s_wolfShouldExist) return;
+        if(s_wolfRespawning) return;
+        if(PlayerFarming.Instance == null) return;
+
+        // Check if the wolf reference is stale (destroyed by scene change)
+        // Use Unity's implicit bool operator to detect destroyed-but-not-null objects
+        if(FriendlyWolf == null || !(bool)(UnityEngine.Object)FriendlyWolf){
+            FriendlyWolf = null;
+            s_wolfPetting = false;
+            s_wolfTargetEnemy = null;
+            s_wolfCurrentAnim = "";
+            s_wolfIsRunning = false;
+            s_wolfVelocity = Vector3.zero;
+            s_wolfAttackCooldown = 0f;
+            s_wolfAnimHoldTimer = 0f;
+            s_wolfAttackAnimName = null;
+            s_wolfCombatTransitionTimer = 0f;
+            UnityEngine.Debug.Log("[CheatMenu] Friendly wolf lost (scene change) - respawning...");
+            SpawnFriendlyWolfInternal(false);
+        }
+    }
+
+    /// <summary>
+    /// Called from GlobalPatches Harmony prefix on Interaction_WolfBase.Update.
+    /// Uses smooth movement with hysteresis to prevent animation flickering.
+    /// In dungeons, attacks nearby enemies.
+    /// </summary>
+    public static bool HandleFriendlyWolfUpdate(Interaction_WolfBase wolf){
+        if(wolf != FriendlyWolf || FriendlyWolf == null) return true;
+        if(PlayerFarming.Instance == null) return false;
+        if(s_wolfPetting) return false;
+
+        try {
+            Vector3 playerPos = PlayerFarming.Instance.transform.position;
+            Vector3 wolfPos = wolf.transform.position;
+            float distance = Vector3.Distance(wolfPos, playerPos);
+
+            var spineAnim = wolf.Spine;
+            var stateMachine = Traverse.Create(wolf).Field("stateMachine").GetValue<StateMachine>();
+
+            var unitObject = wolf.UnitObject;
+            if(unitObject != null){
+                unitObject.ClearPaths();
+                unitObject.UsePathing = false;
+            }
+
+            // Dungeon combat: detect and chase enemies
+            bool inDungeon = GameManager.IsDungeon(PlayerFarming.Location);
+            bool wolfInCombat = false;
+
+            if(inDungeon && WolfDungeonCombat){
+                s_wolfAttackCooldown -= Time.deltaTime;
+                s_wolfCombatTransitionTimer -= Time.deltaTime;
+
+                // Clear dead/invalid target using Unity's implicit bool to catch destroyed objects
+                if(s_wolfTargetEnemy != null){
+                    bool targetInvalid = false;
+                    try {
+                        targetInvalid = !(bool)(UnityEngine.Object)s_wolfTargetEnemy
+                            || s_wolfTargetEnemy.HP <= 0f
+                            || !s_wolfTargetEnemy.enabled;
+                    } catch {
+                        targetInvalid = true;
+                    }
+                    if(targetInvalid){
+                        s_wolfTargetEnemy = null;
+                        // Force a brief run animation before attacking the next enemy
+                        s_wolfCombatTransitionTimer = WOLF_COMBAT_TRANSITION_MIN;
+                    }
+                }
+
+                // Find a new target if we don't have one
+                if(s_wolfTargetEnemy == null){
+                    s_wolfTargetEnemy = FindClosestEnemy(wolfPos, WOLF_DETECT_RANGE);
+                }
+
+                if(s_wolfTargetEnemy != null){
+                    wolfInCombat = true;
+                    Vector3 enemyPos = s_wolfTargetEnemy.transform.position;
+                    float enemyDist = Vector3.Distance(wolfPos, enemyPos);
+
+                    // Face the enemy
+                    if(stateMachine != null){
+                        float faceAngle = Utils.GetAngle(wolfPos, enemyPos);
+                        stateMachine.facingAngle = faceAngle;
+                        stateMachine.LookAngle = faceAngle;
+                    }
+
+                    // During combat transition, always show run animation before attacking next enemy
+                    if(s_wolfCombatTransitionTimer > 0f){
+                        wolf.transform.position = Vector3.SmoothDamp(
+                            wolfPos, enemyPos, ref s_wolfVelocity, WOLF_SMOOTH_TIME * 0.7f, WOLF_FOLLOW_SPEED * 1.3f, Time.deltaTime
+                        );
+                        SetWolfAnimation(spineAnim, "run", false);
+                    } else {
+                        string atkAnim = s_wolfAttackAnimName ?? "idle";
+
+                        // Use hysteresis for attack range to prevent rapid in/out of range flickering
+                        bool wasAttacking = s_wolfCurrentAnim == atkAnim || s_wolfCurrentAnim == "idle";
+                        float effectiveRange = wasAttacking ? WOLF_ATTACK_RANGE * 1.5f : WOLF_ATTACK_RANGE;
+
+                        if(enemyDist <= effectiveRange){
+                            // In melee range - attack
+                            if(s_wolfAttackCooldown <= 0f){
+                                s_wolfTargetEnemy.DealDamage(WOLF_ATTACK_DAMAGE, wolf.gameObject, wolfPos, false, Health.AttackTypes.Melee, false, (Health.AttackFlags)0);
+                                s_wolfAttackCooldown = WOLF_ATTACK_COOLDOWN;
+
+                                try {
+                                    AudioManager.Instance.PlayOneShot("event:/dlc/env/dog/dog_basic_attack_bite", wolf.transform.position);
+                                } catch { }
+
+                                SetWolfAnimation(spineAnim, atkAnim, true);
+                            } else {
+                                // Keep attack animation playing during cooldown, only idle near end
+                                if(s_wolfAttackCooldown < WOLF_ATTACK_COOLDOWN * 0.3f){
+                                    SetWolfAnimation(spineAnim, "idle", false);
+                                }
+                            }
+                            // Gently drift toward the enemy if slightly out of true attack range
+                            if(enemyDist > WOLF_ATTACK_RANGE){
+                                wolf.transform.position = Vector3.SmoothDamp(
+                                    wolfPos, enemyPos, ref s_wolfVelocity, WOLF_SMOOTH_TIME, WOLF_FOLLOW_SPEED * 0.5f, Time.deltaTime
+                                );
+                            } else {
+                                s_wolfVelocity = Vector3.zero;
+                            }
+                        } else {
+                            // Chase the enemy
+                            wolf.transform.position = Vector3.SmoothDamp(
+                                wolfPos, enemyPos, ref s_wolfVelocity, WOLF_SMOOTH_TIME * 0.7f, WOLF_FOLLOW_SPEED * 1.3f, Time.deltaTime
+                            );
+                            SetWolfAnimation(spineAnim, "run", false);
+                        }
+                    }
+                }
+            } else {
+                s_wolfTargetEnemy = null;
+            }
+
+            // Movement: follow player (only when not in combat)
+            if(!wolfInCombat){
+                if(distance > WOLF_TELEPORT_DIST){
+                    // Teleport behind the player based on their facing direction
+                    Vector3 behindPos = playerPos;
+                    try {
+                        float facingAngle = PlayerFarming.Instance.state.facingAngle;
+                        float behindAngle = (facingAngle + 180f) * Mathf.Deg2Rad;
+                        behindPos += new Vector3(Mathf.Cos(behindAngle) * 2f, Mathf.Sin(behindAngle) * 2f, 0f);
+                    } catch {
+                        behindPos += new Vector3(-2f, 0f, 0f);
+                    }
+                    wolf.transform.position = behindPos;
+                    s_wolfVelocity = Vector3.zero;
+                    s_wolfIsRunning = false;
+                    SetWolfAnimation(spineAnim, "idle", true);
+                }
+                else {
+                    // Hysteresis: start running at START_FOLLOW_DIST, stop at STOP_FOLLOW_DIST
+                    if(!s_wolfIsRunning && distance > WOLF_START_FOLLOW_DIST){
+                        s_wolfIsRunning = true;
+                    }
+                    else if(s_wolfIsRunning && distance < WOLF_STOP_FOLLOW_DIST){
+                        s_wolfIsRunning = false;
+                        s_wolfVelocity = Vector3.zero;
+                    }
+
+                    if(s_wolfIsRunning){
+                        Vector3 targetPos = playerPos;
+                        wolf.transform.position = Vector3.SmoothDamp(
+                            wolfPos, targetPos, ref s_wolfVelocity, WOLF_SMOOTH_TIME, WOLF_FOLLOW_SPEED, Time.deltaTime
+                        );
+
+                        if(stateMachine != null){
+                            float faceAngle = Utils.GetAngle(wolfPos, playerPos);
+                            stateMachine.facingAngle = faceAngle;
+                            stateMachine.LookAngle = faceAngle;
+                        }
+
+                        SetWolfAnimation(spineAnim, "run", false);
+                    } else {
+                        if(stateMachine != null){
+                            float faceAngle = Utils.GetAngle(wolfPos, playerPos);
+                            stateMachine.facingAngle = faceAngle;
+                            stateMachine.LookAngle = faceAngle;
+                        }
+
+                        SetWolfAnimation(spineAnim, "idle", false);
+                    }
+                }
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] FriendlyWolf update error: {e.Message}");
+        }
+
+        return false;
+    }
+
+    private static Health FindClosestEnemy(Vector3 position, float maxRange){
+        Health closest = null;
+        float closestDist = maxRange;
+        try {
+            foreach(var enemy in Health.team2){
+                if(enemy == null || !(bool)(UnityEngine.Object)enemy) continue;
+                try {
+                    if(!enemy.enabled || enemy.HP <= 0f) continue;
+                    float dist = Vector3.Distance(position, enemy.transform.position);
+                    if(dist < closestDist){
+                        closestDist = dist;
+                        closest = enemy;
+                    }
+                } catch { continue; }
+            }
+        } catch { }
+        return closest;
+    }
+
+    private static void SetWolfAnimation(SkeletonAnimation spineAnim, string animName, bool force){
+        if(spineAnim == null) return;
+        try {
+            s_wolfAnimHoldTimer -= Time.deltaTime;
+            string atkAnim = s_wolfAttackAnimName ?? "idle";
+            bool isAttackAnim = animName == atkAnim;
+            if(force || (s_wolfCurrentAnim != animName && s_wolfAnimHoldTimer <= 0f)){
+                spineAnim.AnimationState.SetAnimation(0, animName, !isAttackAnim);
+                s_wolfCurrentAnim = animName;
+                // Hold attack animation longer to prevent stuttering during combat transitions
+                if(isAttackAnim){
+                    s_wolfAnimHoldTimer = 0.35f;
+                } else {
+                    s_wolfAnimHoldTimer = WOLF_ANIM_HOLD_MIN;
+                }
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] SetWolfAnimation error ({animName}): {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Discovers the correct attack animation name from the wolf's Spine skeleton data.
+    /// From the assembly dump (Interaction_WolfBase.cs), the wolf has these animations:
+    /// run, charge_attack, idle, howl, knockback, knockback-reset,
+    /// jump_anticipation, jump, jump_land, trapped.
+    /// There is no dedicated "attack" or "bite" animation - the base game wolf
+    /// attacks by moving close and calling Damage() with only a sound effect.
+    /// We use "charge_attack" as the attack visual since it's the most aggressive.
+    /// </summary>
+    private static void DiscoverWolfAttackAnimation(Interaction_WolfBase wolf){
+        try {
+            var spineAnim = wolf.Spine;
+            if(spineAnim == null || spineAnim.skeleton == null || spineAnim.skeleton.Data == null){
+                s_wolfAttackAnimName = "charge_attack";
+                UnityEngine.Debug.LogWarning("[CheatMenu] Wolf skeleton not ready, defaulting to charge_attack");
+                return;
+            }
+
+            var skeletonData = spineAnim.skeleton.Data;
+            var animations = skeletonData.Animations;
+            List<string> animNames = new List<string>();
+            foreach(var anim in animations){
+                animNames.Add(anim.Name);
+            }
+
+            UnityEngine.Debug.Log($"[CheatMenu] Wolf available animations: {string.Join(", ", animNames)}");
+
+            // From the assembly dump, the wolf's aggressive animation is "charge_attack"
+            // Priority: charge_attack > howl > idle
+            if(animNames.Contains("charge_attack")){
+                s_wolfAttackAnimName = "charge_attack";
+            } else if(animNames.Contains("howl")){
+                s_wolfAttackAnimName = "howl";
+            } else {
+                s_wolfAttackAnimName = "idle";
+            }
+
+            UnityEngine.Debug.Log($"[CheatMenu] Wolf attack animation set to: {s_wolfAttackAnimName}");
+        } catch(Exception e){
+            s_wolfAttackAnimName = "charge_attack";
+            UnityEngine.Debug.LogWarning($"[CheatMenu] DiscoverWolfAttackAnimation error: {e.Message}");
+        }
+    }
+
+    public static void AscendAllAnimals(){
+        try {
+            int count = 0;
+            var animals = new List<StructuresData.Ranchable_Animal>(AnimalData.GetAnimals());
+            foreach(var animal in animals){
+                if(animal == null) continue;
+
+                Interaction_Ranchable ranchable = Interaction_Ranch.GetAnimal(animal);
+
+                // If the ranchable is in the scene, use the game's built-in AscendIE coroutine
+                if(ranchable != null && ranchable.gameObject != null && ranchable.gameObject.activeInHierarchy){
+                    try {
+                        ranchable.StartCoroutine(AscendAnimalCoroutine(ranchable, animal));
+                    } catch(Exception e){
+                        UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to start ascend coroutine: {e.Message}");
+                        // Fallback: remove immediately
+                        RemoveAnimalImmediate(ranchable, animal);
+                    }
+                } else {
+                    // Animal not in scene, just collect resources and remove data
+                    CollectAnimalResources(animal, Vector3.zero, false);
+                    RemoveAnimalData(ranchable, animal);
+                }
+
+                count++;
+            }
+            PlayNotification(count > 0 ? $"Ascended {count} animal(s)!" : "No animals to ascend!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] AscendAllAnimals error: {e.Message}");
+            PlayNotification("Failed to ascend animals!");
+        }
+    }
+
+    private static System.Collections.IEnumerator AscendAnimalCoroutine(Interaction_Ranchable ranchable, StructuresData.Ranchable_Animal animal){
+        // Mark as being ascended so AI doesn't interfere
+        ranchable.BeingAscended = true;
+        ranchable.ReservedByPlayer = true;
+        animal.State = Interaction_Ranchable.State.Animating;
+
+        // Play the ascend animation on the animal's spine
+        string animalName = GetAnimationAnimalName(animal.Type);
+        string ascendAnim = "ascend-" + animalName;
+        var spine = Traverse.Create(ranchable).Field("spine").GetValue();
+        if(spine != null){
+            var animState = Traverse.Create(spine).Property("AnimationState").GetValue();
+            if(animState != null){
+                try {
+                    Traverse.Create(animState).Method("SetAnimation", new Type[]{typeof(int), typeof(string), typeof(bool)}).GetValue(0, ascendAnim, false);
+                } catch {
+                    Traverse.Create(animState).Method("SetAnimation", new Type[]{typeof(int), typeof(string), typeof(bool)}).GetValue(0, "idle", false);
+                }
+            }
+        }
+
+        // Play ascend sound
+        try {
+            AudioManager.Instance.PlayOneShot("event:/dlc/animal/shared/ascend", ranchable.transform.position);
+        } catch { }
+
+        // Chromatic aberration effect
+        try {
+            BiomeConstants.Instance.ChromaticAbberationTween(1f, BiomeConstants.Instance.ChromaticAberrationDefaultValue, 1f);
+        } catch { }
+
+        // Wait for ascending portion of animation
+        yield return new WaitForSeconds(1.5f);
+
+        // Spawn resources visually at the animal's position
+        Vector3 spawnPos = ranchable.transform.position + new Vector3(0f, 0f, -2f);
+        CollectAnimalResources(animal, spawnPos, true);
+
+        // Wait for the rest of the animation
+        yield return new WaitForSeconds(2.8333f);
+
+        // Reset chromatic aberration
+        try {
+            BiomeConstants.Instance.ChromaticAbberationTween(0.5f, 1f, BiomeConstants.Instance.ChromaticAberrationDefaultValue);
+        } catch { }
+
+        yield return new WaitForSeconds(1f);
+
+        // Hide the spine visual
+        try {
+            var spineObj = Traverse.Create(ranchable).Field("spine").GetValue();
+            if(spineObj != null){
+                Traverse.Create(spineObj).Property("gameObject").GetValue<GameObject>()?.SetActive(false);
+            }
+        } catch { }
+
+        // Play cleanup sound
+        try {
+            AudioManager.Instance.PlayOneShot("event:/dlc/animal/shared/cleanup_dead", ranchable.transform.position);
+        } catch { }
+
+        yield return new WaitForSeconds(0.5f);
+
+        // Remove animal from data and destroy
+        RemoveAnimalData(ranchable, animal);
+        if(ranchable != null && ranchable.gameObject != null){
+            UnityEngine.Object.Destroy(ranchable.gameObject);
+        }
+    }
+
+    private static void CollectAnimalResources(StructuresData.Ranchable_Animal animal, Vector3 spawnPos, bool spawnVisual){
+        List<InventoryItem> meatLoot = Interaction_Ranchable.GetMeatLoot(animal);
+        foreach(var item in meatLoot){
+            item.quantity = Mathf.RoundToInt((float)item.quantity);
+        }
+
+        if(spawnVisual && spawnPos != Vector3.zero){
+            int spawnMeat = Mathf.Min(meatLoot.Count > 0 ? meatLoot[0].quantity : 0, 10);
+            if(spawnMeat > 0){
+                InventoryItem.Spawn(InventoryItem.ITEM_TYPE.MEAT, spawnMeat, spawnPos, 4f, null);
+            }
+            foreach(var item in meatLoot){
+                Inventory.AddItem(item.type, Mathf.Max(0, item.quantity - spawnMeat), false);
+            }
+        } else {
+            foreach(var item in meatLoot){
+                AddInventoryItem((InventoryItem.ITEM_TYPE)item.type, item.quantity);
+            }
+        }
+
+        List<InventoryItem> workLoot = Interaction_Ranchable.GetWorkLoot(animal);
+        foreach(var item in workLoot){
+            int qty = item.quantity * 3;
+            if(spawnVisual && spawnPos != Vector3.zero){
+                InventoryItem.Spawn((InventoryItem.ITEM_TYPE)item.type, qty, spawnPos, 4f, null);
+            } else {
+                AddInventoryItem((InventoryItem.ITEM_TYPE)item.type, qty);
+            }
+        }
+
+        if(animal.Type == InventoryItem.ITEM_TYPE.ANIMAL_COW){
+            if(spawnVisual && spawnPos != Vector3.zero){
+                InventoryItem.Spawn(InventoryItem.ITEM_TYPE.MILK, 5, spawnPos, 4f, null);
+            } else {
+                AddInventoryItem(InventoryItem.ITEM_TYPE.MILK, 5);
+            }
+        }
+    }
+
+    private static void RemoveAnimalImmediate(Interaction_Ranchable ranchable, StructuresData.Ranchable_Animal animal){
+        CollectAnimalResources(animal, Vector3.zero, false);
+        RemoveAnimalData(ranchable, animal);
+        if(ranchable != null && ranchable.gameObject != null){
+            UnityEngine.Object.Destroy(ranchable.gameObject);
+        }
+    }
+
+    private static void RemoveAnimalData(Interaction_Ranchable ranchable, StructuresData.Ranchable_Animal animal){
+        if(ranchable != null && ranchable.ranch != null){
+            ranchable.ranch.Brain.RemoveAnimal(animal);
+        }
+        DataManager.Instance.BreakingOutAnimals.Remove(animal);
+        DataManager.Instance.DeadAnimalsTemporaryList.Add(animal);
+    }
+
+    /// <summary>
+    /// Returns the animation name suffix for a given animal type (matches game's GetAnimationAnimalName).
+    /// </summary>
+    private static string GetAnimationAnimalName(InventoryItem.ITEM_TYPE type){
+        switch(type){
+            case InventoryItem.ITEM_TYPE.ANIMAL_GOAT: return "goat";
+            case InventoryItem.ITEM_TYPE.ANIMAL_TURTLE: return "turtle";
+            case InventoryItem.ITEM_TYPE.ANIMAL_CRAB: return "crab";
+            case InventoryItem.ITEM_TYPE.ANIMAL_SPIDER: return "spider";
+            case InventoryItem.ITEM_TYPE.ANIMAL_SNAIL: return "snail";
+            case InventoryItem.ITEM_TYPE.ANIMAL_COW: return "cow";
+            case InventoryItem.ITEM_TYPE.ANIMAL_LLAMA: return "llama";
+            default: return "goat";
+        }
+    }
+
+    private static List<GameObject> s_activeHalos = new List<GameObject>();
+
+    /// <summary>
+    /// Adds a glowing halo effect above each ranch animal by spawning a light GameObject.
+    /// </summary>
+    public static void AddHalosToAnimals(){
+        try {
+            // Clean up any existing halos first
+            RemoveAnimalHalos();
+
+            int count = 0;
+            var animals = AnimalData.GetAnimals();
+            foreach(var animal in animals){
+                if(animal == null) continue;
+
+                Interaction_Ranchable ranchable = Interaction_Ranch.GetAnimal(animal);
+                if(ranchable == null || ranchable.gameObject == null || !ranchable.gameObject.activeInHierarchy) continue;
+
+                try {
+                    // Create a heart GameObject above the animal
+                    // Z must be negative (closer to camera) to render above 2D sprites
+                    GameObject haloObj = new GameObject("CheatMenu_AnimalHeart");
+                    haloObj.transform.SetParent(ranchable.transform);
+                    haloObj.transform.localPosition = new Vector3(0f, 1.5f, -5f);
+
+                    // Add a sprite renderer with a neon pink heart
+                    SpriteRenderer sr = haloObj.AddComponent<SpriteRenderer>();
+                    sr.sprite = CreateHaloSprite();
+                    sr.color = new Color(1f, 0.2f, 0.6f, 0.9f);
+                    sr.sortingLayerName = "Above";
+                    sr.sortingOrder = 1000;
+                    haloObj.transform.localScale = new Vector3(0.4f, 0.4f, 1f);
+
+                    // Add a light for the neon glow effect
+                    GameObject lightObj = new GameObject("HeartLight");
+                    lightObj.transform.SetParent(haloObj.transform);
+                    lightObj.transform.localPosition = Vector3.zero;
+                    Light haloLight = lightObj.AddComponent<Light>();
+                    haloLight.type = LightType.Point;
+                    haloLight.color = new Color(1f, 0.1f, 0.5f);
+                    haloLight.intensity = 2f;
+                    haloLight.range = 2.5f;
+
+                    s_activeHalos.Add(haloObj);
+                    count++;
+                } catch(Exception e){
+                    UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to add halo to animal: {e.Message}");
+                }
+            }
+            PlayNotification(count > 0 ? $"Halos added to {count} animal(s)!" : "No animals to add halos to!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] AddHalosToAnimals error: {e.Message}");
+            PlayNotification("Failed to add halos!");
+        }
+    }
+
+    private static Sprite s_haloSprite;
+
+    private static Sprite CreateHaloSprite(){
+        if(s_haloSprite != null) return s_haloSprite;
+
+        int size = 128;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        float halfSize = size / 2f;
+        // Supersampling: 2x2 grid per pixel for anti-aliasing
+        int samples = 2;
+        float sampleStep = 1f / samples;
+
+        for(int y = 0; y < size; y++){
+            for(int x = 0; x < size; x++){
+                float totalAlpha = 0f;
+                for(int sy = 0; sy < samples; sy++){
+                    for(int sx = 0; sx < samples; sx++){
+                        float px = x + (sx + 0.5f) * sampleStep;
+                        float py = y + (sy + 0.5f) * sampleStep;
+                        // Normalize coordinates to -1..1 with center at (0,0)
+                        // Stretch X slightly wider for a rounder heart shape
+                        float nx = (px - halfSize) / (halfSize * 0.9f);
+                        float ny = (py - halfSize) / halfSize;
+
+                        // Heart implicit equation: (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
+                        // Standard math coords: lobes at top (y>0), point at bottom (y<0)
+                        // Unity tex y=0 is bottom, so this naturally gives an upright heart
+                        float x2 = nx * nx;
+                        float val = (x2 + ny * ny - 1f);
+                        val = val * val * val - x2 * ny * ny * ny;
+
+                        if(val <= 0f){
+                            totalAlpha += 1f;
+                        } else {
+                            float glow = Mathf.Clamp01(1f - val * 6f);
+                            totalAlpha += glow * 0.35f;
+                        }
+                    }
+                }
+                float alpha = totalAlpha / (samples * samples);
+                if(alpha > 0.01f){
+                    // Brighter pink in the center, softer at edges
+                    float fill = Mathf.Clamp01(alpha);
+                    float r = Mathf.Lerp(1f, 1f, fill);
+                    float g = Mathf.Lerp(0.1f, 0.25f, fill);
+                    float b = Mathf.Lerp(0.5f, 0.65f, fill);
+                    tex.SetPixel(x, y, new Color(r, g, b, alpha));
+                } else {
+                    tex.SetPixel(x, y, Color.clear);
+                }
+            }
+        }
+        tex.Apply();
+        s_haloSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 128f);
+        return s_haloSprite;
+    }
+
+    private static void RemoveAnimalHalos(){
+        foreach(var halo in s_activeHalos){
+            if(halo != null){
+                UnityEngine.Object.Destroy(halo);
+            }
+        }
+        s_activeHalos.Clear();
     }
 
     public static void ModifyFaith(float value, string notifMessage, bool shouldNotify = true)
@@ -707,6 +1649,11 @@ internal class CultUtils {
         CultFaithManager.Instance.BarController.SetBarSize(value / 85f, true, true, data);
     }
 }
+
+
+
+
+
 
 
 

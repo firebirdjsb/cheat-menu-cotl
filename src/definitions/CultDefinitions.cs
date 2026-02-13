@@ -68,7 +68,7 @@ public class CultDefinitions : IDefinition {
         CultUtils.ClearPoop();
     }
 
-    [CheatDetails("Clear Dead bodies", "Clears any dead bodies on the floor, giving follower meat!")]
+    [CheatDetails("Clear Dead bodies", "Clears dead follower and animal bodies, giving meat and bones!")]
     public static void ClearDeadBodies(){
         CultUtils.ClearBodies();
     }
@@ -314,7 +314,7 @@ public class CultDefinitions : IDefinition {
         }
     }
 
-    [CheatDetails("Give All Clothing Items", "Unlocks all clothing and assigns each follower a random outfit")]
+    [CheatDetails("Give All Clothing Items", "Unlocks all clothing and assigns clothing to followers currently in the scene")]
     public static void GiveAllClothing(){
         try {
             int count = 0;
@@ -337,8 +337,10 @@ public class CultDefinitions : IDefinition {
                 }
             }
 
-            // Only assign clothing to followers that are currently in the scene
+            // ONLY assign clothing to followers that are currently loaded in the scene
+            // DO NOT modify FollowerInfo clothing data for unloaded followers - this causes spawn issues
             var followers = DataManager.Instance.Followers;
+            int clothingIndex = 0;
             for(int i = 0; i < followers.Count; i++){
                 try {
                     FollowerInfo followerInfo = followers[i];
@@ -347,31 +349,24 @@ public class CultDefinitions : IDefinition {
                     // Try to get the actual follower instance
                     Follower follower = CultUtils.GetFollowerFromInfo(followerInfo);
                     
-                    // Only update if follower is actually loaded in the scene
-                    if(follower != null && follower.gameObject != null && follower.gameObject.activeInHierarchy){
+                    // CRITICAL: Only update followers that are fully loaded and active
+                    if(follower != null && follower.gameObject != null && follower.gameObject.activeInHierarchy && follower.Outfit != null){
                         try {
-                            FollowerClothingType clothing = wearableTypes[i % wearableTypes.Count];
+                            FollowerClothingType clothing = wearableTypes[clothingIndex % wearableTypes.Count];
                             
                             // Set on both the info and the actual follower
                             followerInfo.Clothing = clothing;
                             followerInfo.Outfit = FollowerOutfitType.Custom;
                             
-                            // Only update the live follower if they have the outfit component
-                            if(follower.Outfit != null){
-                                follower.SetOutfit(FollowerOutfitType.Custom, false, Thought.None);
-                                count++;
-                            }
+                            // Update the live follower's visual outfit
+                            follower.SetOutfit(FollowerOutfitType.Custom, false, Thought.None);
+                            count++;
+                            clothingIndex++;
                         } catch(Exception e){
                             UnityEngine.Debug.LogWarning($"[CheatMenu] Could not update follower {followerInfo.ID} outfit: {e.Message}");
                         }
-                    } else {
-                        // For followers not in scene, just set the clothing data
-                        // They'll wear it when they load
-                        FollowerClothingType clothing = wearableTypes[i % wearableTypes.Count];
-                        followerInfo.Clothing = clothing;
-                        followerInfo.Outfit = FollowerOutfitType.Custom;
-                        count++;
                     }
+                    // DO NOT set clothing data for unloaded followers - let them spawn with default outfits
                 } catch(Exception e){
                     UnityEngine.Debug.LogWarning($"[CheatMenu] Error setting clothing for follower {i}: {e.Message}");
                     // Continue with other followers
@@ -383,7 +378,11 @@ public class CultDefinitions : IDefinition {
             CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SILK_THREAD, 50);
             CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.WOOL, 30);
 
-            CultUtils.PlayNotification($"All clothing unlocked! {count} follower(s) updated.");
+            if(count > 0){
+                CultUtils.PlayNotification($"All clothing unlocked! {count} follower(s) dressed.");
+            } else {
+                CultUtils.PlayNotification("All clothing unlocked! (No followers in scene to dress)");
+            }
         } catch(Exception e){
             Debug.LogWarning($"[CheatMenu] Failed to give clothing: {e.Message}");
             CultUtils.PlayNotification("Failed to give clothing!");
