@@ -473,7 +473,16 @@ internal class CultUtils {
     }
 
     public static void AddInventoryItem(InventoryItem.ITEM_TYPE type, int amount){
-        Inventory.AddItem(type, amount, false);
+        try {
+            Inventory.AddItem((int)type, amount, false);
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] AddInventoryItem fallback for {type}: {e.Message}");
+            try {
+                Inventory.AddItem(type, amount, false);
+            } catch(Exception e2){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] AddInventoryItem failed for {type}: {e2.Message}");
+            }
+        }
     }
 
     public static float CalculateCurrentFaith()
@@ -1512,7 +1521,25 @@ internal class CultUtils {
     private static List<GameObject> s_activeHalos = new List<GameObject>();
 
     /// <summary>
-    /// Adds a glowing halo effect above each ranch animal by spawning a light GameObject.
+    /// Returns the Y offset to place a halo just above the top of each animal type.
+    /// Values are tuned per-animal based on their sprite heights.
+    /// </summary>
+    private static float GetAnimalHaloHeight(InventoryItem.ITEM_TYPE type){
+        switch(type){
+            case InventoryItem.ITEM_TYPE.ANIMAL_GOAT:   return 0.45f;
+            case InventoryItem.ITEM_TYPE.ANIMAL_COW:    return 0.55f;
+            case InventoryItem.ITEM_TYPE.ANIMAL_LLAMA:  return 0.55f;
+            case InventoryItem.ITEM_TYPE.ANIMAL_TURTLE: return 0.25f;
+            case InventoryItem.ITEM_TYPE.ANIMAL_CRAB:   return 0.20f;
+            case InventoryItem.ITEM_TYPE.ANIMAL_SPIDER: return 0.25f;
+            case InventoryItem.ITEM_TYPE.ANIMAL_SNAIL:  return 0.25f;
+            default:                                    return 0.40f;
+        }
+    }
+
+    /// <summary>
+    /// Adds a glowing pink halo effect just above the top of each ranch animal.
+    /// Halo heights are per-animal so the ring sits right on top of each creature.
     /// </summary>
     public static void AddHalosToAnimals(){
         try {
@@ -1528,29 +1555,50 @@ internal class CultUtils {
                 if(ranchable == null || ranchable.gameObject == null || !ranchable.gameObject.activeInHierarchy) continue;
 
                 try {
-                    // Create a heart GameObject above the animal
-                    // Z must be negative (closer to camera) to render above 2D sprites
-                    GameObject haloObj = new GameObject("CheatMenu_AnimalHeart");
-                    haloObj.transform.SetParent(ranchable.transform);
-                    haloObj.transform.localPosition = new Vector3(0f, 1.5f, -5f);
+                    float haloY = GetAnimalHaloHeight(animal.Type);
 
-                    // Add a sprite renderer with a neon pink heart
+                    // Create a halo GameObject above the animal
+                    // Z must be negative (closer to camera) to render above 2D sprites
+                    GameObject haloObj = new GameObject("CheatMenu_AnimalHalo");
+                    haloObj.transform.SetParent(ranchable.transform);
+                    haloObj.transform.localPosition = new Vector3(0f, haloY, -5f);
+
+                    // Add a sprite renderer with a pink glowing halo
                     SpriteRenderer sr = haloObj.AddComponent<SpriteRenderer>();
                     sr.sprite = CreateHaloSprite();
-                    sr.color = new Color(1f, 0.2f, 0.6f, 0.9f);
+                    sr.color = new Color(1f, 0.3f, 0.7f, 0.9f);
                     sr.sortingLayerName = "Above";
                     sr.sortingOrder = 1000;
-                    haloObj.transform.localScale = new Vector3(0.4f, 0.4f, 1f);
+                    sr.material = new Material(Shader.Find("Sprites/Default"));
+                    sr.material.SetFloat("_PixelSnap", 0f);
+                    haloObj.transform.localScale = new Vector3(0.45f, 0.45f, 1f);
 
-                    // Add a light for the neon glow effect
-                    GameObject lightObj = new GameObject("HeartLight");
+                    // Inner glow sprite (additive blend for the neon glow effect)
+                    GameObject glowObj = new GameObject("HaloGlow");
+                    glowObj.transform.SetParent(haloObj.transform);
+                    glowObj.transform.localPosition = Vector3.zero;
+                    glowObj.transform.localScale = new Vector3(1.4f, 1.4f, 1f);
+                    SpriteRenderer glowSr = glowObj.AddComponent<SpriteRenderer>();
+                    glowSr.sprite = CreateGlowSprite();
+                    glowSr.color = new Color(1f, 0.2f, 0.6f, 0.5f);
+                    glowSr.sortingLayerName = "Above";
+                    glowSr.sortingOrder = 999;
+                    // Use additive shader for glow effect
+                    Shader addShader = Shader.Find("Particles/Additive");
+                    if(addShader == null) addShader = Shader.Find("Legacy Shaders/Particles/Additive");
+                    if(addShader == null) addShader = Shader.Find("Sprites/Default");
+                    glowSr.material = new Material(addShader);
+
+                    // Add a point light for real-time glow cast onto surroundings
+                    GameObject lightObj = new GameObject("HaloLight");
                     lightObj.transform.SetParent(haloObj.transform);
                     lightObj.transform.localPosition = Vector3.zero;
                     Light haloLight = lightObj.AddComponent<Light>();
                     haloLight.type = LightType.Point;
-                    haloLight.color = new Color(1f, 0.1f, 0.5f);
-                    haloLight.intensity = 2f;
+                    haloLight.color = new Color(1f, 0.2f, 0.6f);
+                    haloLight.intensity = 3f;
                     haloLight.range = 2.5f;
+                    haloLight.renderMode = LightRenderMode.Auto;
 
                     s_activeHalos.Add(haloObj);
                     count++;
@@ -1558,7 +1606,7 @@ internal class CultUtils {
                     UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to add halo to animal: {e.Message}");
                 }
             }
-            PlayNotification(count > 0 ? $"Halos added to {count} animal(s)!" : "No animals to add halos to!");
+            PlayNotification(count > 0 ? $"Glowing halos added to {count} animal(s)!" : "No animals to add halos to!");
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"[CheatMenu] AddHalosToAnimals error: {e.Message}");
             PlayNotification("Failed to add halos!");
@@ -1566,6 +1614,7 @@ internal class CultUtils {
     }
 
     private static Sprite s_haloSprite;
+    private static Sprite s_glowSprite;
 
     private static Sprite CreateHaloSprite(){
         if(s_haloSprite != null) return s_haloSprite;
@@ -1573,44 +1622,38 @@ internal class CultUtils {
         int size = 128;
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
         float halfSize = size / 2f;
-        // Supersampling: 2x2 grid per pixel for anti-aliasing
-        int samples = 2;
-        float sampleStep = 1f / samples;
+
+        // Elliptical halo ring (wider than tall)
+        float outerRadiusX = 0.85f;
+        float outerRadiusY = 0.4f;
+        float innerRadiusX = 0.55f;
+        float innerRadiusY = 0.2f;
+        float edgeSoftness = 0.12f;
 
         for(int y = 0; y < size; y++){
             for(int x = 0; x < size; x++){
-                float totalAlpha = 0f;
-                for(int sy = 0; sy < samples; sy++){
-                    for(int sx = 0; sx < samples; sx++){
-                        float px = x + (sx + 0.5f) * sampleStep;
-                        float py = y + (sy + 0.5f) * sampleStep;
-                        // Normalize coordinates to -1..1 with center at (0,0)
-                        // Stretch X slightly wider for a rounder heart shape
-                        float nx = (px - halfSize) / (halfSize * 0.9f);
-                        float ny = (py - halfSize) / halfSize;
+                float nx = (x - halfSize) / halfSize;
+                float ny = (y - halfSize) / halfSize;
 
-                        // Heart implicit equation: (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
-                        // Standard math coords: lobes at top (y>0), point at bottom (y<0)
-                        // Unity tex y=0 is bottom, so this naturally gives an upright heart
-                        float x2 = nx * nx;
-                        float val = (x2 + ny * ny - 1f);
-                        val = val * val * val - x2 * ny * ny * ny;
+                // Elliptical distance for outer and inner bounds
+                float outerDist = (nx * nx) / (outerRadiusX * outerRadiusX) + (ny * ny) / (outerRadiusY * outerRadiusY);
+                float innerDist = (nx * nx) / (innerRadiusX * innerRadiusX) + (ny * ny) / (innerRadiusY * innerRadiusY);
 
-                        if(val <= 0f){
-                            totalAlpha += 1f;
-                        } else {
-                            float glow = Mathf.Clamp01(1f - val * 6f);
-                            totalAlpha += glow * 0.35f;
-                        }
-                    }
-                }
-                float alpha = totalAlpha / (samples * samples);
+                // Ring: inside outer, outside inner
+                float outerAlpha = Mathf.Clamp01((1f - outerDist) / edgeSoftness);
+                float innerAlpha = Mathf.Clamp01((innerDist - 1f) / edgeSoftness);
+                float ringAlpha = outerAlpha * innerAlpha;
+
+                // Add outer glow
+                float glowDist = (nx * nx) / ((outerRadiusX + 0.2f) * (outerRadiusX + 0.2f)) + (ny * ny) / ((outerRadiusY + 0.15f) * (outerRadiusY + 0.15f));
+                float glowAlpha = Mathf.Clamp01(1f - glowDist) * 0.25f;
+
+                float alpha = Mathf.Max(ringAlpha, glowAlpha);
+
                 if(alpha > 0.01f){
-                    // Brighter pink in the center, softer at edges
-                    float fill = Mathf.Clamp01(alpha);
-                    float r = Mathf.Lerp(1f, 1f, fill);
-                    float g = Mathf.Lerp(0.1f, 0.25f, fill);
-                    float b = Mathf.Lerp(0.5f, 0.65f, fill);
+                    float r = Mathf.Lerp(1f, 1f, ringAlpha);
+                    float g = Mathf.Lerp(0.4f, 0.2f, ringAlpha);
+                    float b = Mathf.Lerp(0.8f, 0.6f, ringAlpha);
                     tex.SetPixel(x, y, new Color(r, g, b, alpha));
                 } else {
                     tex.SetPixel(x, y, Color.clear);
@@ -1620,6 +1663,31 @@ internal class CultUtils {
         tex.Apply();
         s_haloSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 128f);
         return s_haloSprite;
+    }
+
+    /// <summary>
+    /// Creates a soft radial glow sprite for the additive glow layer behind the halo.
+    /// </summary>
+    private static Sprite CreateGlowSprite(){
+        if(s_glowSprite != null) return s_glowSprite;
+
+        int size = 64;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        float halfSize = size / 2f;
+
+        for(int y = 0; y < size; y++){
+            for(int x = 0; x < size; x++){
+                float nx = (x - halfSize) / halfSize;
+                float ny = (y - halfSize) / halfSize;
+                float dist = Mathf.Sqrt(nx * nx + ny * ny);
+                float alpha = Mathf.Clamp01(1f - dist);
+                alpha = alpha * alpha; // quadratic falloff for soft glow
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+            }
+        }
+        tex.Apply();
+        s_glowSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 64f);
+        return s_glowSprite;
     }
 
     private static void RemoveAnimalHalos(){

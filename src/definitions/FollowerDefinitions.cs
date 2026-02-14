@@ -211,22 +211,34 @@ public class FollowerDefinitions : IDefinition{
         CultUtils.PlayNotification("10 follower tokens added!");
     }
 
-    [CheatDetails("Reset All Follower Outfits", "EMERGENCY: Resets all follower outfits to default (fixes loading issues caused by clothing cheat)")]
+    [CheatDetails("Reset All Follower Outfits", "EMERGENCY: Resets all follower outfits to default Acolyte Robes (fixes loading issues caused by clothing cheat)")]
     public static void ResetAllFollowerOutfits(){
         try {
             int count = 0;
             // Reset ALL followers (alive, dead, elderly) to default outfit
+            // Default state is Clothing=None + Outfit=Follower which renders the
+            // default Acolyte Robes (level-based via GetRobesName in the game assembly)
             foreach(var follower in DataManager.Instance.Followers){
-                if(follower.Outfit != FollowerOutfitType.Follower){
+                bool needsReset = follower.Outfit == FollowerOutfitType.Custom
+                    || follower.Clothing != FollowerClothingType.None
+                    || (follower.Clothing != FollowerClothingType.None
+                        && follower.Clothing != FollowerClothingType.Naked
+                        && TailorManager.GetClothingData(follower.Clothing) == null);
+                if(needsReset){
                     follower.Outfit = FollowerOutfitType.Follower;
-                    follower.Clothing = FollowerClothingType.Naked;
+                    follower.Clothing = FollowerClothingType.None;
                     count++;
                 }
             }
             foreach(var follower in DataManager.Instance.Followers_Dead){
-                if(follower.Outfit != FollowerOutfitType.Follower){
+                bool needsReset = follower.Outfit == FollowerOutfitType.Custom
+                    || follower.Clothing != FollowerClothingType.None
+                    || (follower.Clothing != FollowerClothingType.None
+                        && follower.Clothing != FollowerClothingType.Naked
+                        && TailorManager.GetClothingData(follower.Clothing) == null);
+                if(needsReset){
                     follower.Outfit = FollowerOutfitType.Follower;
-                    follower.Clothing = FollowerClothingType.Naked;
+                    follower.Clothing = FollowerClothingType.None;
                     count++;
                 }
             }
@@ -234,11 +246,11 @@ public class FollowerDefinitions : IDefinition{
                 FollowerInfo info = DataManager.Instance.Followers.Find(f => f.ID == followerID);
                 if(info != null && info.Outfit != FollowerOutfitType.Old){
                     info.Outfit = FollowerOutfitType.Old;
-                    info.Clothing = FollowerClothingType.Naked;
+                    info.Clothing = FollowerClothingType.None;
                 }
             }
-            CultUtils.PlayNotification($"Reset {count} follower outfit(s) to default!");
-            UnityEngine.Debug.Log($"[CheatMenu] Reset {count} follower outfits - game should now load properly");
+            CultUtils.PlayNotification($"Reset {count} follower outfit(s) to default Acolyte Robes!");
+            UnityEngine.Debug.Log($"[CheatMenu] Reset {count} follower outfits to default (None/Follower) - game should now load properly");
         } catch(Exception e){
             Debug.LogWarning($"Failed to reset follower outfits: {e.Message}");
             CultUtils.PlayNotification("Failed to reset outfits!");

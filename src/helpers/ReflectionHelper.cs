@@ -163,6 +163,33 @@ public static class ReflectionHelper {
         return TrackPatch(classDef, methodInfo, HarmonyPatchType.Postfix);
     }
 
+    public static string PatchMethodFinalizer(Type classDef, string methodName, MethodInfo patchMethod, BindingFlags flags = BindingFlags.Default, Type[] typeParams = null, bool silent = false){
+        if(patchMethod == null){
+            UnityEngine.Debug.Log($"[ReflectionHelper] Can't patch method (finalizer), passed patchMethod is null!");
+            return null;
+        }
+        
+        MethodInfo methodInfo;        
+        if(typeParams == null){
+            methodInfo = classDef.GetMethod(methodName, flags);
+        } else {
+            methodInfo = classDef.GetMethod(methodName, flags, Type.DefaultBinder, typeParams, null);
+        }
+         
+        if(methodInfo == null){
+            if(!silent){
+                UnityEngine.Debug.LogError($"[ReflectionHelper] Method was not patched (finalizer), unable to find method info {methodName} (Report To XUnfairX!)");
+            } else {
+                UnityEngine.Debug.LogWarning($"[ReflectionHelper] Method was not patched (finalizer), unable to find method info {methodName} (game version may have changed)");
+            }
+            return null;
+        }
+
+        s_harmonyInstance.Patch(methodInfo, finalizer: new HarmonyMethod(patchMethod));
+        UnityEngine.Debug.Log($"[ReflectionHelper] {classDef.Name}-{methodName} was patched (finalizer) with: {patchMethod.Name}");
+        return TrackPatch(classDef, methodInfo, HarmonyPatchType.Finalizer);
+    }
+
     public static MethodInfo GetMethodStaticPublic(string name){   
         UnityEngine.Debug.Log(GetCallingMethod().DeclaringType);
         return GetCallingMethod().DeclaringType.GetMethod(name, BindingFlags.Static | BindingFlags.Public);

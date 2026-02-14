@@ -212,6 +212,8 @@ private static readonly int MENU_HEIGHT = 400;
             s_scrollParams = GUIUtils.CustomWindowScrollableLocked(s_scrollParams, CheatWindow);
             
             DrawKeybindHints();
+        } else if(CultUtils.IsInGame()){
+            DrawPersistentHint();
         }
 
         Action[] guiFunctions = GUIManager.GetAllGuiFunctions();
@@ -255,6 +257,36 @@ private static readonly int MENU_HEIGHT = 400;
             fontSize = 11
         };
         
+        GUI.Label(new Rect(hintX, hintY, hintWidth, hintHeight), hintText, hintStyle);
+    }
+
+    private static void DrawPersistentHint()
+    {
+        float margin = 10f;
+        int hintHeight = 22;
+        int hintX = (int)margin;
+        int hintY = Screen.height - hintHeight - (int)margin;
+
+        string hintText;
+        if(CheatConfig.Instance.ControllerSupport.Value) {
+            hintText = "[R3] Open Cheat Menu";
+        } else {
+            hintText = $"[{CheatConfig.Instance.GuiKeybind.Value.MainKey}] Open Cheat Menu";
+        }
+
+        int hintWidth = 180;
+        GUIStyle hintStyle = new GUIStyle(GUIUtils.GetGUILabelStyle(hintWidth, 0.6f))
+        {
+            normal = new GUIStyleState()
+            {
+                textColor = new Color(0.95f, 0.92f, 0.88f, 0.5f),
+                background = TextureHelper.GetSolidTexture(new Color(0.12f, 0.05f, 0.08f, 0.55f), true)
+            },
+            padding = new RectOffset(8, 8, 4, 4),
+            fontSize = 10,
+            alignment = TextAnchor.MiddleCenter
+        };
+
         GUI.Label(new Rect(hintX, hintY, hintWidth, hintHeight), hintText, hintStyle);
     }
 
@@ -345,15 +377,19 @@ private static readonly int MENU_HEIGHT = 400;
                 if(navVertical > 0){
                     if(s_selectedButtonIndex > 0){
                         s_selectedButtonIndex--;
-                        s_lastNavigationTime = currentTime;
-                        s_needsScrollUpdate = true;
+                    } else if(s_totalButtons > 0){
+                        s_selectedButtonIndex = s_totalButtons - 1;
                     }
+                    s_lastNavigationTime = currentTime;
+                    s_needsScrollUpdate = true;
                 } else if(navVertical < 0){
                     if(s_totalButtons > 0 && s_selectedButtonIndex < s_totalButtons - 1){
                         s_selectedButtonIndex++;
-                        s_lastNavigationTime = currentTime;
-                        s_needsScrollUpdate = true;
+                    } else {
+                        s_selectedButtonIndex = 0;
                     }
+                    s_lastNavigationTime = currentTime;
+                    s_needsScrollUpdate = true;
                 }
             }
             

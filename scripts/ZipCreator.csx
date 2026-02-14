@@ -8,7 +8,7 @@ using System.Reflection;
 Directory.CreateDirectory("./temp");
 
 File.Copy("../doc/thunderstoreReadme.md", "./temp/README.md", true);
-File.Copy("../doc/icon.png", "./temp/icon.png", true);
+File.Copy("../icon.png", "./temp/icon.png", true);
 File.Copy("../manifest.json", "./temp/manifest.json", true);
 File.Copy("../bin/cheat_menu.dll", "./temp/cheat_menu.dll", true);
 

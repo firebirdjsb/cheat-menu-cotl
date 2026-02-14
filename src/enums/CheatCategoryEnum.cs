@@ -73,6 +73,9 @@ public enum CheatCategoryEnum {
     [StringEnum("Farming")]
     FARMING,
 
+    [StringEnum("Companion")]
+    COMPANION,
+
     [StringEnum("Weather")]
     WEATHER,
 

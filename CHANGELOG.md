@@ -2,7 +2,64 @@
 
 All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in this file.
 
-## [1.1.2] - 2024 (Current Release - Patch)
+## [1.2.0] - 2025 (Current Release - MAJOR UPDATE ??)
+
+### Menu Reorganization
+- **Reorganized all categories** into a logical flow: Health ? Combat ? Resources ? Cult ? Follower ? Farming ? Weather ? DLC ? Splitscreen ? Misc
+- **Fixed misplaced items**: Souls/Black Souls/Arrows moved Health ? Resources; Player Speed/Stop Time moved Combat ? Misc
+- **Removed unused categories**: Rituals and Structures enums removed (cheats live inside Cult category)
+- **Consistent category display**: Categories render in enum declaration order instead of arbitrary dictionary order
+
+### Weather Menu Overhaul
+- **Logically grouped** weather items: Clear ? Rain ? Wind ? Snow ? Heat ? Seasons
+- **Cleaned up names**: Removed redundant "Weather:" prefix for cleaner display
+- **Custom sort ordering** ensures related weather types stay together
+
+### Technical Improvements
+- **New `SortOrder` system** for precise item ordering within categories via `CheatDetails` attribute
+- **Deterministic category rendering** - enum order controls category button order
+- **Cleaner codebase** - removed dead enum values and properly separated concerns
+
+### Summary
+- **150+ cheats** across 10 well-organized categories
+
+---
+
+## [1.1.5] - 2024 (Cheaters Edition ??)
+
+### Features
+- **Easter Egg**: Game version displays as "Cheaters Edition ??" in main menu
+- **Added**: Automatic DLC authentication for all packs (Cultist, Sinful, Pilgrim, Heretic, Woolhaven)
+
+### Bug Fixes
+- **Fixed**: "Clear Poop" cheat now properly grants XP to cleaning tool/hat
+- **Fixed**: Janitor station clearing increments `SoulCount` to match game implementation
+- **Improved**: DLC authentication now runs when DataManager is ready
+- **Improved**: Version text patching with better error handling and logging
+
+---
+
+## [1.1.4] - 2024 (ENHANCED PROTECTION)
+
+### Features
+- **Added**: Defensive patch on Follower.Init() to validate skeleton data before outfit application
+- **Protection**: Automatically resets outfits to safe defaults if skeleton isn't initialized
+- **Technical**: Uses HarmonyLib Traverse to avoid spine-unity assembly dependency
+
+---
+
+## [1.1.3] - 2024 (CRITICAL PATCH)
+
+### Bug Fixes
+- **CRITICAL FIX**: Game hanging at loading screen after using "Give All Clothing Items"
+- **Fixed**: NullReferenceException in FollowerBrain.SetFollowerCostume during spawn
+- **Fixed**: GiveAllClothing now ONLY affects followers currently loaded in scene
+- **Added**: "Reset All Follower Outfits" emergency fix cheat in Follower category
+- **Improved**: Better error messages and follower count in clothing cheat notification
+
+---
+
+## [1.1.2] - 2024 (Patch Release)
 
 ### Bug Fixes
 - **Fixed**: FollowerBrainInfo.Protection NullReferenceException for followers not in scene
@@ -193,6 +250,10 @@ All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in
 
 | Version | Release Date | Key Features |
 |---------|--------------|--------------|
+| 1.2.0 | 2025 | Major menu reorganization, weather overhaul, SortOrder system, 150+ cheats |
+| 1.1.5 | 2024 | Cheaters Edition easter egg, DLC authentication, poop XP fix |
+| 1.1.4 | 2024 | Defensive Follower.Init() patch, skeleton validation |
+| 1.1.3 | 2024 | Critical loading screen freeze fix, Reset All Outfits |
 | 1.1.2 | 2024 | Follower scene management fixes (patch release) |
 | 1.1.1 | 2024 | Follower costume bug fix (patch release) |
 | 1.1.0 | 2024 | Weather rewrite, Combat/QOL category, 30+ new items, controller bug fixes |

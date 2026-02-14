@@ -7,7 +7,7 @@ there are still bugs with this menu especially with clothing and some other neic
 
 check the companion tab for a new buddy to go on adventures with
 
-A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, and extensive quality-of-life features.
+A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, a friendly wolf companion system, and extensive quality-of-life features.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 
@@ -15,11 +15,24 @@ A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily 
 
 ## 🎮 What's New in v1.2.0 - MAJOR UPDATE
 
+### 🐺 New: Companion Category
+- **Spawn Friendly Wolf** — A tame wolf that follows you everywhere with smooth movement and auto-respawn across scene transitions
+- **Wolf Dungeon Combat** — Toggle your wolf attacking enemies in dungeons with melee damage and attack animations
+- **Pet Wolf** — Walk up to and pet your wolf with full animation, sound effects, hearts, and camera shake
+- **Dismiss Wolf** — Dismiss your friendly wolf or clear all spawned wolves
+
 ### 🗂️ Complete Menu Reorganization
-- **Reorganized all categories** into a logical flow: Health → Combat → Resources → Cult → Follower → Farming → Weather → DLC → Splitscreen → Misc
+- **Reorganized all categories** into a logical flow: Health → Combat → Resources → Cult → Follower → Farming → Companion → Weather → DLC → Splitscreen → Misc
 - **Fixed misplaced items**: Souls, Black Souls, and Arrows moved from Health → Resources; Player Speed and Stop Time moved from Combat → Misc
 - **Removed unused categories** (Rituals, Structures) that had no cheats assigned
 - **Consistent category ordering** - categories now always appear in the same order
+
+### 🐾 Farming Improvements
+- **Add Halos to Animals** — Glowing pink procedural halos above ranch animals with per-creature height tuning
+- **Ascend All Animals** — Full ascension animation with chromatic aberration, sound effects, and visual resource drops
+
+### 👥 Follower Improvements
+- **8 new follower cheats**: Spawn Child, Kill Random, Level Up All, Increase Loyalty, Make Immortal, Max All Stats, Remove Exhaustion, Give Follower Tokens
 
 ### 🌦️ Weather Menu Overhaul
 - **Logically grouped** weather items: Clear → Rain (Light/Heavy) → Wind (Light/Heavy) → Snow (Dusting/Light/Medium/Heavy/Blizzard) → Heat (Light/Heavy) → Seasons
@@ -105,8 +118,14 @@ Works with Xbox, PlayStation, Nintendo Switch Pro, Steam Deck, and generic contr
 - Spawn animals: Goat, Cow, Llama, Turtle, Crab, Spider, Snail
 - Give x5 All Animals, All Wool, Eggs & Yolks, Special Poop, Milk
 - Collect Products, Feed All, Clean All Pens, Force Grow
-- Add Hearts to Animals, Ascend All Animals
-- Friendly Wolf: Spawn, Dismiss, Pet, Dungeon Combat toggle
+- Add Halos to Animals (glowing pink procedural halos)
+- Ascend All Animals (full animation sequence with resource drops)
+
+### Companion 🐺
+- Spawn Friendly Wolf (follows you, auto-respawns across scenes)
+- Wolf Dungeon Combat toggle (wolf attacks enemies in dungeons)
+- Pet Wolf (full animation with hearts and camera shake)
+- Dismiss Wolf
 
 ### Weather (14 options)
 - Clear Weather
@@ -132,8 +151,6 @@ Works with Xbox, PlayStation, Nintendo Switch Pro, Steam Deck, and generic contr
 - Complete All Quests, End Knucklebones
 - Game Speed x2/x4, Pause Simulation
 - Player Speed x2, Stop Time In Crusade
-
-For detailed cheat descriptions, see: [Available Cheats](doc/cheats.md)
 
 ---
 
@@ -209,6 +226,13 @@ CloseGuiOnEscape = true
 
 ---
 
+## 🐛 Known Issues
+
+There are still bugs with this menu, especially with clothing and some other niche things. Please report issues or fix them by submitting a [pull request](https://github.com/firebirdjsb/cheat-menu-cotl/pulls).
+
+Report issues on [GitHub Issues](https://github.com/firebirdjsb/cheat-menu-cotl/issues)
+
+---
 
 ## 🙏 Credits
 
@@ -227,4 +251,4 @@ This mod is provided as-is for educational and entertainment purposes. Use at yo
 
 **Enjoy the most comprehensive Cult of the Lamb cheat menu! 🐑✨**
 
-*Compatible with Cult of the Lamb v1.5.16.1000+ | 150+ cheats across 10 categories*
+*Compatible with Cult of the Lamb v1.5.16.1000+ | 150+ cheats across 11 categories*

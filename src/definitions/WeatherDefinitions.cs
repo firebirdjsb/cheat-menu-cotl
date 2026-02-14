@@ -45,14 +45,9 @@ public class WeatherDefinitions : IDefinition{
         SetWeather(WeatherSystemController.WeatherType.Raining, WeatherSystemController.WeatherStrength.Heavy, "Heavy Rain");
     }
 
-    [CheatDetails("Wind (Light)", "Set weather to light wind", sortOrder: 20)]
+    [CheatDetails("Wind", "Set weather to wind", sortOrder: 20)]
     public static void WeatherWindLight(){
-        SetWeather(WeatherSystemController.WeatherType.Windy, WeatherSystemController.WeatherStrength.Light, "Light Wind");
-    }
-
-    [CheatDetails("Wind (Heavy)", "Set weather to heavy wind", sortOrder: 21)]
-    public static void WeatherWindHeavy(){
-        SetWeather(WeatherSystemController.WeatherType.Windy, WeatherSystemController.WeatherStrength.Heavy, "Heavy Wind");
+        SetWeather(WeatherSystemController.WeatherType.Windy, WeatherSystemController.WeatherStrength.Light, "Wind");
     }
 
     [CheatDetails("Snow (Dusting)", "Set weather to dusting snow", sortOrder: 30)]
@@ -80,14 +75,35 @@ public class WeatherDefinitions : IDefinition{
         SetWeather(WeatherSystemController.WeatherType.Snowing, WeatherSystemController.WeatherStrength.Extreme, "Blizzard");
     }
 
-    [CheatDetails("Heat (Light)", "Set weather to light heat", sortOrder: 40)]
-    public static void WeatherHeatLight(){
-        SetWeather(WeatherSystemController.WeatherType.Heat, WeatherSystemController.WeatherStrength.Light, "Light Heat");
+    [CheatDetails("Blood Moon", "Triggers the orange Blood Moon effect (spooky lighting and music)", sortOrder: 40)]
+    public static void TriggerBloodMoon(){
+        try {
+            DataManager.Instance.LastHalloween = TimeManager.TotalElapsedGameTime;
+            if(LocationManager._Instance != null){
+                LocationManager._Instance.EnableBloodMoon();
+            }
+            try {
+                AudioManager.Instance.SetMusicBaseID(SoundConstants.BaseID.blood_moon);
+            } catch {}
+            CultUtils.PlayNotification("Blood Moon activated!");
+        } catch(System.Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to trigger Blood Moon: {e.Message}");
+            CultUtils.PlayNotification("Failed to trigger Blood Moon!");
+        }
     }
 
-    [CheatDetails("Heat (Heavy)", "Set weather to heavy heat wave", sortOrder: 41)]
-    public static void WeatherHeatHeavy(){
-        SetWeather(WeatherSystemController.WeatherType.Heat, WeatherSystemController.WeatherStrength.Heavy, "Heavy Heat");
+    [CheatDetails("Disable Blood Moon", "Removes the Blood Moon effect and restores normal lighting", sortOrder: 41)]
+    public static void DisableBloodMoon(){
+        try {
+            DataManager.Instance.LastHalloween = 0f;
+            if(LocationManager._Instance != null){
+                LocationManager._Instance.DisableBloodMoon();
+            }
+            CultUtils.PlayNotification("Blood Moon disabled!");
+        } catch(System.Exception e){
+            UnityEngine.Debug.LogWarning($"Failed to disable Blood Moon: {e.Message}");
+            CultUtils.PlayNotification("Failed to disable Blood Moon!");
+        }
     }
 
     [CheatDetails("Season: Spring", "Change current season to Spring", sortOrder: 50)]

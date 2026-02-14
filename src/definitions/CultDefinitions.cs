@@ -328,12 +328,16 @@ public class CultDefinitions : IDefinition {
             DataManager.Instance.UnlockedTailor = true;
             DataManager.Instance.RevealedTailor = true;
 
-            // Build a list of wearable clothing types
+            // Build a list of wearable clothing types - ONLY include types with valid ClothingData
+            // TailorManager.GetClothingData() returns null for enum values without matching data assets
+            // Assigning such types causes FollowerBrainInfo.get_Protection to NRE every tick
             List<FollowerClothingType> wearableTypes = new();
             foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
                 FollowerClothingType type = (FollowerClothingType)clothingType;
                 if(type != FollowerClothingType.None && type != FollowerClothingType.Count && type != FollowerClothingType.Naked){
-                    wearableTypes.Add(type);
+                    if(TailorManager.GetClothingData(type) != null){
+                        wearableTypes.Add(type);
+                    }
                 }
             }
 
