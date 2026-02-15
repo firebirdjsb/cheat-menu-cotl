@@ -1,6 +1,6 @@
 {
     "name": "CheatMenu",
-    "version_number": "1.2.0",
+    "version_number": "1.2.1.1",
     "website_url": "https://github.com/firebirdjsb/cheat-menu-cotl",
     "description": "Comprehensive cheat menu with 150+ cheats, full controller support, weather system, combat tools, farming, DLC, and quality-of-life features. v1.2.0: Major reorganization, new combat cheats, farming animals, and much more!",
     "dependencies": [
