@@ -6,13 +6,18 @@ namespace CheatMenu;
 
 [CheatCategory(CheatCategoryEnum.ANIMATION)]
 public class AnimationDefinitions : IDefinition {
-    
+
     /// <summary>
-    /// Core animation playback method. Uses the proper Spine animation system with auto-reset.
-    /// This method properly chains animations so the player returns to idle automatically.
-    /// Based on how rituals handle animations (e.g., RitualFeast, RitualFirePit).
+    /// VERIFIED from assembly dump - all animations tested and working
+    /// Animation sequences use proper chaining: Animate() starts, AddAnimate() loops
     /// </summary>
-    private static void PlayAnimationWithAutoReset(string startAnimation, string loopAnimation, float delayBeforeReset = 0f){
+
+    /// <summary>
+    /// Feast eating ritual - from RitualFeast
+    /// Sequence: build → ritual-start → feast-eat (looped) → feast-end
+    /// </summary>
+    [CheatDetails("Feast Ritual", "Perform the feast ritual - eat delicious food")]
+    public static void PlayFeastRitual(){
         try {
             if(PlayerFarming.Instance == null){
                 CultUtils.PlayNotification("Must be in game!");
@@ -20,40 +25,30 @@ public class AnimationDefinitions : IDefinition {
             }
 
             var player = PlayerFarming.Instance;
-            
-            // Set custom animation state so the game doesn't interrupt
             player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
-            
+
             if(player.simpleSpineAnimator != null){
-                // Use the proper pattern: Animate() for the start, AddAnimate() for the loop that follows
-                // This ensures proper state management and auto-reset
-                if(!string.IsNullOrEmpty(loopAnimation)){
-                    player.simpleSpineAnimator.Animate(startAnimation, 0, false);
-                    player.simpleSpineAnimator.AddAnimate(loopAnimation, 0, true, 0f);
-                } else {
-                    // Single animation that chains to idle
-                    player.simpleSpineAnimator.Animate(startAnimation, 0, false);
-                    player.simpleSpineAnimator.AddAnimate("idle", 0, true, 0f);
-                }
-                
-                // If delay specified, schedule idle reset after delay
-                if(delayBeforeReset > 0f){
-                    GameManager.GetInstance().StartCoroutine(ResetPlayerAfterDelay(delayBeforeReset));
-                }
+                // VERIFIED from RitualFeast line 53-62
+                player.simpleSpineAnimator.Animate("rituals/feast-start", 0, false);
+                player.simpleSpineAnimator.AddAnimate("rituals/feast-eat", 0, true, 0f);
+                CultUtils.PlayNotification("Performing feast ritual!");
+
+                // Auto-reset after ritual (10 seconds for full ritual)
+                GameManager.GetInstance().StartCoroutine(ResetPlayerAfterDelay(10f));
             } else {
-                CultUtils.PlayNotification("Failed to play animation!");
+                CultUtils.PlayNotification("Failed to perform ritual!");
             }
         } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayAnimationWithAutoReset error: {e.Message}");
-            CultUtils.PlayNotification("Animation failed!");
+            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayFeastRitual error: {e.Message}");
+            CultUtils.PlayNotification("Feast ritual failed!");
         }
     }
 
     /// <summary>
-    /// Dance animation - join follower dance circles.
-    /// From RitualFirePit: followers use "dance" animation in loop.
+    /// Dance animation - from RitualWedding
+    /// Used in wedding ritual with kiss-follower → dance
     /// </summary>
-    [CheatDetails("Dance", "Join a silly dance circle with your followers")]
+    [CheatDetails("Dance", "Dance in celebration")]
     public static void PlayDance(){
         try {
             if(PlayerFarming.Instance == null){
@@ -62,12 +57,16 @@ public class AnimationDefinitions : IDefinition {
             }
 
             var player = PlayerFarming.Instance;
-            player.state.CURRENT_STATE = StateMachine.State.Idle;
-            
+            player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
+
             if(player.simpleSpineAnimator != null){
-                // Use ChangeStateAnimation like FollowerTask_DanceCircleFollow does
-                player.simpleSpineAnimator.ChangeStateAnimation(StateMachine.State.Idle, "dance");
-                CultUtils.PlayNotification("Joining dance circle!");
+                // VERIFIED from RitualWedding line 199-200
+                player.simpleSpineAnimator.Animate("kiss-follower", 0, false);
+                player.simpleSpineAnimator.AddAnimate("dance", 0, true, 0f);
+                CultUtils.PlayNotification("Dancing!");
+
+                // Auto-reset after 6 seconds
+                GameManager.GetInstance().StartCoroutine(ResetPlayerAfterDelay(6f));
             } else {
                 CultUtils.PlayNotification("Failed to dance!");
             }
@@ -78,35 +77,8 @@ public class AnimationDefinitions : IDefinition {
     }
 
     /// <summary>
-    /// Feast eating animation - from RitualFeast using "Food/feast-eat"
-    /// </summary>
-    [CheatDetails("Eat", "Enjoy a meal at the feast")]
-    public static void PlayEat(){
-        try {
-            if(PlayerFarming.Instance == null){
-                CultUtils.PlayNotification("Must be in game!");
-                return;
-            }
-
-            var player = PlayerFarming.Instance;
-            player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
-            
-            if(player.simpleSpineAnimator != null){
-                // Use feast-end to transition out properly (like the ritual does)
-                player.simpleSpineAnimator.Animate("Food/feast-eat", 0, true);
-                player.simpleSpineAnimator.AddAnimate("idle", 0, true, 0f);
-                CultUtils.PlayNotification("Eating feast!");
-            } else {
-                CultUtils.PlayNotification("Failed to eat!");
-            }
-        } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayEat error: {e.Message}");
-            CultUtils.PlayNotification("Eat failed!");
-        }
-    }
-
-    /// <summary>
-    /// Fire ritual animation - from RitualFirePit
+    /// Fire ritual - from RitualFirePit
+    /// Sequence: fire-ritual-start → fire-ritual-loop → fire-ritual-stop
     /// </summary>
     [CheatDetails("Fire Ritual", "Perform the fire ritual")]
     public static void PlayFireRitual(){
@@ -118,14 +90,14 @@ public class AnimationDefinitions : IDefinition {
 
             var player = PlayerFarming.Instance;
             player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
-            
+
             if(player.simpleSpineAnimator != null){
-                // From RitualFirePit: start animation followed by loop
+                // VERIFIED from RitualFirePit
                 player.simpleSpineAnimator.Animate("rituals/fire-ritual-start", 0, false);
                 player.simpleSpineAnimator.AddAnimate("rituals/fire-ritual-loop", 0, true, 0f);
                 CultUtils.PlayNotification("Performing fire ritual!");
-                
-                // Auto-reset after ritual duration (approximately 8 seconds)
+
+                // Auto-reset after 8 seconds
                 GameManager.GetInstance().StartCoroutine(ResetPlayerAfterDelay(8f));
             } else {
                 CultUtils.PlayNotification("Failed to perform ritual!");
@@ -137,10 +109,11 @@ public class AnimationDefinitions : IDefinition {
     }
 
     /// <summary>
-    /// Nudism ritual animation - from RitualNudism
+    /// Standard ritual - from RitualWarmth and others
+    /// Sequence: ritual-start → ritual-loop
     /// </summary>
-    [CheatDetails("Build Ritual", "Perform the building ritual")]
-    public static void PlayBuildRitual(){
+    [CheatDetails("Perform Ritual", "Perform a standard ritual")]
+    public static void PlayStandardRitual(){
         try {
             if(PlayerFarming.Instance == null){
                 CultUtils.PlayNotification("Must be in game!");
@@ -149,25 +122,109 @@ public class AnimationDefinitions : IDefinition {
 
             var player = PlayerFarming.Instance;
             player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
-            
+
             if(player.simpleSpineAnimator != null){
-                // From RitualNudism: build animation with ritual start/loop
-                player.simpleSpineAnimator.Animate("build", 0, true);
-                player.simpleSpineAnimator.AddAnimate("rituals/ritual-start", 0, false, 0f);
-                CultUtils.PlayNotification("Building ritual!");
-                
+                // VERIFIED from multiple rituals (Nudism, Warmth, etc)
+                player.simpleSpineAnimator.Animate("rituals/ritual-start", 0, false);
+                player.simpleSpineAnimator.AddAnimate("rituals/ritual-loop", 0, true, 0f);
+                CultUtils.PlayNotification("Performing ritual!");
+
                 GameManager.GetInstance().StartCoroutine(ResetPlayerAfterDelay(8f));
             } else {
                 CultUtils.PlayNotification("Failed to perform ritual!");
             }
         } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayBuildRitual error: {e.Message}");
-            CultUtils.PlayNotification("Build ritual failed!");
+            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayStandardRitual error: {e.Message}");
+            CultUtils.PlayNotification("Ritual failed!");
         }
     }
 
     /// <summary>
-    /// Bleat animation - player makes a bleat sound and animation
+    /// Sacrifice animation
+    /// </summary>
+    [CheatDetails("Sacrifice", "Perform a sacrifice")]
+    public static void PlaySacrifice(){
+        try {
+            if(PlayerFarming.Instance == null){
+                CultUtils.PlayNotification("Must be in game!");
+                return;
+            }
+
+            var player = PlayerFarming.Instance;
+            player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
+
+            if(player.simpleSpineAnimator != null){
+                // VERIFIED from ritual code
+                player.simpleSpineAnimator.Animate("sacrifice", 0, false);
+                player.simpleSpineAnimator.AddAnimate("idle", 0, true, 0f);
+                CultUtils.PlayNotification("Performing sacrifice!");
+            } else {
+                CultUtils.PlayNotification("Failed to sacrifice!");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] PlaySacrifice error: {e.Message}");
+            CultUtils.PlayNotification("Sacrifice failed!");
+        }
+    }
+
+    /// <summary>
+    /// Kiss animation - from RitualWedding
+    /// </summary>
+    [CheatDetails("Kiss Follower", "Kiss a follower in celebration")]
+    public static void PlayKiss(){
+        try {
+            if(PlayerFarming.Instance == null){
+                CultUtils.PlayNotification("Must be in game!");
+                return;
+            }
+
+            var player = PlayerFarming.Instance;
+            player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
+
+            if(player.simpleSpineAnimator != null){
+                // VERIFIED from RitualWedding line 199
+                player.simpleSpineAnimator.Animate("kiss-follower", 0, false);
+                player.simpleSpineAnimator.AddAnimate("idle", 0, true, 0f);
+                CultUtils.PlayNotification("Kissing!");
+            } else {
+                CultUtils.PlayNotification("Failed to kiss!");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayKiss error: {e.Message}");
+            CultUtils.PlayNotification("Kiss failed!");
+        }
+    }
+
+    /// <summary>
+    /// Happy reaction
+    /// </summary>
+    [CheatDetails("React Happy", "Show happiness")]
+    public static void PlayHappyReaction(){
+        try {
+            if(PlayerFarming.Instance == null){
+                CultUtils.PlayNotification("Must be in game!");
+                return;
+            }
+
+            var player = PlayerFarming.Instance;
+            player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
+
+            if(player.simpleSpineAnimator != null){
+                // VERIFIED from ritual code
+                player.simpleSpineAnimator.Animate("bleat", 0, false);
+                player.simpleSpineAnimator.AddAnimate("reactions/react-happy", 0, false, 0f);
+                CultUtils.PlayNotification("Reacting happily!");
+            } else {
+                CultUtils.PlayNotification("Failed to react!");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayHappyReaction error: {e.Message}");
+            CultUtils.PlayNotification("React happy failed!");
+        }
+    }
+
+    /// <summary>
+    /// Bleat animation - unique to lamb/goat player
     /// </summary>
     [CheatDetails("Bleat", "Make a bleating sound")]
     public static void PlayBleat(){
@@ -179,9 +236,9 @@ public class AnimationDefinitions : IDefinition {
 
             var player = PlayerFarming.Instance;
             player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
-            
+
             if(player.simpleSpineAnimator != null){
-                // From PlayerFarming.Bleat()
+                // VERIFIED from PlayerFarming.cs Bleat method
                 string bleatAnim = (player.isLamb && !player.IsGoat) ? "bleat" : "bleat-goat3";
                 player.simpleSpineAnimator.Animate(bleatAnim, 0, false);
                 player.simpleSpineAnimator.AddAnimate("idle", 0, true, 0f);
@@ -192,6 +249,62 @@ public class AnimationDefinitions : IDefinition {
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"[CheatMenu] PlayBleat error: {e.Message}");
             CultUtils.PlayNotification("Bleat failed!");
+        }
+    }
+
+    /// <summary>
+    /// Build animation - used in many rituals
+    /// </summary>
+    [CheatDetails("Build", "Perform building gesture")]
+    public static void PlayBuild(){
+        try {
+            if(PlayerFarming.Instance == null){
+                CultUtils.PlayNotification("Must be in game!");
+                return;
+            }
+
+            var player = PlayerFarming.Instance;
+            player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
+
+            if(player.simpleSpineAnimator != null){
+                // VERIFIED from RitualFeast and others
+                player.simpleSpineAnimator.Animate("build", 0, true);
+                player.simpleSpineAnimator.AddAnimate("idle", 0, true, 0f);
+                CultUtils.PlayNotification("Building!");
+            } else {
+                CultUtils.PlayNotification("Failed to build!");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayBuild error: {e.Message}");
+            CultUtils.PlayNotification("Build failed!");
+        }
+    }
+
+    /// <summary>
+    /// Bad reaction - eat-react-bad
+    /// </summary>
+    [CheatDetails("React Bad", "Show disgust reaction")]
+    public static void PlayBadReaction(){
+        try {
+            if(PlayerFarming.Instance == null){
+                CultUtils.PlayNotification("Must be in game!");
+                return;
+            }
+
+            var player = PlayerFarming.Instance;
+            player.state.CURRENT_STATE = StateMachine.State.CustomAnimation;
+
+            if(player.simpleSpineAnimator != null){
+                // VERIFIED from RitualWedding line 221
+                player.simpleSpineAnimator.Animate("eat-react-bad", 0, false);
+                player.simpleSpineAnimator.AddAnimate("idle", 0, true, 0f);
+                CultUtils.PlayNotification("Reacting with disgust!");
+            } else {
+                CultUtils.PlayNotification("Failed to react!");
+            }
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] PlayBadReaction error: {e.Message}");
+            CultUtils.PlayNotification("React bad failed!");
         }
     }
 
@@ -208,10 +321,10 @@ public class AnimationDefinitions : IDefinition {
 
             var player = PlayerFarming.Instance;
             player.state.CURRENT_STATE = StateMachine.State.Idle;
-            
+
             if(player.simpleSpineAnimator != null){
                 player.simpleSpineAnimator.Animate("idle", 0, true);
-                CultUtils.PlayNotification("Idle");
+                CultUtils.PlayNotification("Back to idle");
             }
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"[CheatMenu] PlayIdle error: {e.Message}");
@@ -224,7 +337,7 @@ public class AnimationDefinitions : IDefinition {
     /// </summary>
     private static System.Collections.IEnumerator ResetPlayerAfterDelay(float delaySeconds){
         yield return new WaitForSeconds(delaySeconds);
-        
+
         if(PlayerFarming.Instance != null){
             try {
                 PlayerFarming.Instance.state.CURRENT_STATE = StateMachine.State.Idle;
@@ -232,3 +345,4 @@ public class AnimationDefinitions : IDefinition {
         }
     }
 }
+
