@@ -86,5 +86,8 @@ public enum CheatCategoryEnum {
     SPLITSCREEN,
 
     [StringEnum("Misc")]
-    MISC
+    MISC,
+
+    [StringEnum("Animation")]
+    ANIMATION
 }
