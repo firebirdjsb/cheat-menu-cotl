@@ -2,7 +2,29 @@
 
 All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in this file.
 
-## [1.2.0] - 2025 (Current Release - MAJOR UPDATE ??)
+## [1.2.5] - 2025 (Current Release - Animation Update)
+
+### 🎬 New Features
+- **Animation Tab**: 11 pre-made player animations with verified assembly names
+- Complete animation system rewrite with proper animation state handling
+- Smooth animation playback with working animation transitions
+- All animations tested and verified to work in-game
+
+### 🔧 Bug Fixes
+- **Fixed**: Clear ALL rubble types in ClearBaseRubble (landscape clearing now complete)
+- **Fixed**: Thunderstore manifest compatibility (semver versioning + correct dependency ID)
+- **Enhanced**: Menu hints now display keyboard counterparts for all actions
+- **Improved**: Renamed controller button R3 to LeftStickClick for clarity in UI
+
+### 📋 Patch Progression (v1.2.1 - v1.2.5)
+- **v1.2.5**: Animation update with 11 working animations + assembly dump verification
+- **v1.2.2**: Animation tab implementation
+- **v1.2.1.1**: Thunderstore manifest fixes
+- **v1.2.1**: Rubble clearing improvements + keyboard hint display
+
+---
+
+## [1.2.0] - 2025 (MAJOR UPDATE - Wolf & Menu Reorganization)
 
 ### Menu Reorganization
 - **Reorganized all categories** into a logical flow: Health ? Combat ? Resources ? Cult ? Follower ? Farming ? Weather ? DLC ? Splitscreen ? Misc

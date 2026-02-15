@@ -1,19 +1,29 @@
 # cheat-menu-cotl
 
-> **Version 1.2.0** - Major Wolf Update 🎉🐑
-there are still bugs with this menu especially with clothing and some other neiche things please report or fix by adding a pull request 
-
-
-
-check the companion tab for a new buddy to go on adventures with
-
-A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, a friendly wolf companion system, and extensive quality-of-life features.
+> **Version 1.2.5** - Animation Update 🎬✨
+A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, a friendly wolf companion system, extensive quality-of-life features, and 11 pre-made player animations.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 
 ---
 
-## 🎮 What's New in v1.2.0 - MAJOR UPDATE
+## 🎮 What's New in v1.2.5 - Animation Update
+
+### 🎬 New: Animation Tab
+- **11 pre-made player animations** with verified names from assembly dump
+- Smooth animation playback with working animation states
+- All animations tested and verified to work correctly
+- Easy one-click access to pose and animate your character
+
+### 🎯 Latest Updates & Fixes (v1.2.1 - v1.2.5)
+- **Fixed**: Clear ALL rubble types in ClearBaseRubble (properly clears all landscape rubble)
+- **Enhanced**: Keyboard counterparts now display in menu hints
+- **Renamed**: Controller button R3 → LeftStickClick for clarity
+- **Fixed**: Thunderstore manifest compatibility (semver + correct dependency ID)
+
+---
+
+## 📚 Previous Major Features in v1.2.0 - MAJOR UPDATE
 
 ### 🐺 New: Companion Category
 - **Spawn Friendly Wolf** — A tame wolf that follows you everywhere with smooth movement and auto-respawn across scene transitions
