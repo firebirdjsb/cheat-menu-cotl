@@ -209,13 +209,19 @@ internal class CultUtils {
     public static void ClearBaseRubble(){
         try {
             int count = 0;
-            foreach(var rubble in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.RUBBLE)){
-                rubble.Remove();
-                count++;
-            }
-            foreach(var rock in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.ROCK)){
-                rock.Remove();
-                count++;
+            // Clear all rubble types: RUBBLE, RUBBLE_BIG, ROCK, BLOOD_STONE
+            var rubbleTypes = new[] { 
+                StructureBrain.TYPES.RUBBLE,
+                StructureBrain.TYPES.RUBBLE_BIG,
+                StructureBrain.TYPES.ROCK,
+                StructureBrain.TYPES.BLOOD_STONE
+            };
+
+            foreach(var rubbleType in rubbleTypes){
+                foreach(var rubble in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, rubbleType)){
+                    rubble.Remove();
+                    count++;
+                }
             }
             PlayNotification($"Rubble cleared! ({count} items)");
         } catch(Exception e){
