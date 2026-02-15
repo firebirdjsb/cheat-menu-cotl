@@ -236,14 +236,16 @@ private static readonly int MENU_HEIGHT = 400;
         int hintY = (int)(menuY - hintHeight - 2);
         
         string hintText;
+        string kbToggle = CheatConfig.Instance.GuiKeybind.Value.MainKey.ToString();
+        string kbBack = CheatConfig.Instance.BackCategory.Value.MainKey.ToString();
         if(CheatConfig.Instance.ControllerSupport.Value) {
             hintText = IsWithinCategory() 
-                ? $"[B] Back | [R3] Close | [Right Stick] Nav | [A] Select" 
-                : $"[R3] Toggle | [Right Stick] Nav | [A] Select";
+                ? $"[B/{kbBack}] Back | [LeftStickClick/{kbToggle}] Close | [Right Stick] Nav | [A] Select" 
+                : $"[LeftStickClick/{kbToggle}] Toggle | [Right Stick] Nav | [A] Select";
         } else {
             hintText = IsWithinCategory() 
-                ? $"[{CheatConfig.Instance.BackCategory.Value.MainKey}] Back | [ESC] Close" 
-                : $"[{CheatConfig.Instance.GuiKeybind.Value.MainKey}] Toggle | [ESC] Close";
+                ? $"[{kbBack}] Back | [ESC] Close" 
+                : $"[{kbToggle}] Toggle | [ESC] Close";
         }
         
         GUIStyle hintStyle = new GUIStyle(GUIUtils.GetGUILabelStyle(hintWidth, 0.65f))
@@ -269,7 +271,7 @@ private static readonly int MENU_HEIGHT = 400;
 
         string hintText;
         if(CheatConfig.Instance.ControllerSupport.Value) {
-            hintText = "[R3] Open Cheat Menu";
+            hintText = $"[LeftStickClick/{CheatConfig.Instance.GuiKeybind.Value.MainKey}] Open Cheat Menu";
         } else {
             hintText = $"[{CheatConfig.Instance.GuiKeybind.Value.MainKey}] Open Cheat Menu";
         }
