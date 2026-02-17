@@ -5,6 +5,7 @@ namespace CheatMenu;
 
 public static class CheatMenuGui {    
 public static bool GuiEnabled = false;
+public static bool InputBlockedForModal = false;
 public static CheatCategoryEnum CurrentCategory = CheatCategoryEnum.NONE;
 public static int CurrentButtonY = 0;
 public static int TotalWindowCalculatedHeight = 0;
@@ -51,6 +52,7 @@ private static readonly int MENU_HEIGHT = 400;
         s_pendingClose = false;
         s_controllerSelectPressed = false;
         s_needsScrollUpdate = false;
+        InputBlockedForModal = false;
     }
 
     private static Rect GetMenuRect(float progress){
@@ -118,10 +120,25 @@ private static readonly int MENU_HEIGHT = 400;
         }
 
         if(btn){
-            CurrentCategory = categoryEnum;
-            s_selectedButtonIndex = 0;
+            if(categoryEnum == CheatCategoryEnum.ANIMATION){
+                try {
+                    AnimationDefinitions.OpenAnimationBrowser();
+                } catch { }
+                CurrentCategory = CheatCategoryEnum.NONE;
+                s_selectedButtonIndex = 0;
+            } else {
+                CurrentCategory = categoryEnum;
+                s_selectedButtonIndex = 0;
+            }
         }
         return btn;
+    }
+
+    public static void OpenMenuAtRoot(){
+        GuiEnabled = true;
+        CurrentCategory = CheatCategoryEnum.NONE;
+        InputBlockedForModal = false;
+        StartOpenAnimation();
     }
     
     public static bool BackButton(){
@@ -139,6 +156,9 @@ private static readonly int MENU_HEIGHT = 400;
         }
 
         if(btn){
+            try {
+                GUIManager.CloseGuiFunction("AnimationBrowser");
+            } catch { }
             CurrentCategory = CheatCategoryEnum.NONE;
             s_selectedButtonIndex = 0;
         }
@@ -360,7 +380,7 @@ private static readonly int MENU_HEIGHT = 400;
         // Controller open: R3 (Right Stick Click)
         bool controllerComboDown = CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.GetToggleMenuPressed();
         
-        if(keyDown || controllerComboDown){
+        if(!InputBlockedForModal && (keyDown || controllerComboDown)){
             if(!GuiEnabled && !s_animatingIn && CultUtils.IsInGame()){
                 StartOpenAnimation();
                 s_selectedButtonIndex = 0;
@@ -370,7 +390,7 @@ private static readonly int MENU_HEIGHT = 400;
         }
         
         // Controller navigation when menu is open
-        if(GuiEnabled && CheatConfig.Instance.ControllerSupport.Value && !s_animatingIn && !s_animatingOut) {
+        if(GuiEnabled && CheatConfig.Instance.ControllerSupport.Value && !s_animatingIn && !s_animatingOut && !InputBlockedForModal) {
             float currentTime = Time.unscaledTime;
             
             if(currentTime - s_lastNavigationTime > s_navigationDelay) {
@@ -401,7 +421,7 @@ private static readonly int MENU_HEIGHT = 400;
             }
         }
         
-        if(GuiEnabled && !s_animatingOut && Input.GetKeyDown(CheatConfig.Instance.BackCategory.Value.MainKey) && CurrentCategory != CheatCategoryEnum.NONE)
+        if(GuiEnabled && !s_animatingOut && !InputBlockedForModal && Input.GetKeyDown(CheatConfig.Instance.BackCategory.Value.MainKey) && CurrentCategory != CheatCategoryEnum.NONE)
         {
             CurrentCategory = CheatCategoryEnum.NONE;
             GUIManager.ClearAllGuiBasedCheats();
@@ -409,7 +429,7 @@ private static readonly int MENU_HEIGHT = 400;
         }
         
         // Controller back button
-        if(GuiEnabled && !s_animatingOut && CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.GetBackPressed())
+        if(GuiEnabled && !s_animatingOut && CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.GetBackPressed() && !InputBlockedForModal)
         {
             if(CurrentCategory != CheatCategoryEnum.NONE){
                 CurrentCategory = CheatCategoryEnum.NONE;
@@ -420,7 +440,7 @@ private static readonly int MENU_HEIGHT = 400;
             }
         }
 
-        if(GuiEnabled && !s_animatingOut && Input.GetKeyDown(KeyCode.Escape) && CheatConfig.Instance.CloseGuiOnEscape.Value)
+        if(GuiEnabled && !s_animatingOut && Input.GetKeyDown(KeyCode.Escape) && CheatConfig.Instance.CloseGuiOnEscape.Value && !InputBlockedForModal)
         {
             StartCloseAnimation();
         }
