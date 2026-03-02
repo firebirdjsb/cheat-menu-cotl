@@ -89,5 +89,8 @@ public enum CheatCategoryEnum {
     MISC,
 
     [StringEnum("Animation")]
-    ANIMATION
+    ANIMATION,
+
+    [StringEnum("Scenery")]
+    SCENERY
 }

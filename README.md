@@ -1,64 +1,60 @@
 # cheat-menu-cotl
 
-> **Version 1.2.5** - Animation Update 🎬✨
+> **Version 1.3.0** - DLC Safety & Stability Update 🛡️🔧
 A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, a friendly wolf companion system, extensive quality-of-life features, and 11 pre-made player animations.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 
 ---
 
-## 🎮 What's New in v1.2.5 - Animation Update
+## 🎮 What's New in v1.3.0 - DLC Safety & Stability Update
 
-### 🎬 New: Animation Tab
-- **11 pre-made player animations** with verified names from assembly dump
+### 🛡️ DLC Ownership Gating (Major Fix)
+- **"Unlock Everything"** no longer unlocks Woolhaven/DLC tab, buildings, or upgrades when you don't own the DLC
+- Added `IsDlcContentName()` centralized helper covering all known Woolhaven keywords: Ranch, Forge, Furnace, Brewery, Barn, Spinning, Loom, Tavern, Distillery, Winter, Snow, and more
+- **Unlock All Structures** no longer calls `CheatConsole.UnlockAllStructures()` without DLC (root cause of the Woolhaven tab appearing)
+- **Unlock All Clothing** and **Give All Clothing** now skip DLC clothing types without DLC ownership
+- **Give All Clothing** no longer gives WOOL and COTTON materials without the DLC
+- **Upgrade unlock loop** expanded DLC filter beyond just "DLC"/"Dlc" to catch all Woolhaven-specific upgrade types
+
+### 🩸 Blood Moon Fix (Persistence Bug)
+- **Disable Blood Moon** now properly persists — the game's `FollowerBrainStats.IsBloodMoon` returns `true` when `LastHalloween` is within 3600 seconds of current time. Previously, setting it to current time meant blood moon stayed "active" for an hour and would re-enable on scene transitions via `ReEnableRitualEffects()`
+- Now pushes `LastHalloween` 7200 seconds into the past so `IsBloodMoon` immediately returns `false`
+- Explicitly clears `halloweenLutActive` on all LocationManagers to prevent re-trigger
+- Force-resets LightingManager override state and transition settings
+- Music reset now respects winter season (uses `winter_random` instead of `StandardAmbience` when in winter)
+- Reflection scan now also clears `halloween`-named boolean fields on DataManager
+
+### 👥 Spawn System Overhaul
+- **Removed "Spawn at Circle" toggle** — all spawned followers now always arrive at the indoctrination circle
+- This prevents bugs caused by auto-indoctrination (negative traits from resurrection RNG, follower state bugs)
+- **Special skin followers** (Lamb, bishops, Abomination, etc.) now also use `CreateNewRecruit` instead of `CreateNewFollower`
+- **Child followers** now also spawn as recruits for proper indoctrination
+- Applies to Worker, Worshipper, Arrived, Child, and all 20+ special skin spawns
+
+### 💬 Notification Polish
+- **Rename Cult** now shows feedback notification on activation and on failure
+- All cheats verified to have user-facing notification feedback on success and failure
+
+### 📋 Previous Major Features (v1.2.x)
+
+<details>
+<summary>Click to expand v1.2.x changelog</summary>
+
+#### v1.2.5 - Animation Update
+- 11 pre-made player animations with verified names from assembly dump
 - Smooth animation playback with working animation states
-- All animations tested and verified to work correctly
-- Easy one-click access to pose and animate your character
 
-### 🎯 Latest Updates & Fixes (v1.2.1 - v1.2.5)
-- **Fixed**: Clear ALL rubble types in ClearBaseRubble (properly clears all landscape rubble)
-- **Enhanced**: Keyboard counterparts now display in menu hints
-- **Renamed**: Controller button R3 → LeftStickClick for clarity
-- **Fixed**: Thunderstore manifest compatibility (semver + correct dependency ID)
+#### v1.2.0 - Major Update
+- **Companion Category**: Friendly wolf with follow/combat/pet/dismiss
+- **Complete menu reorganization** into logical flow
+- **Farming improvements**: Animal halos, ascension animation
+- **8 new follower cheats**: Spawn Child, Kill Random, Level Up, etc.
+- **Weather menu overhaul** with sort ordering
+- **Combat category refined** with unlock progression
+- **SortOrder system** for precise item ordering
 
----
-
-## 📚 Previous Major Features in v1.2.0 - MAJOR UPDATE
-
-### 🐺 New: Companion Category
-- **Spawn Friendly Wolf** — A tame wolf that follows you everywhere with smooth movement and auto-respawn across scene transitions
-- **Wolf Dungeon Combat** — Toggle your wolf attacking enemies in dungeons with melee damage and attack animations
-- **Pet Wolf** — Walk up to and pet your wolf with full animation, sound effects, hearts, and camera shake
-- **Dismiss Wolf** — Dismiss your friendly wolf or clear all spawned wolves
-
-### 🗂️ Complete Menu Reorganization
-- **Reorganized all categories** into a logical flow: Health → Combat → Resources → Cult → Follower → Farming → Companion → Weather → DLC → Splitscreen → Misc
-- **Fixed misplaced items**: Souls, Black Souls, and Arrows moved from Health → Resources; Player Speed and Stop Time moved from Combat → Misc
-- **Removed unused categories** (Rituals, Structures) that had no cheats assigned
-- **Consistent category ordering** - categories now always appear in the same order
-
-### 🐾 Farming Improvements
-- **Add Halos to Animals** — Glowing pink procedural halos above ranch animals with per-creature height tuning
-- **Ascend All Animals** — Full ascension animation with chromatic aberration, sound effects, and visual resource drops
-
-### 👥 Follower Improvements
-- **8 new follower cheats**: Spawn Child, Kill Random, Level Up All, Increase Loyalty, Make Immortal, Max All Stats, Remove Exhaustion, Give Follower Tokens
-
-### 🌦️ Weather Menu Overhaul
-- **Logically grouped** weather items: Clear → Rain (Light/Heavy) → Wind (Light/Heavy) → Snow (Dusting/Light/Medium/Heavy/Blizzard) → Heat (Light/Heavy) → Seasons
-- **Cleaned up names** - removed redundant "Weather:" prefix for cleaner display
-- **Custom sort ordering** ensures related weather types stay together instead of being scattered alphabetically
-
-### ⚔️ Combat Category (Refined)
-- Focused on combat-specific cheats: Kill All Enemies, One Hit Kill, Unlimited Relics/Ammo/Fervour
-- Dungeon tools: Auto Reveal Map, Reveal Map, Clear Status Effects
-- Unlock progression: Weapons, Tarot Cards, Fleeces, Crown Abilities, EVERYTHING
-- Removed non-combat items (Player Speed, Stop Time) to proper categories
-
-### 🔧 Technical Improvements
-- **New `SortOrder` system** for precise item ordering within categories via `CheatDetails` attribute
-- **Deterministic category rendering** - enum order controls category button order
-- **Cleaner codebase** - removed dead enum values and properly separated concerns
+</details>
 
 ---
 
@@ -165,6 +161,17 @@ Works with Xbox, PlayStation, Nintendo Switch Pro, Steam Deck, and generic contr
 ---
 
 ## 🔄 Migration from Previous Versions
+
+### From v1.2.x to v1.3.0
+
+1. **Backup your config** (optional): Copy `BepInEx/config/org.xunfairx.cheat_menu.cfg`
+2. **Delete old files**: Remove old CheatMenu files from `BepInEx/plugins/CheatMenu`
+3. **Install v1.3.0**: Extract the new version to `BepInEx/plugins/`
+4. **Menu changes**:
+   - The "Spawn at Circle" toggle has been removed — spawning always uses indoctrination circle now
+   - Unlock cheats now properly skip DLC content you don't own (no more phantom Woolhaven tab)
+   - Blood Moon disable is now persistent across scene transitions
+5. **Config compatible**: No config changes required
 
 ### From v1.1.x to v1.2.0
 

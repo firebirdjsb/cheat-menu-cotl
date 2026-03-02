@@ -10,6 +10,7 @@ public class Definition{
 
     private readonly CheatDetails _details;
     private readonly CheatWIP _cheatWIP;
+    private readonly RequiresDLC _requiresDLC;
     private readonly string _flagName;
     
     public static bool IsCheatMethod(MethodInfo info){
@@ -35,7 +36,8 @@ public class Definition{
 
         this._categoryName = category.GetCategoryName();
         this._details = ReflectionHelper.HasAttribute<CheatDetails>(info);
-        this._cheatWIP = ReflectionHelper.HasAttribute<CheatWIP>(info);         
+        this._cheatWIP = ReflectionHelper.HasAttribute<CheatWIP>(info);
+        this._requiresDLC = ReflectionHelper.HasAttribute<RequiresDLC>(info);
         this._flagName = GetCheatFlagID(info);
     }
 
@@ -65,5 +67,13 @@ public class Definition{
 
     public virtual string FlagName {
         get {return _flagName;}
+    }
+
+    public virtual string SubGroup {
+        get {return _details.SubGroup;}
+    }
+
+    public virtual DlcRequirement DlcRequirement {
+        get {return _requiresDLC != null ? _requiresDLC.Requirement : DlcRequirement.None;}
     }
 }

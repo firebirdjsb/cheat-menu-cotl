@@ -10,6 +10,7 @@ public class FarmingDefinitions : IDefinition{
 
     private static void SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE animalType, string animalName){
         try {
+            if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
             if(Interaction_Ranch.Ranches == null || Interaction_Ranch.Ranches.Count == 0){
                 CultUtils.PlayNotification("No ranch found! Build a ranch first.");
                 return;
@@ -47,43 +48,52 @@ public class FarmingDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Spawn Goat at Player", "Spawns a live goat at the player's position")]
+    [CheatDetails("Spawn Goat at Player", "Spawns a live goat at the player's position", subGroup: "Spawn")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnGoat(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_GOAT, "Goat");
     }
 
-    [CheatDetails("Spawn Cow at Player", "Spawns a live cow at the player's position")]
+    [CheatDetails("Spawn Cow at Player", "Spawns a live cow at the player's position", subGroup: "Spawn")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnCow(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_COW, "Cow");
     }
 
-    [CheatDetails("Spawn Llama at Player", "Spawns a live llama at the player's position")]
+    [CheatDetails("Spawn Llama at Player", "Spawns a live llama at the player's position", subGroup: "Spawn")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnLlama(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_LLAMA, "Llama");
     }
 
-    [CheatDetails("Spawn Turtle at Player", "Spawns a live turtle at the player's position")]
+    [CheatDetails("Spawn Turtle at Player", "Spawns a live turtle at the player's position", subGroup: "Spawn")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnTurtle(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_TURTLE, "Turtle");
     }
 
-    [CheatDetails("Spawn Crab at Player", "Spawns a live crab at the player's position")]
+    [CheatDetails("Spawn Crab at Player", "Spawns a live crab at the player's position", subGroup: "Spawn")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnCrab(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_CRAB, "Crab");
     }
 
-    [CheatDetails("Spawn Spider at Player", "Spawns a live spider at the player's position")]
+    [CheatDetails("Spawn Spider at Player", "Spawns a live spider at the player's position", subGroup: "Spawn")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnSpider(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_SPIDER, "Spider");
     }
 
-    [CheatDetails("Spawn Snail at Player", "Spawns a live snail at the player's position")]
+    [CheatDetails("Spawn Snail at Player", "Spawns a live snail at the player's position", subGroup: "Spawn")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnSnail(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_SNAIL, "Snail");
     }
 
-    [CheatDetails("Give x5 All Animals", "Adds x5 of each animal type to inventory")]
+    [CheatDetails("Give x5 All Animals", "Adds x5 of each animal type to inventory (Woolhaven DLC required)", subGroup: "Spawn")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void GiveAllAnimals(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.ANIMAL_GOAT, 5);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.ANIMAL_COW, 5);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.ANIMAL_LLAMA, 5);
@@ -94,8 +104,10 @@ public class FarmingDefinitions : IDefinition{
         CultUtils.PlayNotification("All animals added!");
     }
 
-    [CheatDetails("Collect All Animal Products", "Collects products from all ready animals (wool, shells, silk, etc.)")]
+    [CheatDetails("Collect All Animal Products", "Collects products from all ready animals (wool, shells, silk, etc.) (Woolhaven DLC required)", subGroup: "Manage")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void CollectAllAnimalProducts(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         try {
             int count = 0;
             var animals = AnimalData.GetAnimals();
@@ -122,8 +134,10 @@ public class FarmingDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Feed All Animals", "Fills hunger for all ranch animals")]
+    [CheatDetails("Feed All Animals", "Fills hunger for all ranch animals (Woolhaven DLC required)", subGroup: "Manage")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void FeedAllAnimals(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         try {
             int count = 0;
             var animals = AnimalData.GetAnimals();
@@ -139,8 +153,10 @@ public class FarmingDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Clean All Pens", "Cleans all stinky animals and resets wash timers")]
+    [CheatDetails("Clean All Pens", "Cleans all stinky animals and resets wash timers (Woolhaven DLC required)", subGroup: "Manage")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void CleanAllPens(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         try {
             int count = 0;
             var animals = AnimalData.GetAnimals();
@@ -173,8 +189,10 @@ public class FarmingDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Give All Wool", "Gives x10 wool and x5 of each special wool type")]
+    [CheatDetails("Give All Wool", "Gives x10 wool and x5 of each special wool type (Woolhaven DLC required)", subGroup: "Products")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void GiveAllWool(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.WOOL, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_RANCHER, 5);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_LAMBWAR, 5);
@@ -184,15 +202,19 @@ public class FarmingDefinitions : IDefinition{
         CultUtils.PlayNotification("All wool added!");
     }
 
-    [CheatDetails("Give Eggs & Yolks", "Gives x5 follower eggs and x10 yolks")]
+    [CheatDetails("Give Eggs & Yolks", "Gives x5 follower eggs and x10 yolks (Woolhaven DLC required)", subGroup: "Products")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void GiveEggs(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.EGG_FOLLOWER, 5);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.YOLK, 10);
         CultUtils.PlayNotification("Eggs and yolks added!");
     }
 
-    [CheatDetails("Give Special Poop", "Gives x20 of each special poop type")]
+    [CheatDetails("Give Special Poop", "Gives x20 of each special poop type (Woolhaven DLC required)", subGroup: "Products")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void GiveSpecialPoop(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.POOP_GOLD, 20);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.POOP_RAINBOW, 20);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.POOP_GLOW, 20);
@@ -201,24 +223,32 @@ public class FarmingDefinitions : IDefinition{
         CultUtils.PlayNotification("Special poop added!");
     }
 
-    [CheatDetails("Give Milk", "Gives x20 Milk")]
+    [CheatDetails("Give Milk", "Gives x20 Milk (Woolhaven DLC required)", subGroup: "Products")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void GiveMilk(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MILK, 20);
         CultUtils.PlayNotification("Milk added!");
     }
 
-    [CheatDetails("Force Grow All Animals", "Instantly matures all baby animals and makes them harvest-ready")]
+    [CheatDetails("Force Grow All Animals", "Instantly matures all baby animals and makes them harvest-ready (Woolhaven DLC required)", subGroup: "Manage")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void ForceGrowAllAnimals(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.ForceGrowAllAnimals();
     }
 
-    [CheatDetails("Add Halos to Animals", "Adds a glowing pink halo above all ranch animals")]
+    [CheatDetails("Add Halos to Animals", "Adds a glowing pink halo above all ranch animals (Woolhaven DLC required)", subGroup: "Special")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void AddHalosToAnimals(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.AddHalosToAnimals();
     }
 
-    [CheatDetails("Ascend All Animals", "Ascends all ranch animals with full animation, sound effects, and visual resource drops")]
+    [CheatDetails("Ascend All Animals", "Ascends all ranch animals with full animation, sound effects, and visual resource drops (Woolhaven DLC required)", subGroup: "Special")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void AscendAllAnimals(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.AscendAllAnimals();
     }
 }

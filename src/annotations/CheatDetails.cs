@@ -10,18 +10,20 @@ private readonly string _offTitle;
 private readonly bool _isMultiNameFlagCheat = false;
 private readonly bool _isFlagCheat = false;
 private readonly int _sortOrder = 0;
+private readonly string _subGroup = null;
 
 //Used for simple cheats and mode cheats that have the same state no matter the flag state.
-public CheatDetails(string title, string description, bool isFlagCheat = false, int sortOrder = 0){
+public CheatDetails(string title, string description, bool isFlagCheat = false, int sortOrder = 0, string subGroup = null){
     this._isFlagCheat = isFlagCheat;
     this._title = title;
     this._description = description;
     this._sortOrder = sortOrder;
+    this._subGroup = subGroup;
 }
 
 //Used for mode cheats that have different 'names' when being off and on
 //Hide/Show UI is the simpliest example of this
-public CheatDetails(string cheatTitle, string offTitle, string onTitle, string description, bool isFlagCheat = true, int sortOrder = 0){
+public CheatDetails(string cheatTitle, string offTitle, string onTitle, string description, bool isFlagCheat = true, int sortOrder = 0, string subGroup = null){
     if(isFlagCheat == false){
         throw new Exception("Multi name flag cheat can not have isFlagCheat set to false!");
     }
@@ -33,6 +35,7 @@ public CheatDetails(string cheatTitle, string offTitle, string onTitle, string d
     this._isMultiNameFlagCheat = true;
     this._isFlagCheat = true;
     this._sortOrder = sortOrder;
+    this._subGroup = subGroup;
 }
 
     public virtual string Title
@@ -68,5 +71,10 @@ public CheatDetails(string cheatTitle, string offTitle, string onTitle, string d
     public virtual int SortOrder
     {
         get {return _sortOrder;}
+    }
+
+    public virtual string SubGroup
+    {
+        get {return _subGroup;}
     }
 }

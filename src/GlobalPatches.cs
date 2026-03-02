@@ -126,15 +126,9 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
         ReflectionHelper.UnpatchTracked(typeof(Spine.Skin), "AddSkin");
         ReflectionHelper.UnpatchTracked(typeof(Interaction_WolfBase), "Update");
         ReflectionHelper.UnpatchTracked(typeof(VersionNumber), "OnEnable");
-        ReflectionHelper.UnpatchTracked(typeof(GameManager), "AuthenticateCultistDLC");
-        ReflectionHelper.UnpatchTracked(typeof(GameManager), "AuthenticateHereticDLC");
-        ReflectionHelper.UnpatchTracked(typeof(GameManager), "AuthenticateSinfulDLC");
-        ReflectionHelper.UnpatchTracked(typeof(GameManager), "AuthenticatePilgrimDLC");
-        ReflectionHelper.UnpatchTracked(typeof(GameManager), "AuthenticateMajorDLC");
-        ReflectionHelper.UnpatchTracked(typeof(GameManager), "AuthenticatePrePurchaseDLC");
         ReflectionHelper.UnpatchTracked(typeof(BlunderAmmo), "UseAmmo");
         ReflectionHelper.UnpatchTracked(typeof(PlayerArrows), "RestockArrow");
-        ReflectionHelper.UnpatchTracked(typeof(MiniMap), "StartMap");
+        ReflectionHelper.UnpatchTracked(typeof(MiniMap), "OnBiomeGenerated");
     }
 
     //If because of our mod we try to active both sides of a pair of a ritual we want

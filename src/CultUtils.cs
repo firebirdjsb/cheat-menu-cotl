@@ -17,6 +17,94 @@ internal class CultUtils {
         return SaveAndLoad.Loaded;
     }
 
+    // ── Shared DLC ownership helpers ─────────────────────────────────────
+    public static bool HasMajorDLC()   => IsInGame() && DataManager.Instance.MAJOR_DLC;
+    public static bool HasSinfulDLC()  => IsInGame() && DataManager.Instance.DLC_Sinful_Pack;
+    public static bool HasCultistDLC() => IsInGame() && DataManager.Instance.DLC_Cultist_Pack;
+    public static bool HasHereticDLC() => IsInGame() && DataManager.Instance.DLC_Heretic_Pack;
+    public static bool HasPilgrimDLC() => IsInGame() && DataManager.Instance.DLC_Pilgrim_Pack;
+
+    /// <summary>
+    /// Returns true if the given name (structure type, upgrade type, clothing type, etc.)
+    /// looks like Woolhaven / Major-DLC content based on known keywords.
+    /// Used to skip DLC content when the player doesn't own it.
+    /// </summary>
+    public static bool IsDlcContentName(string name){
+        if(string.IsNullOrEmpty(name)) return false;
+        string upper = name.ToUpperInvariant();
+        return upper.Contains("DLC")
+            || upper.Contains("RANCH")
+            || upper.Contains("FURNACE")
+            || upper.Contains("FORGE")
+            || upper.Contains("FLOCKADE")
+            || upper.Contains("HEATER")
+            || upper.Contains("WOOL")
+            || upper.Contains("BREWERY")
+            || upper.Contains("BREW_")
+            || upper.Contains("BARN")
+            || upper.Contains("SPINNING")
+            || upper.Contains("LOOM")
+            || upper.Contains("TAVERN")
+            || upper.Contains("DISTILLERY")
+            || upper.Contains("WINTER")
+            || upper.Contains("SNOW")
+            || upper.Contains("CHAIN")
+            || upper.Contains("FLAIL");
+    }
+
+    // Removes berry/berry-bush style structures from the base (best-effort)
+    public static void ClearBerryBushes(){
+        try {
+            int removed = 0;
+            foreach(var brainTypeObj in Enum.GetValues(typeof(StructureBrain.TYPES))){
+                try {
+                    var brainType = (StructureBrain.TYPES)brainTypeObj;
+                    string typeName = brainType.ToString().ToUpperInvariant();
+                    if(typeName.Contains("BERRY") || typeName.Contains("BUSH") || typeName.Contains("BERR")){
+                        var structures = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, brainType);
+                        foreach(var s in structures){
+                            try { s.Remove(); removed++; } catch { }
+                        }
+                    }
+                } catch { }
+            }
+            PlayNotification(removed > 0 ? $"Berry bushes cleared! ({removed} items)" : "No berry bushes found to clear!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] ClearBerryBushes failed: {e.Message}");
+            PlayNotification("Failed to clear berry bushes!");
+        }
+    }
+
+    // Best-effort: remove Spy trait from the most recently added followers
+    public static void RemoveSpyFromRecentFollowers(int recentCount = 3){
+        try {
+            var list = DataManager.Instance?.Followers;
+            if(list == null) return;
+            int removed = 0;
+            for(int i = list.Count - 1; i >= 0 && removed < recentCount; i--){
+                try {
+                    var finfo = list[i];
+                    if(finfo == null) continue;
+                    // Remove from FollowerInfo traits
+                    try { if(finfo.Traits != null && finfo.Traits.Contains(FollowerTrait.TraitType.Spy)) finfo.Traits.Remove(FollowerTrait.TraitType.Spy); } catch { }
+
+                    // Remove from live instance if present
+                    try {
+                        var live = FollowerManager.FindFollowerByID(finfo.ID);
+                        if(live != null){
+                            try { if(live.Brain != null && live.Brain.Info != null && live.Brain.Info.Traits != null && live.Brain.Info.Traits.Contains(FollowerTrait.TraitType.Spy)) live.Brain.Info.Traits.Remove(FollowerTrait.TraitType.Spy); } catch { }
+                        }
+                    } catch { }
+
+                    removed++;
+                } catch { }
+            }
+            if(removed > 0){
+                try { PlayNotification($"Removed Spy trait from {removed} recent follower(s)"); } catch { }
+            }
+        } catch { }
+    }
+
     public static void GiveDocterineStone(){
         // Used to make sure the user can declare doctrines before even doing a run
         DataManager.Instance.FirstDoctrineStone = true;
@@ -196,10 +284,35 @@ internal class CultUtils {
 
     public static void ClearBaseTrees(){
         try {
+            int count = 0;
             foreach(var tree in StructureManager.GetAllStructuresOfType(FollowerLocation.Base, StructureBrain.TYPES.TREE)){
-                tree.Remove();
+                try {
+                    // Give player basic wood/charcoal resources per tree removed when possible
+                    try {
+                        // Try common enum names at runtime so we don't depend on a single constant
+                        string[] candidates = new string[]{ "WOOD", "LOG", "FIREWOOD", "WOOD_LOG", "CHARCOAL" };
+                        bool given = false;
+                        foreach(var cand in candidates){
+                            try {
+                                // Use non-generic Enum.Parse with ignoreCase = true and catch if not present
+                                try {
+                                    var parsed = Enum.Parse(typeof(InventoryItem.ITEM_TYPE), cand, true);
+                                    AddInventoryItem((InventoryItem.ITEM_TYPE)parsed, 3);
+                                    given = true;
+                                    break;
+                                } catch { }
+                            } catch { }
+                        }
+                        if(!given){
+                            // Fallback to cotton if no wood-type item exists in this build
+                            AddInventoryItem(InventoryItem.ITEM_TYPE.COTTON, 3);
+                        }
+                    } catch { }
+                    tree.Remove();
+                    count++;
+                } catch { }
             }
-            PlayNotification("Trees cleared!");
+            PlayNotification(count > 0 ? $"Trees cleared! ({count} trees, resources added)" : "No trees found to clear!");
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"Failed to clear trees: {e.Message}");
             PlayNotification("Failed to clear trees!");
@@ -548,6 +661,7 @@ internal class CultUtils {
             Traverse.Create(typeof(CheatConsole)).Method("RenameCult").GetValue();
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"Failed to rename cult: {e.Message}");
+            PlayNotification("Failed to open rename dialog!");
         }
     }
 
@@ -697,55 +811,94 @@ internal class CultUtils {
     public static void SpawnFollower(FollowerRole role)
     {
         try {
-            Follower follower = FollowerManager.CreateNewFollower(PlayerFarming.Location, PlayerFarming.Instance.transform.position, false);
-            
-            if(follower == null || follower.Brain == null || follower.Brain.Info == null){
-                UnityEngine.Debug.LogWarning("[CheatMenu] Failed to spawn follower - null reference");
-                PlayNotification("Failed to spawn follower!");
+            if(PlayerFarming.Instance == null){
+                PlayNotification("Must be in game to spawn followers!");
                 return;
             }
 
-            follower.Brain.Info.FollowerRole = role;
-            
-            // Ensure follower has valid outfit data before setting
-            // Only set outfit if the follower instance is fully loaded
-            if(follower.Outfit != null && follower.gameObject != null && follower.gameObject.activeInHierarchy){
-                follower.Brain.Info.Outfit = FollowerOutfitType.Follower;
-                
-                // Use safe outfit setting with null check
-                try {
-                    follower.SetOutfit(FollowerOutfitType.Follower, false, Thought.None);
-                } catch(Exception e){
-                    UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to set follower outfit: {e.Message}");
-                    // Continue anyway, follower will use default outfit
+            // Always create a recruit for the indoctrination ceremony (pick name, see traits)
+            // This prevents bugs caused by auto-indoctrination (e.g. negative traits from resurrection RNG)
+            Vector3 circlePos = PlayerFarming.Instance.transform.position;
+            try {
+                if(BiomeBaseManager.Instance != null && BiomeBaseManager.Instance.RecruitSpawnLocation != null){
+                    circlePos = BiomeBaseManager.Instance.RecruitSpawnLocation.transform.position;
                 }
-            }
-
-            if (role == FollowerRole.Worker)
-            {
-                follower.Brain.Info.WorkerPriority = WorkerPriority.Rubble;
-                follower.Brain.Stats.WorkerBeenGivenOrders = true;
-                
-                // Only call CheckChangeState if the brain is fully initialized
-                try {
-                    if(follower.Brain != null && follower.Brain.Info != null){
-                        follower.Brain.CheckChangeState();
-                    }
-                } catch(Exception e){
-                    UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to change worker state: {e.Message}");
-                    // Continue anyway
-                }
-            }
-
-            FollowerInfo newFollowerInfo = GetFollowerInfo(follower);
-            if(newFollowerInfo != null){
-                SetFollowerIllness(newFollowerInfo, 0f);
-                SetFollowerHunger(newFollowerInfo, 100f);
-            }
+            } catch { }
+            FollowerRecruit recruit = FollowerManager.CreateNewRecruit(FollowerLocation.Base, circlePos);
+            PlayNotification(recruit != null ? "Follower arrived for indoctrination!" : "Recruit created (check circle)!");
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnFollower error: {e.Message}");
             PlayNotification("Failed to spawn follower!");
         }
+    }
+
+    // Remove spy trait and any spy references for a spawned follower/info
+    public static void RemoveSpyStatus(Follower follower, FollowerInfo info){
+        try {
+            // Remove from FollowerInfo traits
+            if(info != null){
+                try {
+                    if(info.Traits != null && info.Traits.Contains(FollowerTrait.TraitType.Spy)){
+                        info.Traits.Remove(FollowerTrait.TraitType.Spy);
+                    }
+                } catch { }
+            }
+
+            // Remove from live follower brain
+            try {
+                if(follower != null && follower.Brain != null && follower.Brain.Info != null){
+                    var binfo = follower.Brain.Info;
+                    if(binfo.Traits != null && binfo.Traits.Contains(FollowerTrait.TraitType.Spy)){
+                        binfo.Traits.Remove(FollowerTrait.TraitType.Spy);
+                    }
+                }
+            } catch { }
+
+            // Attempt to remove any spy references stored in DataManager lists/fields (best-effort, reflective)
+            try {
+                var dm = DataManager.Instance;
+                if(dm != null){
+                    var dmType = dm.GetType();
+                    var fields = dmType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    foreach(var f in fields){
+                        try {
+                            var fType = f.FieldType;
+                            if(typeof(System.Collections.IList).IsAssignableFrom(fType)){
+                                var list = f.GetValue(dm) as System.Collections.IList;
+                                if(list == null) continue;
+                                for(int i = list.Count - 1; i >= 0; i--){
+                                    try {
+                                        var item = list[i];
+                                        if(item == null) continue;
+                                        // If the list contains FollowerInfo objects
+                                        if(info != null && item is FollowerInfo fi && fi.ID == info.ID){
+                                            list.Remove(item);
+                                            continue;
+                                        }
+                                        // If the list contains integer IDs
+                                        if(info != null && item is int idVal && idVal == info.ID){
+                                            list.RemoveAt(i);
+                                            continue;
+                                        }
+                                        // If the item has an ID property matching the follower
+                                        var prop = item.GetType().GetProperty("ID");
+                                        if(prop != null){
+                                            try {
+                                                var val = prop.GetValue(item);
+                                                if(val is int iv && info != null && iv == info.ID){
+                                                    list.RemoveAt(i);
+                                                    continue;
+                                                }
+                                            } catch { }
+                                        }
+                                    } catch { }
+                                }
+                            }
+                        } catch { }
+                    }
+                }
+            } catch { }
+        } catch { }
     }
 
     public static void ClearBodies(){
@@ -853,11 +1006,16 @@ internal class CultUtils {
 
     private static bool s_wolfShouldExist = false;
     private static bool s_wolfRespawning = false;
+    private static float s_wolfRespawnDelay = 0f;
     private static float s_wolfAnimHoldTimer = 0f;
     private const float WOLF_ANIM_HOLD_MIN = 0.15f;
     private static string s_wolfAttackAnimName = null;
     private static float s_wolfCombatTransitionTimer = 0f;
     private const float WOLF_COMBAT_TRANSITION_MIN = 0.7f;
+    // Delay after a room/scene transition before respawning the wolf.
+    // Ensures the room's enemy registration finishes before the wolf starts attacking,
+    // which prevents doors staying locked because kills weren't counted.
+    private const float WOLF_ROOM_TRANSITION_DELAY = 1.5f;
 
     private const float WOLF_FOLLOW_SPEED = 4.5f;
     private const float WOLF_TELEPORT_DIST = 8f;
@@ -931,6 +1089,7 @@ internal class CultUtils {
         try {
             s_wolfShouldExist = false;
             s_wolfRespawning = false;
+            s_wolfRespawnDelay = 0f;
             if(FriendlyWolf != null){
                 UnityEngine.Object.Destroy(FriendlyWolf.gameObject);
                 FriendlyWolf = null;
@@ -1066,6 +1225,9 @@ internal class CultUtils {
     /// <summary>
     /// Called from the Update loop to check if the friendly wolf needs respawning
     /// after a scene change or dungeon transition.
+    /// A fixed delay is applied before the wolf spawns so that room enemies finish
+    /// registering with the room controller. Without the delay, the wolf could kill
+    /// enemies before the room counted them, leaving the passage doors permanently locked.
     /// </summary>
     [Update]
     public static void UpdateFriendlyWolf(){
@@ -1073,7 +1235,17 @@ internal class CultUtils {
         if(s_wolfRespawning) return;
         if(PlayerFarming.Instance == null) return;
 
-        // Check if the wolf reference is stale (destroyed by scene change)
+        // Count down the respawn delay; spawn only once it reaches zero
+        if(s_wolfRespawnDelay > 0f){
+            s_wolfRespawnDelay -= Time.deltaTime;
+            if(s_wolfRespawnDelay <= 0f){
+                s_wolfRespawnDelay = 0f;
+                SpawnFriendlyWolfInternal(false);
+            }
+            return;
+        }
+
+        // Check if the wolf reference is stale (destroyed by scene/room change)
         // Use Unity's implicit bool operator to detect destroyed-but-not-null objects
         if(FriendlyWolf == null || !(bool)(UnityEngine.Object)FriendlyWolf){
             FriendlyWolf = null;
@@ -1086,8 +1258,8 @@ internal class CultUtils {
             s_wolfAnimHoldTimer = 0f;
             s_wolfAttackAnimName = null;
             s_wolfCombatTransitionTimer = 0f;
-            UnityEngine.Debug.Log("[CheatMenu] Friendly wolf lost (scene change) - respawning...");
-            SpawnFriendlyWolfInternal(false);
+            s_wolfRespawnDelay = WOLF_ROOM_TRANSITION_DELAY;
+            UnityEngine.Debug.Log("[CheatMenu] Friendly wolf lost (room/scene change) - respawning after delay...");
         }
     }
 

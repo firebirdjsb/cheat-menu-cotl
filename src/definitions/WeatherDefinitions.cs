@@ -92,14 +92,78 @@ public class WeatherDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Disable Blood Moon", "Removes the Blood Moon effect and restores normal lighting", sortOrder: 41)]
+    [CheatDetails("Disable Blood Moon", "Fully removes the Blood Moon effect, resets music, and prevents re-trigger", sortOrder: 41)]
     public static void DisableBloodMoon(){
         try {
-            DataManager.Instance.LastHalloween = 0f;
+            // FollowerBrainStats.IsBloodMoon is true when
+            //   TimeManager.TotalElapsedGameTime - DataManager.Instance.LastHalloween < 3600f
+            // Push LastHalloween far enough into the past so IsBloodMoon returns false immediately.
+            // LocationManager.ReEnableRitualEffects() checks IsBloodMoon and will re-enable the
+            // blood moon visuals on scene loads if we don't clear this properly.
+            DataManager.Instance.LastHalloween = TimeManager.TotalElapsedGameTime - 7200f;
+
+            // Disable blood moon visuals and lighting via the game's own method
             if(LocationManager._Instance != null){
                 LocationManager._Instance.DisableBloodMoon();
             }
-            CultUtils.PlayNotification("Blood Moon disabled!");
+
+            // Explicitly clear the halloweenLutActive flag on all LocationManagers
+            // so ReEnableRitualEffects() doesn't restore the LUT on transitions
+            try {
+                foreach(var kvp in LocationManager.LocationManagers){
+                    if(kvp.Value != null){
+                        try { HarmonyLib.Traverse.Create(kvp.Value).Field("halloweenLutActive").SetValue(false); } catch {}
+                    }
+                }
+            } catch {}
+
+            // Force LightingManager out of blood moon override state
+            try {
+                if(LightingManager.Instance != null){
+                    LightingManager.Instance.globalOverrideSettings = null;
+                    LightingManager.Instance.inGlobalOverride = false;
+                    LightingManager.Instance.isTODTransition = true;
+                    LightingManager.Instance.lerpActive = true;
+                    LightingManager.Instance.transitionDurationMultiplier = 1f;
+                    LightingManager.Instance.UpdateLighting(false);
+                }
+            } catch {}
+
+            // Reset music from blood moon theme back to normal (respect winter season)
+            try {
+                if(SeasonsManager.CurrentSeason == SeasonsManager.Season.Winter){
+                    AudioManager.Instance.SetMusicBaseID(SoundConstants.BaseID.winter_random);
+                } else {
+                    AudioManager.Instance.SetMusicBaseID(SoundConstants.BaseID.StandardAmbience);
+                }
+            } catch {}
+
+            // Clear any blood moon related boolean flags on DataManager via reflection
+            try {
+                var dm = DataManager.Instance;
+                var dmType = dm.GetType();
+                foreach(var f in dmType.GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)){
+                    string nm = f.Name.ToLowerInvariant();
+                    if(f.FieldType == typeof(bool) && (nm.Contains("bloodmoon") || nm.Contains("blood_moon") || nm.Contains("halloween"))){
+                        try { f.SetValue(dm, false); } catch {}
+                    }
+                }
+                foreach(var p in dmType.GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)){
+                    string nm = p.Name.ToLowerInvariant();
+                    if(p.PropertyType == typeof(bool) && p.CanWrite && (nm.Contains("bloodmoon") || nm.Contains("blood_moon") || nm.Contains("halloween"))){
+                        try { p.SetValue(dm, false); } catch {}
+                    }
+                }
+            } catch {}
+
+            // Force clear weather effects that may be tied to the blood moon
+            try {
+                if(WeatherSystemController.Instance != null){
+                    WeatherSystemController.Instance.StopCurrentWeather(0f);
+                }
+            } catch {}
+
+            CultUtils.PlayNotification("Blood Moon fully disabled!");
         } catch(System.Exception e){
             UnityEngine.Debug.LogWarning($"Failed to disable Blood Moon: {e.Message}");
             CultUtils.PlayNotification("Failed to disable Blood Moon!");

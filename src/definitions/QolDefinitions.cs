@@ -7,12 +7,15 @@ using HarmonyLib;
 namespace CheatMenu;
 
 [CheatCategory(CheatCategoryEnum.COMBAT)]
-public class CombatDefinitions : IDefinition{
+public class CombatDefinitions : IDefinition {
 
     private static bool s_oneHitKillEnabled = false;
     private static bool s_unlimitedRelicsEnabled = false;
     private static bool s_unlimitedAmmoEnabled = false;
     private static bool s_ammoPatched = false;
+
+    private static bool s_mapRevealEnabled = false;
+    private static bool s_mapRevealPatched = false;
 
     private static bool IsInDungeon(){
         try {
@@ -22,7 +25,7 @@ public class CombatDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Kill All Enemies", "Kills all enemies in the current room")]
+    [CheatDetails("Kill All Enemies", "Kills all enemies in the current room", subGroup: "Combat")]
     public static void KillAllEnemies(){
         if(!IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
@@ -40,7 +43,7 @@ public class CombatDefinitions : IDefinition{
         CultUtils.PlayNotification($"Killed {count} enemies!");
     }
 
-    [CheatDetails("Unlock All Weapons", "Unlocks all weapon types and curse packs")]
+    [CheatDetails("Unlock All Weapons", "Unlocks all weapon types and curse packs (Flail requires Woolhaven DLC)", subGroup: "Unlock")]
     public static void UnlockAllWeapons(){
         DataManager.Instance.AddWeapon(EquipmentType.Axe);
         DataManager.Instance.AddWeapon(EquipmentType.Dagger);
@@ -48,7 +51,9 @@ public class CombatDefinitions : IDefinition{
         DataManager.Instance.AddWeapon(EquipmentType.Hammer);
         DataManager.Instance.AddWeapon(EquipmentType.Blunderbuss);
         DataManager.Instance.AddWeapon(EquipmentType.Shield);
-        DataManager.Instance.AddWeapon(EquipmentType.Chain);
+        if(CultUtils.HasMajorDLC()){
+            DataManager.Instance.AddWeapon(EquipmentType.Chain);
+        }
         UpgradeSystem.UnlockAbility(UpgradeSystem.Type.PUpgrade_CursePack1, false);
         UpgradeSystem.UnlockAbility(UpgradeSystem.Type.PUpgrade_CursePack2, false);
         UpgradeSystem.UnlockAbility(UpgradeSystem.Type.PUpgrade_CursePack3, false);
@@ -62,7 +67,7 @@ public class CombatDefinitions : IDefinition{
         CultUtils.PlayNotification("All weapons & curses unlocked!");
     }
 
-    [CheatDetails("Unlock All Tarot Cards", "Unlocks all tarot cards")]
+    [CheatDetails("Unlock All Tarot Cards", "Unlocks all tarot cards", subGroup: "Unlock")]
     public static void UnlockAllTarotCards(){
         DataManager.Instance.PlayerFoundTrinkets.Clear();
         foreach(TarotCards.Card card in DataManager.AllTrinkets){
@@ -71,25 +76,33 @@ public class CombatDefinitions : IDefinition{
         CultUtils.PlayNotification("All tarot cards unlocked!");
     }
 
-    [CheatDetails("Enable Tarot Building", "Enables the tarot card reading building")]
+    [CheatDetails("Enable Tarot Building", "Enables the tarot card reading building", subGroup: "Unlock")]
     public static void EnableTarotBuilding(){
         DataManager.Instance.HasTarotBuilding = true;
         CultUtils.PlayNotification("Tarot building enabled!");
     }
 
-    [CheatDetails("Enable Black Souls", "Enables the black souls currency system")]
+    [CheatDetails("Enable Black Souls", "Enables the black souls currency system", subGroup: "Unlock")]
     public static void EnableBlackSouls(){
         DataManager.Instance.BlackSoulsEnabled = true;
         CultUtils.PlayNotification("Black souls enabled!");
     }
 
-    [CheatDetails("Unlock All Fleeces", "Unlocks all fleece types that change crusade abilities")]
+    [CheatDetails("Unlock All Fleeces", "Unlocks all fleece types that change crusade abilities (DLC fleeces require ownership)", subGroup: "Unlock")]
     public static void UnlockAllFleeces(){
         try {
             int count = 0;
+            bool hasHeretic = CultUtils.HasHereticDLC();
+            bool hasSinful = CultUtils.HasSinfulDLC();
+            bool hasPilgrim = CultUtils.HasPilgrimDLC();
+            bool hasMajor = CultUtils.HasMajorDLC();
             foreach(var upgradeType in Enum.GetValues(typeof(UpgradeSystem.Type))){
                 string typeName = upgradeType.ToString();
                 if(typeName.Contains("Fleece") || typeName.Contains("FLEECE")){
+                    if(!hasHeretic && typeName.Contains("Heretic")) continue;
+                    if(!hasSinful && typeName.Contains("Sinful")) continue;
+                    if(!hasPilgrim && typeName.Contains("Pilgrim")) continue;
+                    if(!hasMajor && (typeName.Contains("DLC") || typeName.Contains("Dlc"))) continue;
                     UpgradeSystem.Type type = (UpgradeSystem.Type)upgradeType;
                     if(!UpgradeSystem.GetUnlocked(type)){
                         UpgradeSystem.UnlockAbility(type, false);
@@ -104,46 +117,82 @@ public class CombatDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Unlock EVERYTHING", "Unlocks all upgrades, rituals, weapons, structures, tarot")]
+    [CheatDetails("Unlock EVERYTHING", "Unlocks all upgrades, rituals, weapons, structures, tarot (respects DLC ownership)", subGroup: "Unlock")]
     public static void UnlockAbsolutelyEverything(){
-        CheatConsole.UnlockAllRituals = true;
-        for(int i = 0; i < Enum.GetNames(typeof(UpgradeSystem.Type)).Length; i++){
-            UpgradeSystem.UnlockAbility((UpgradeSystem.Type)i, false);
+        try {
+            bool hasMajorDLC = CultUtils.HasMajorDLC();
+            bool hasSinfulDLC = CultUtils.HasSinfulDLC();
+            bool hasHereticDLC = CultUtils.HasHereticDLC();
+            bool hasPilgrimDLC = CultUtils.HasPilgrimDLC();
+
+            // Unlock weapons (already DLC-safe — skips Chain/Flail without Woolhaven)
+            try { UnlockAllWeapons(); } catch {}
+
+            // Unlock all rituals
+            try { CheatConsole.UnlockAllRituals = true; } catch {}
+
+            // Unlock upgrades — skip DLC-specific ones when player doesn't own them
+            try {
+                foreach(var ut in Enum.GetValues(typeof(UpgradeSystem.Type))){
+                    try {
+                        string name = ut.ToString();
+                        if(!hasMajorDLC && CultUtils.IsDlcContentName(name)) continue;
+                        UpgradeSystem.UnlockAbility((UpgradeSystem.Type)ut, false);
+                    } catch { }
+                }
+            } catch {}
+
+            // Unlock doctrines
+            try { CultUtils.ClearAllDocterines(); } catch {}
+
+            // Unlock structures (already DLC-safe — skips Ranch/Furnace/etc. without Woolhaven)
+            try { CultDefinitions.UnlockAllStructures(); } catch {}
+
+            // Unlock clothing (skip DLC types without ownership)
+            try {
+                foreach(var ct in Enum.GetValues(typeof(FollowerClothingType))){
+                    try {
+                        FollowerClothingType clothType = (FollowerClothingType)ct;
+                        if(!hasMajorDLC && CultUtils.IsDlcContentName(clothType.ToString())) continue;
+                        DataManager.Instance.AddNewClothes(clothType);
+                    } catch {}
+                }
+                try { DataManager.Instance.UnlockedTailor = true; } catch {}
+                try { DataManager.Instance.RevealedTailor = true; } catch {}
+            } catch {}
+
+            // Unlock tarot cards
+            try { UnlockAllTarotCards(); } catch {}
+
+            // Unlock fleeces (already DLC-safe)
+            try { UnlockAllFleeces(); } catch {}
+
+            // Enable black souls
+            try { DataManager.Instance.BlackSoulsEnabled = true; } catch {}
+
+            // Enable tarot building
+            try { DataManager.Instance.HasTarotBuilding = true; } catch {}
+
+            // Discover map
+            try { if(MiniMap.Instance != null) MiniMap.Instance.DiscoverAll(); } catch {}
+
+            // Enable shrine
+            try { DataManager.Instance.BuildShrineEnabled = true; } catch {}
+
+            CultUtils.PlayNotification("Everything unlocked!" + (!hasMajorDLC ? " (DLC content skipped)" : ""));
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"UnlockAbsolutelyEverything failed: {e.Message}");
+            CultUtils.PlayNotification("Failed to unlock everything completely");
         }
-        foreach(var structureType in Enum.GetValues(typeof(StructureBrain.TYPES))){
-            StructureBrain.TYPES type = (StructureBrain.TYPES)structureType;
-            StructuresData.SetRevealed(type);
-            if(!DataManager.Instance.UnlockedStructures.Contains(type)){
-                DataManager.Instance.UnlockedStructures.Add(type);
-            }
-            if(!DataManager.Instance.RevealedStructures.Contains(type)){
-                DataManager.Instance.RevealedStructures.Add(type);
-            }
-        }
-        DataManager.Instance.PlayerFoundTrinkets.Clear();
-        foreach(TarotCards.Card card in DataManager.AllTrinkets){
-            DataManager.Instance.PlayerFoundTrinkets.Add(card);
-        }
-        DataManager.Instance.AddWeapon(EquipmentType.Axe);
-        DataManager.Instance.AddWeapon(EquipmentType.Dagger);
-        DataManager.Instance.AddWeapon(EquipmentType.Gauntlet);
-        DataManager.Instance.AddWeapon(EquipmentType.Hammer);
-        DataManager.Instance.AddWeapon(EquipmentType.Blunderbuss);
-        DataManager.Instance.AddWeapon(EquipmentType.Shield);
-        DataManager.Instance.AddWeapon(EquipmentType.Chain);
-        DataManager.Instance.HasTarotBuilding = true;
-        DataManager.Instance.BlackSoulsEnabled = true;
-        CultUtils.PlayNotification("EVERYTHING unlocked!");
     }
 
-    private static bool s_mapRevealEnabled = false;
-    private static bool s_mapRevealPatched = false;
-
     /// <summary>
-    /// Harmony postfix for MiniMap.StartMap - automatically reveals the dungeon map
-    /// every time a new floor/room set is generated while the toggle is on.
+    /// Harmony postfix for MiniMap.OnBiomeGenerated - automatically reveals the dungeon map
+    /// every time a new biome/floor is generated while the toggle is on.
+    /// MiniMap.StartMap is an empty virtual stub never called in practice;
+    /// OnBiomeGenerated is the private method actually fired when a floor loads.
     /// </summary>
-    public static void Postfix_MiniMap_StartMap(MiniMap __instance){
+    public static void Postfix_MiniMap_OnBiomeGenerated(MiniMap __instance){
         if(!s_mapRevealEnabled) return;
         try {
             __instance.DiscoverAll();
@@ -153,27 +202,27 @@ public class CombatDefinitions : IDefinition{
     private static void PatchMiniMapReveal(){
         if(s_mapRevealPatched) return;
         try {
-            MethodInfo patchMethod = typeof(CombatDefinitions).GetMethod("Postfix_MiniMap_StartMap", BindingFlags.Static | BindingFlags.Public);
+            MethodInfo patchMethod = typeof(CombatDefinitions).GetMethod("Postfix_MiniMap_OnBiomeGenerated", BindingFlags.Static | BindingFlags.Public);
             ReflectionHelper.PatchMethodPostfix(
                 typeof(MiniMap),
-                "StartMap",
+                "OnBiomeGenerated",
                 patchMethod,
-                BindingFlags.Instance | BindingFlags.Public,
+                BindingFlags.Instance | BindingFlags.NonPublic,
                 silent: true
             );
             s_mapRevealPatched = true;
         } catch(Exception e){
-            Debug.LogWarning($"[CheatMenu] Failed to patch MiniMap.StartMap: {e.Message}");
+            Debug.LogWarning($"[CheatMenu] Failed to patch MiniMap.OnBiomeGenerated: {e.Message}");
         }
     }
 
     private static void UnpatchMiniMapReveal(){
         if(!s_mapRevealPatched) return;
-        ReflectionHelper.UnpatchTracked(typeof(MiniMap), "StartMap");
+        ReflectionHelper.UnpatchTracked(typeof(MiniMap), "OnBiomeGenerated");
         s_mapRevealPatched = false;
     }
 
-    [CheatDetails("Auto Reveal Dungeon Map", "Map Reveal (OFF)", "Map Reveal (ON)", "Automatically reveals the dungeon map on every new floor", true)]
+    [CheatDetails("Auto Reveal Dungeon Map", "Map Reveal (OFF)", "Map Reveal (ON)", "Automatically reveals the dungeon map on every new floor", true, subGroup: "Dungeon")]
     public static void ShowAllMapLocations(bool flag){
         s_mapRevealEnabled = flag;
         CheatConsole.ShowAllMapLocations = flag;
@@ -192,7 +241,7 @@ public class CombatDefinitions : IDefinition{
         CultUtils.PlayNotification(flag ? "Auto map reveal ON!" : "Auto map reveal OFF!");
     }
 
-    [CheatDetails("Reveal Dungeon Map", "Reveals all rooms on the current dungeon floor map")]
+    [CheatDetails("Reveal Dungeon Map", "Reveals all rooms on the current dungeon floor map", subGroup: "Dungeon")]
     public static void RevealDungeonMap(){
         try {
             bool revealed = false;
@@ -218,7 +267,7 @@ public class CombatDefinitions : IDefinition{
         return false;
     }
 
-    [CheatDetails("Unlimited Relics", "Unlimited Relics (OFF)", "Unlimited Relics (ON)", "Relics never run out of charges during combat", true)]
+    [CheatDetails("Unlimited Relics", "Unlimited Relics (OFF)", "Unlimited Relics (ON)", "Relics never run out of charges during combat", true, subGroup: "Combat")]
     public static void UnlimitedRelics(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
@@ -264,7 +313,7 @@ public class CombatDefinitions : IDefinition{
         return true;
     }
 
-    [CheatDetails("One Hit Kill", "One Hit Kill (OFF)", "One Hit Kill (ON)", "All your attacks instantly kill enemies", true)]
+    [CheatDetails("One Hit Kill", "One Hit Kill (OFF)", "One Hit Kill (ON)", "All your attacks instantly kill enemies", true, subGroup: "Combat")]
     public static void OneHitKill(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
@@ -374,7 +423,7 @@ public class CombatDefinitions : IDefinition{
         s_ammoPatched = false;
     }
 
-    [CheatDetails("Unlimited Ammo", "Unlimited Ammo (OFF)", "Unlimited Ammo (ON)", "Arrows and blunderbuss never run out of ammo", true)]
+    [CheatDetails("Unlimited Ammo", "Unlimited Ammo (OFF)", "Unlimited Ammo (ON)", "Arrows and blunderbuss never run out of ammo", true, subGroup: "Combat")]
     public static void UnlimitedAmmo(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
@@ -396,7 +445,7 @@ public class CombatDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Unlimited Fervour", "Unlimited Fervour (OFF)", "Unlimited Fervour (ON)", "Fervour never depletes when casting curses", true)]
+    [CheatDetails("Unlimited Fervour", "Unlimited Fervour (OFF)", "Unlimited Fervour (ON)", "Fervour never depletes when casting curses", true, subGroup: "Combat")]
     public static void UnlimitedFervour(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
@@ -412,7 +461,7 @@ public class CombatDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Clear Status Effects", "Removes poison, burn, ice, charm and electrified from the player")]
+    [CheatDetails("Clear Status Effects", "Removes poison, burn, ice, charm and electrified from the player", subGroup: "Dungeon")]
     public static void ClearStatusEffects(){
         if(!IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
@@ -433,7 +482,7 @@ public class CombatDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Unlock Crown Abilities", "Unlocks all crown abilities (arrows, grapple, fishing, etc.)")]
+    [CheatDetails("Unlock Crown Abilities", "Unlocks all crown abilities (arrows, grapple, fishing, etc.)", subGroup: "Unlock")]
     public static void UnlockAllCrownAbilities(){
         try {
             int count = 0;

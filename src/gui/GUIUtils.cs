@@ -11,6 +11,7 @@ public static class GUIUtils {
     private static GUIStyle s_selectedButtonStyle = null;
     private static GUIStyle s_titleBarStyle = null;
     private static GUIStyle s_categoryButtonStyle = null;
+    private static GUIStyle s_subGroupButtonStyle = null;
 
     // Cult of the Lamb Theme Colors
     private static readonly Color CULT_DARK_RED = new Color(0.18f, 0.09f, 0.11f, 0.98f);      // Dark burgundy background
@@ -38,6 +39,7 @@ public static class GUIUtils {
         s_selectedButtonStyle = null;
         s_titleBarStyle = null;
         s_categoryButtonStyle = null;
+        s_subGroupButtonStyle = null;
     }
 
     public static GUIStyle GetGUIWindowStyle()
@@ -230,6 +232,51 @@ public static class GUIUtils {
         };
 
         s_categoryButtonStyle = styleObj;
+        return styleObj;
+    }
+
+    /// <summary>
+    /// Sub-group drill-down buttons: a slightly lighter shade than category buttons
+    /// so users can visually distinguish top-level categories from sub-group drills.
+    /// </summary>
+    public static GUIStyle GetSubGroupButtonStyle()
+    {
+        if(s_subGroupButtonStyle != null) return s_subGroupButtonStyle;
+
+        GUIStyleState normalStyle = new()
+        {
+            background = TextureHelper.GetSolidTexture(new Color(0.22f, 0.10f, 0.13f, 0.98f), true),
+            textColor = CULT_BONE_WHITE
+        };
+        GUIStyleState hoverStyle = new()
+        {
+            textColor = CULT_BONE_WHITE,
+            background = TextureHelper.GetSolidTexture(CULT_BLOOD_RED, true)
+        };
+        GUIStyleState activeStyle = new()
+        {
+            textColor = CULT_GOLD,
+            background = TextureHelper.GetSolidTexture(new Color(0.12f, 0.06f, 0.08f, 1f), true)
+        };
+
+        GUIStyle styleObj = new()
+        {
+            normal = normalStyle,
+            onNormal = normalStyle,
+            active = activeStyle,
+            onActive = activeStyle,
+            hover = hoverStyle,
+            onHover = hoverStyle,
+            font = s_uiFont,
+            fontSize = 11,
+            alignment = TextAnchor.MiddleLeft,
+            padding = new RectOffset(12, 8, 5, 5),
+            margin = new RectOffset(2, 2, 1, 1),
+            fontStyle = FontStyle.Normal,
+            border = new RectOffset(2, 2, 2, 2)
+        };
+
+        s_subGroupButtonStyle = styleObj;
         return styleObj;
     }
 

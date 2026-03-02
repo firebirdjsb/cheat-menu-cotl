@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace CheatMenu;
 
-[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.2.0")]
+[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.3.0")]
 public class Plugin : BaseUnityPlugin
 {    
     private UnityAnnotationHelper _annotationHelper;
@@ -21,14 +21,6 @@ public class Plugin : BaseUnityPlugin
         // the Harmony instance needed by all subsequent patches.
         _annotationHelper = new UnityAnnotationHelper();
         _annotationHelper.RunAllInit();
-
-        // Patch DLC authentication methods BEFORE GameManager.Start() runs CheckDLCStatus.
-        // GameManager.Authenticate*DLC() calls SteamApps.BIsSubscribedApp() and if it returns
-        // false the game actively deactivates the DLC (removes skins, structures, fleeces).
-        // By patching these to return true, the game's own Activate*DLC() flow runs naturally
-        // which properly unlocks all skins, structures, clothing and fleeces for each pack.
-        // This is still early enough — GameManager.Start() runs after all Awake() calls.
-        PatchDLCAuthentication();
 
         // Patch VersionNumber.OnEnable so the main menu shows "Cheaters Edition"
         PatchVersionText();
@@ -51,65 +43,6 @@ public class Plugin : BaseUnityPlugin
     public void Update()
     {        
         _updateFn();
-    }
-
-    private void PatchDLCAuthentication()
-    {
-        string[] authMethods = new string[] {
-            "AuthenticateCultistDLC",
-            "AuthenticateHereticDLC",
-            "AuthenticateSinfulDLC",
-            "AuthenticatePilgrimDLC",
-            "AuthenticateMajorDLC",
-            "AuthenticatePrePurchaseDLC"
-        };
-
-        MethodInfo patchMethod = typeof(Plugin).GetMethod(
-            nameof(Prefix_AuthenticateDLC_ReturnTrue),
-            BindingFlags.Static | BindingFlags.Public
-        );
-
-        if(patchMethod == null) {
-            UnityEngine.Debug.LogError("[CheatMenu] Prefix_AuthenticateDLC_ReturnTrue method not found via reflection!");
-            return;
-        }
-
-        int patchedCount = 0;
-        foreach(string methodName in authMethods)
-        {
-            try {
-                // Verify the target method exists first
-                MethodInfo targetMethod = typeof(GameManager).GetMethod(methodName, BindingFlags.Static | BindingFlags.Public);
-                if(targetMethod == null) {
-                    UnityEngine.Debug.LogWarning($"[CheatMenu] GameManager.{methodName} not found (game version changed?)");
-                    continue;
-                }
-
-                string result = ReflectionHelper.PatchMethodPrefix(
-                    typeof(GameManager),
-                    methodName,
-                    patchMethod,
-                    BindingFlags.Static | BindingFlags.Public,
-                    silent: true
-                );
-                if(result != null) {
-                    patchedCount++;
-                }
-            } catch(Exception e) {
-                UnityEngine.Debug.LogWarning($"[CheatMenu] Failed to patch {methodName}: {e.Message}");
-            }
-        }
-        UnityEngine.Debug.Log($"[CheatMenu] DLC authentication: {patchedCount}/{authMethods.Length} methods patched");
-    }
-
-    /// <summary>
-    /// Prefix patch for all GameManager.Authenticate*DLC() methods.
-    /// Sets __result to true and skips the original SteamApps.BIsSubscribedApp check.
-    /// </summary>
-    public static bool Prefix_AuthenticateDLC_ReturnTrue(ref bool __result)
-    {
-        __result = true;
-        return false; // Skip original method
     }
 
     private void PatchVersionText()
