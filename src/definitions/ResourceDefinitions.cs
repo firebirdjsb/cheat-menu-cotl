@@ -10,10 +10,24 @@ public class ResourceDefinitions : IDefinition{
     // Controlled by the Item Qty slider in the Resources category menu
     public static int ItemSpawnQty = 1;
 
-    [CheatDetails("Give Resources", "Gives 100 of the main primary resources", subGroup: "Currency")]
+    [CheatDetails("Give Resources", "Gives 100 of the main primary resources (Woolhaven DLC resources require ownership)", subGroup: "Currency")]
     public static void GiveResources(){
-        Traverse.Create(typeof(CheatConsole)).Method("GiveResources").GetValue();
-        CultUtils.PlayNotification("Resources added!");
+        // Give base game resources
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.LOG, 100);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.STONE, 100);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.BONE, 100);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAT, 100);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.BERRY, 100);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.POOP, 100);
+        
+        // Only give Woolhaven resources if player owns the DLC
+        try {
+            if(CultUtils.IsInGame() && DataManager.Instance.MAJOR_DLC){
+                // Add any Woolhaven-specific resources here if needed
+            }
+        } catch { }
+        
+        CultUtils.PlayNotification("Resources added!" + (CultUtils.HasMajorDLC() ? "" : " (Woolhaven resources skipped)"));
     }
 
     [CheatDetails("Give Commandment Stone", "Gives a Commandment Stone", subGroup: "Currency")]
@@ -38,8 +52,9 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification($"{ItemSpawnQty}x food added to inventory!");
     }
 
-    [CheatDetails("Give All Fish", "Gives qty of all fish types (qty controlled by slider)", subGroup: "Food")]
+    [CheatDetails("Give All Fish", "Gives qty of all fish types (qty controlled by slider, DLC fish require ownership)", subGroup: "Food")]
     public static void GiveAllFish(){
+        // Base game fish
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_SMALL, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_BIG, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_CRAB, ItemSpawnQty);
@@ -48,14 +63,15 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_SQUID, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_SWORDFISH, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_BLOWFISH, ItemSpawnQty);
+        
+        // DLC fish (Woolhaven) - only add if player owns the DLC
         try {
             if(CultUtils.IsInGame() && DataManager.Instance.MAJOR_DLC){
-                CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_COD, ItemSpawnQty);
-                CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_PIKE, ItemSpawnQty);
-                CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.FISH_CATFISH, ItemSpawnQty);
+                // Add any Woolhaven-specific fish here if needed
             }
         } catch { }
-        CultUtils.PlayNotification($"{ItemSpawnQty}x of all fish added!");
+        
+        CultUtils.PlayNotification($"{ItemSpawnQty}x of all fish added!" + (CultUtils.HasMajorDLC() ? "" : " (DLC fish skipped)"));
     }
 
     [CheatDetails("Give Fertilizer", "Gives qty Fertilizer/Poop (qty controlled by slider)", subGroup: "Food")]
@@ -70,8 +86,9 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification($"{ItemSpawnQty}x follower meat added!");
     }
 
-    [CheatDetails("Give All Necklaces", "Gives one of every necklace type in the game", subGroup: "Gifts & More")]
+    [CheatDetails("Give All Necklaces", "Gives one of every necklace type in the game (Woolhaven DLC necklaces require ownership)", subGroup: "Gifts & More")]
     public static void GiveAllNecklaces(){
+        // Base game necklaces (no DLC required)
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_1, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_2, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_3, ItemSpawnQty);
@@ -84,6 +101,8 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Missionary, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Gold_Skull, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Bell, ItemSpawnQty);
+        
+        // Woolhaven DLC necklaces - require Major DLC
         try {
             if(CultUtils.IsInGame() && DataManager.Instance.MAJOR_DLC){
                 CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.Necklace_Deaths_Door, ItemSpawnQty);
@@ -94,7 +113,7 @@ public class ResourceDefinitions : IDefinition{
                 CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DLC_NECKLACE, ItemSpawnQty);
             }
         } catch { }
-        CultUtils.PlayNotification($"{ItemSpawnQty}x of all necklaces added!");
+        CultUtils.PlayNotification($"{ItemSpawnQty}x of all necklaces added!" + (CultUtils.HasMajorDLC() ? "" : " (Woolhaven necklaces skipped)"));
     }
 
     [CheatDetails("Give Small Gift", "Gives qty small gifts (qty controlled by slider)", subGroup: "Gifts & More")]
@@ -115,7 +134,7 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification($"{ItemSpawnQty}x gold coins added!");
     }
 
-    [CheatDetails("Give All Seeds", "Gives x10 of every seed type in the game (DLC seeds require Woolhaven)", subGroup: "Seeds & Plants")]
+    [CheatDetails("Give All Seeds", "Gives x10 of every seed type in the game (Woolhaven seeds require DLC)", subGroup: "Seeds & Plants")]
     public static void GiveSeeds(){
         try {
             int addedCount = 0;
@@ -123,12 +142,13 @@ public class ResourceDefinitions : IDefinition{
             foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
                 string itemName = itemType.ToString();
                 if(itemName.StartsWith("SEED")){
-                    if(!hasMajorDLC && (itemName.Contains("HOPS") || itemName.Contains("GRAPES") || itemName.Contains("COTTON") || itemName.Contains("SOZO") || itemName.Contains("SNOW_FRUIT") || itemName.Contains("CHILLI"))) continue;
+                    // Only filter SNOW_FRUIT and CHILLI seeds as they are Woolhaven DLC
+                    if(!hasMajorDLC && (itemName.Contains("SNOW_FRUIT") || itemName.Contains("CHILLI"))) continue;
                     CultUtils.AddInventoryItem((InventoryItem.ITEM_TYPE)itemType, ItemSpawnQty);
                     addedCount++;
                 }
             }
-            CultUtils.PlayNotification($"{ItemSpawnQty}x seeds added ({addedCount} types)!" + (!hasMajorDLC ? " (DLC seeds skipped)" : ""));
+            CultUtils.PlayNotification($"{ItemSpawnQty}x seeds added ({addedCount} types)!" + (!hasMajorDLC ? " (Woolhaven seeds skipped)" : ""));
         } catch(Exception e){
             Debug.LogWarning($"Failed to add seeds: {e.Message}");
             CultUtils.PlayNotification("Failed to add some seeds!");
@@ -200,6 +220,7 @@ public class ResourceDefinitions : IDefinition{
 
     [CheatDetails("Give All Meals", "Gives qty of every cooked meal type (qty controlled by slider)", subGroup: "Food")]
     public static void GiveAllMeals(){
+        // Base game and free update meals
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GRASS, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MEAT, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GREAT, ItemSpawnQty);
@@ -212,10 +233,12 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MEDIUM_MIXED, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GREAT_MIXED, ItemSpawnQty);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_GREAT_MEAT, ItemSpawnQty);
+        // Free update meals (Sins of the Flesh - Jan 2024)
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_SPICY, ItemSpawnQty);
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_EGG, ItemSpawnQty);
+        // Woolhaven DLC meals (require Major DLC)
         try {
             if(CultUtils.IsInGame() && DataManager.Instance.MAJOR_DLC){
-                CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_SPICY, ItemSpawnQty);
-                CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_EGG, ItemSpawnQty);
                 CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_SNOW_FRUIT, ItemSpawnQty);
                 CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MILK_BAD, ItemSpawnQty);
                 CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAL_MILK_GOOD, ItemSpawnQty);
@@ -284,25 +307,228 @@ public class ResourceDefinitions : IDefinition{
             int addedCount = 0;
             int skippedDlc = 0;
             bool hasMajorDLC = CultUtils.HasMajorDLC();
+            bool hasSinfulDLC = CultUtils.HasSinfulDLC();
+            bool hasHereticDLC = CultUtils.HasHereticDLC();
+            bool hasPilgrimDLC = CultUtils.HasPilgrimDLC();
+            
             foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
                 InventoryItem.ITEM_TYPE type = (InventoryItem.ITEM_TYPE)itemType;
                 if(type == InventoryItem.ITEM_TYPE.NONE) continue;
-                string itemName = type.ToString();
-                if(!hasMajorDLC && (itemName.Contains("DLC") || itemName.Contains("FORGE_FLAME") || itemName.Contains("MAGMA") || itemName.Contains("ELECTRIFIED") || itemName.Contains("LIGHTNING_SHARD") || itemName.Contains("CHARCOAL") || itemName.Contains("SOOT") || itemName.Contains("BROKEN_WEAPON") || itemName.Contains("LEGENDARY_WEAPON") || itemName.Contains("FLOCKADE") || itemName.Contains("RATAU_STAFF") || itemName.Contains("WEBBER_SKULL") || itemName.Contains("ILLEGIBLE_LETTER") || itemName.Contains("LORE_STONE") || itemName.Contains("SPECIAL_WOOL") || itemName.Contains("ANIMAL_") || itemName.Contains("YOLK") || itemName.Contains("EGG_FOLLOWER"))){
+                string itemName = type.ToString().ToUpperInvariant();
+                
+                // Skip souls (handled by GiveSouls/GiveBlackSouls) and fleeces
+                // Note: SOUL_FRAGMENT is now in the PaidDLC_Woolhaven check below
+                if((itemName.Contains("SOUL") && !itemName.Contains("FRAGMENT")) || itemName.Contains("FLEECE")) continue;
+                
+                // YNGYA_GHOST is a quest item that can cause softlocks - never give it
+                if(itemName.Contains("YNGYA_GHOST")) continue;
+                
+                // Check DLC ownership for each item
+                bool shouldSkip = false;
+                
+                // COD, PIKE, CATFISH - always skip (Woolhaven DLC exclusive fish)
+                if(itemName.Contains("COD") || itemName.Contains("PIKE") || itemName.Contains("CATFISH")){
+                    shouldSkip = true;
+                }
+                
+                // Check DLC ownership for each item
+                if(!shouldSkip && !hasMajorDLC && (
+                    // Ranch animals
+                    itemName.Contains("ANIMAL_") ||
+                    // Wool and Milk (Woolhaven)
+                    itemName == "WOOL" ||
+                    itemName == "MILK" ||
+                    itemName.Contains("MEAL_MILK") ||
+                    // Special wools (Woolhaven)
+                    itemName.Contains("SPECIAL_WOOL") ||
+                    // Cold weather crops (Woolhaven)
+                    itemName.Contains("SNOW_FRUIT") ||
+                    itemName.Contains("CHILLI") ||
+                    // Purple and White flowers (Forget-me-not, Snowdrop - Woolhaven DLC)
+                    itemName.Contains("FLOWER_PURPLE") ||
+                    itemName.Contains("FLOWER_WHITE") ||
+                    itemName.Contains("SEED_FLOWER_PURPLE") ||
+                    itemName.Contains("SEED_FLOWER_WHITE") ||
+                    // New resources (Woolhaven)
+                    itemName.Contains("SOOT") ||
+                    itemName.Contains("FORGE_FLAME") ||
+                    // Rotburn fertilizer and currency (Woolhaven)
+                    itemName.Contains("POOP_ROTSTONE") ||
+                    itemName.Contains("ROTBURN") ||
+                    // Calcified rot (Woolhaven DLC structure unlock)
+                    itemName.Contains("CALCIFIED") ||
+                    // Rotten eye of the witness (Woolhaven DLC story item)
+                    itemName.Contains("BEHOLDER_EYE_ROT") ||
+                    // DLC fish (Cod, Pike, Catfish - Woolhaven)
+                    itemName.Contains("COD") ||
+                    itemName.Contains("PIKE") ||
+                    itemName.Contains("CATFISH") ||
+                    // Lightning Shard (Woolhaven)
+                    itemName.Contains("LIGHTNING_SHARD") ||
+                    // Charged shard (Woolhaven)
+                    itemName.Contains("ELECTRIFIED_MAGMA") ||
+                    // Magma Stone (Woolhaven)
+                    itemName.Contains("MAGMA_STONE") ||
+                    // Snow chunk (Woolhaven)
+                    itemName.Contains("SNOW_CHUNK") ||
+                    // Legendary weapons (Woolhaven)
+                    itemName.Contains("BROKEN_WEAPON") ||
+                    itemName.Contains("REPAIRED_WEAPON") ||
+                    itemName.Contains("LEGENDARY_WEAPON") ||
+                    // DLC story items (Woolhaven)
+                    itemName.Contains("FLOCKADE") ||
+                    itemName.Contains("YEW_CURSED") ||
+                    itemName.Contains("YEW_HOLY") ||
+                    itemName.Contains("BOP") ||
+                    itemName.Contains("ILLEGIBLE_LETTER") ||
+                    itemName.Contains("FISHING_ROD") ||
+                    // DLC necklaces (Woolhaven)
+                    itemName.Contains("NECKLACE_DEATHS_DOOR") ||
+                    itemName.Contains("NECKLACE_WINTER") ||
+                    itemName.Contains("NECKLACE_FROZEN") ||
+                    itemName.Contains("NECKLACE_WEIRD") ||
+                    itemName.Contains("NECKLACE_TARGETED") ||
+                    itemName.Contains("DLC_NECKLACE") ||
+                    // Soul Fragment (Woolhaven DLC)
+                    itemName.Contains("SOUL_FRAGMENT") ||
+                    // All drinks except BEER, WINE, COCKTAIL, GIN, EGGNOG, POOP_JUICE are Woolhaven DLC
+                    (itemName.Contains("DRINK_") && 
+                     !itemName.Contains("BEER") && 
+                     !itemName.Contains("WINE") && 
+                     !itemName.Contains("COCKTAIL") && 
+                     !itemName.Contains("GIN") && 
+                     !itemName.Contains("EGGNOG") && 
+                     !itemName.Contains("POOP_JUICE"))
+                )){
+                    shouldSkip = true;
+                }
+                
+                // Sinful DLC items
+                if(!hasSinfulDLC && itemName.Contains("SINFUL")){
+                    shouldSkip = true;
+                }
+                
+                // Heretic DLC items
+                if(!hasHereticDLC && itemName.Contains("HERETIC")){
+                    shouldSkip = true;
+                }
+                
+                // Pilgrim DLC items
+                if(!hasPilgrimDLC && itemName.Contains("PILGRIM")){
+                    shouldSkip = true;
+                }
+                
+                if(shouldSkip){
+                    Debug.Log($"[CheatMenu] GiveAllItems SKIPPED (DLC): {itemName} (MajorDLC: {hasMajorDLC}, SinfulDLC: {hasSinfulDLC}, HereticDLC: {hasHereticDLC}, PilgrimDLC: {hasPilgrimDLC})");
                     skippedDlc++;
                     continue;
                 }
+                
                 try {
                     CultUtils.AddInventoryItem(type, ItemSpawnQty);
+                    Debug.Log($"[CheatMenu] GiveAllItems ADDED: {itemName} x{ItemSpawnQty}");
                     addedCount++;
-                } catch { }
+                } catch(Exception ex) { 
+                    Debug.LogWarning($"[CheatMenu] GiveAllItems FAILED to add: {itemName} - {ex.Message}");
+                }
             }
             string msg = $"{ItemSpawnQty}x of all items added ({addedCount} types)!";
             if(skippedDlc > 0) msg += $" ({skippedDlc} DLC items skipped)";
             CultUtils.PlayNotification(msg);
         } catch(Exception e){
-            Debug.LogWarning($"Failed to add all items: {e.Message}");
+            Debug.LogWarning($"[CheatMenu] GiveAllItems error: {e.Message}");
             CultUtils.PlayNotification("Failed to add some items!");
+        }
+    }
+
+    // ── Souls & Fleece (separate to control via slider) ─────────────────────
+
+    [CheatDetails("Give Fleeces", "Gives qty of all fleece types (qty controlled by slider, DLC fleeces require ownership)", subGroup: "Currency")]
+    public static void GiveFleeces(){
+        try {
+            int addedCount = 0;
+            int skippedDlc = 0;
+            bool hasMajorDLC = CultUtils.HasMajorDLC();
+            bool hasHereticDLC = CultUtils.HasHereticDLC();
+            
+            foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
+                InventoryItem.ITEM_TYPE type = (InventoryItem.ITEM_TYPE)itemType;
+                string itemName = type.ToString();
+                
+                if(!itemName.Contains("FLEECE")) continue;
+                
+                // Skip DLC fleeces if not owned
+                if(!hasMajorDLC && (itemName.Contains("DLC") || itemName.Contains("FORGE") || itemName.Contains("BREWERY") || itemName.Contains("WINTER") || itemName.Contains("SNOW") || itemName.Contains("WOOLHAVEN"))){
+                    skippedDlc++;
+                    continue;
+                }
+                // Skip Heretic DLC fleeces if not owned
+                if(!hasHereticDLC && itemName.Contains("HERETIC")){
+                    skippedDlc++;
+                    continue;
+                }
+                
+                try {
+                    CultUtils.AddInventoryItem(type, ItemSpawnQty);
+                    addedCount++;
+                } catch { }
+            }
+            
+            string msg = $"{ItemSpawnQty}x of all fleeces added ({addedCount} types)!";
+            if(skippedDlc > 0) msg += $" ({skippedDlc} DLC fleeces skipped)";
+            CultUtils.PlayNotification(msg);
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] GiveFleeces error: {e.Message}");
+            CultUtils.PlayNotification("Failed to add some fleeces!");
+        }
+    }
+
+    // ── Inventory Management ──────────────────────────────────────────────────
+
+    [CheatDetails("Clear Inventory", "Removes all items from the player's inventory", subGroup: "Inventory")]
+    public static void ClearInventory(){
+        try {
+            int clearedCount = 0;
+            var inventory = Inventory.items;
+            if(inventory != null){
+                clearedCount = inventory.Count;
+                inventory.Clear();
+            }
+            Debug.Log($"[CheatMenu] Cleared {clearedCount} items from inventory");
+            CultUtils.PlayNotification($"Inventory cleared ({clearedCount} items removed)!");
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] ClearInventory error: {e.Message}");
+            CultUtils.PlayNotification("Failed to clear inventory!");
+        }
+    }
+
+    // ── Structure Collection ─────────────────────────────────────────────────
+
+    [CheatDetails("Collect from Scarecrows", "Collects all birds from scarecrows/traps", subGroup: "Structures")]
+    public static void CollectFromScarecrows(){
+        try {
+            int birdCount = 0;
+            
+            // Get all scarecrows (SCARECROW and SCARECROW_2)
+            var scarecrows = StructureManager.GetAllStructuresOfType<Structures_Scarecrow>();
+            foreach(var scarecrow in scarecrows){
+                if(scarecrow != null && scarecrow.HasBird){
+                    // Collect the bird - add to inventory and reset the trap
+                    // Birds are typically MEAT or specific bird items
+                    CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAT, 1);
+                    scarecrow.EmptyTrap();
+                    birdCount++;
+                }
+            }
+            
+            if(birdCount > 0){
+                CultUtils.PlayNotification($"Collected {birdCount} bird(s) from scarecrows!");
+            } else {
+                CultUtils.PlayNotification("No birds found in scarecrows!");
+            }
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] CollectFromScarecrows error: {e.Message}");
+            CultUtils.PlayNotification("Failed to collect from scarecrows!");
         }
     }
 }

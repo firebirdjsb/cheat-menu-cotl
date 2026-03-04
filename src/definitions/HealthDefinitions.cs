@@ -15,22 +15,6 @@ public class HealthDefinitions : IDefinition{
         CultUtils.PlayNotification(flag ? "Godmode ON!" : "Godmode OFF!");
     }
 
-    [CheatDetails("Demigod Mode", "Demigod (OFF)", "Demigod (ON)", "Take damage but cannot die below 1 HP", true, subGroup: "Modes")]
-    public static void DemiGodMode(bool flag){
-        foreach(var player in PlayerFarming.players){
-            player.health.GodMode = flag ? Health.CheatMode.Demigod : Health.CheatMode.None;
-        }
-        CultUtils.PlayNotification(flag ? "Demigod ON!" : "Demigod OFF!");
-    }
-
-    [CheatDetails("Immortal Mode", "Immortal (OFF)", "Immortal (ON)", "Cannot die at all even at 0 HP", true, subGroup: "Modes")]
-    public static void ImmortalMode(bool flag){
-        foreach(var player in PlayerFarming.players){
-            player.health.GodMode = flag ? Health.CheatMode.Immortal : Health.CheatMode.None;
-        }
-        CultUtils.PlayNotification(flag ? "Immortal ON!" : "Immortal OFF!");
-    }
-    
     [CheatDetails("Heal x1", "Heals a Red Heart of the Player", subGroup: "Heal")]
     public static void HealRed(){
         if(PlayerFarming.Instance != null){

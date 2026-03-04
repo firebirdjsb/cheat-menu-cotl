@@ -1,6 +1,6 @@
 # cheat-menu-cotl
 
-> **Version 1.3.0** - DLC Safety & Stability Update 🛡️🔧
+> **Version 1.3.2** - Patch Release (stability & polish)
 A comprehensive cheat menu mod for **Cult of the Lamb** that provides an easily accessible **compact GUI** with 150+ cheats, full controller support, a friendly wolf companion system, extensive quality-of-life features, and 11 pre-made player animations.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)

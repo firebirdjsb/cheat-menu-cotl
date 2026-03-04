@@ -154,11 +154,15 @@ public static class DefinitionManager{
 
                     // Sub-group filter: cheats tagged with a SubGroup are only visible
                     // when that specific sub-group is active.
-                    // Cheats without a SubGroup are always visible inside their category.
+                    // Cheats without a SubGroup are only visible at ROOT level (not inside any subGroup).
                     if(!string.IsNullOrEmpty(def.SubGroup)){
                         ilGenerator.Emit(OpCodes.Ldstr, def.SubGroup);
                         ilGenerator.EmitCall(OpCodes.Call, isWithinSpecificSubGroup, null);
                         ilGenerator.Emit(OpCodes.Brfalse, endOfElem);
+                    } else {
+                        // Cheats without subGroup should only show at root level
+                        ilGenerator.EmitCall(OpCodes.Call, isWithinSubGroup, null);
+                        ilGenerator.Emit(OpCodes.Brtrue, endOfElem);
                     }
 
                     // DLC ownership filter: cheats tagged with [RequiresDLC] are only visible

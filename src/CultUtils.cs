@@ -49,7 +49,12 @@ internal class CultUtils {
             || upper.Contains("WINTER")
             || upper.Contains("SNOW")
             || upper.Contains("CHAIN")
-            || upper.Contains("FLAIL");
+            || upper.Contains("FLAIL")
+            || upper.Contains("ROTBURN")
+            || upper.Contains("CALCIFIED")
+            || upper.Contains("COD")
+            || upper.Contains("PIKE")
+            || upper.Contains("CATFISH");
     }
 
     // Removes berry/berry-bush style structures from the base (best-effort)

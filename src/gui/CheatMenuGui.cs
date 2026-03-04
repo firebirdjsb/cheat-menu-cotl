@@ -505,6 +505,54 @@ private static readonly int MENU_HEIGHT = 400;
         s_pendingClose = true;
     }
 
+    public static void GiveAllItems(){
+        try {
+            int addedCount = 0;
+            int skippedDlc = 0;
+            bool hasMajorDLC = CultUtils.HasMajorDLC();
+            foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
+                InventoryItem.ITEM_TYPE type = (InventoryItem.ITEM_TYPE)itemType;
+                if(type == InventoryItem.ITEM_TYPE.NONE) continue;
+                // Exclude SOULS and FLEECES
+                string itemName = type.ToString().ToUpperInvariant();
+                if(itemName.Contains("SOUL") || itemName.Contains("FLEECE")) continue;
+                // YNGYA_GHOST is a quest item that can cause softlocks - never give it
+                if(itemName.Contains("YNGYA_GHOST")) continue;
+                // Purple and White flowers (Forget-me-not, Snowdrop - Woolhaven DLC) - always skip
+                if(itemName.Contains("FLOWER_PURPLE") || itemName.Contains("FLOWER_WHITE") || itemName.Contains("SEED_FLOWER_PURPLE") || itemName.Contains("SEED_FLOWER_WHITE")){
+                    skippedDlc++;
+                    continue;
+                }
+                // COD, PIKE, CATFISH - always skip (Woolhaven DLC exclusive fish)
+                if(itemName.Contains("COD") || itemName.Contains("PIKE") || itemName.Contains("CATFISH")){
+                    skippedDlc++;
+                    continue;
+                }
+                // Woolhaven DLC necklaces - always skip if no DLC
+                if(itemName.Contains("NECKLACE_DEATHS_DOOR") || itemName.Contains("NECKLACE_WINTER") || itemName.Contains("NECKLACE_FROZEN") || itemName.Contains("NECKLACE_WEIRD") || itemName.Contains("NECKLACE_TARGETED") || itemName.Contains("DLC_NECKLACE")){
+                    if(!hasMajorDLC){
+                        skippedDlc++;
+                        continue;
+                    }
+                }
+                if(!hasMajorDLC && (itemName.Contains("DLC") || itemName.Contains("FORGE_FLAME") || itemName.Contains("MAGMA") || itemName.Contains("ELECTRIFIED") || itemName.Contains("LIGHTNING_SHARD") || itemName.Contains("CHARCOAL") || itemName.Contains("SOOT") || itemName.Contains("BROKEN_WEAPON") || itemName.Contains("LEGENDARY_WEAPON") || itemName.Contains("FLOCKADE") || itemName.Contains("RATAU_STAFF") || itemName.Contains("WEBBER_SKULL") || itemName.Contains("ILLEGIBLE_LETTER") || itemName.Contains("LORE_STONE") || itemName.Contains("SPECIAL_WOOL") || itemName.Contains("ANIMAL_") || itemName.Contains("YOLK") || itemName.Contains("EGG_FOLLOWER") || itemName.Contains("ROTBURN") || itemName.Contains("BEHOLDER_EYE_ROT") || itemName.Contains("CALCIFIED") || itemName.Contains("WOOL") || itemName.Contains("MILK") || itemName.Contains("MEAL_MILK") || itemName.Contains("SNOW_FRUIT") || itemName.Contains("CHILLI") || itemName.Contains("SEED_SNOW_FRUIT") || itemName.Contains("SEED_CHILLI") || itemName.Contains("POOP_ROTSTONE") || itemName.Contains("COD") || itemName.Contains("PIKE") || itemName.Contains("CATFISH") || itemName.Contains("SNOW_CHUNK") || itemName.Contains("FISHING_ROD") || itemName.Contains("REPAIRED_WEAPON") || itemName.Contains("BOP") || itemName.Contains("YEW_CURSED") || itemName.Contains("YEW_HOLY") || itemName.Contains("DRINK_MUSHROOM_JUICE") || itemName.Contains("DRINK_CHILLI") || itemName.Contains("DRINK_LIGHTNING") || itemName.Contains("DRINK_SIN") || itemName.Contains("DRINK_GRASS") || itemName.Contains("DRINK_MILKSHAKE") || itemName.Contains("SOUL_FRAGMENT"))){
+                    skippedDlc++;
+                    continue;
+                }
+                try {
+                    CultUtils.AddInventoryItem(type, ResourceDefinitions.ItemSpawnQty);
+                    addedCount++;
+                } catch { }
+            }
+            string msg = $"{ResourceDefinitions.ItemSpawnQty}x of all items added ({addedCount} types)!";
+            if(skippedDlc > 0) msg += $" ({skippedDlc} DLC items skipped)";
+            CultUtils.PlayNotification(msg);
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to add all items: {e.Message}");
+            CultUtils.PlayNotification("Failed to add some items!");
+        }
+    }
+
     [Update]
     public static void Update()
     {                

@@ -2,7 +2,44 @@
 
 All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in this file.
 
-## [1.2.5] - 2025 (Current Release - Animation Update)
+## [1.3.0] - 2025 (DLC Safety & Stability Update)
+
+## [1.3.2] - 2026 (Patch Release)
+
+### ✅ Stability & Polish
+- Minor stability fixes and UI polish after the 1.3.0 release
+- Updated version string and manifest handling
+- README and packaging scripts updated for release automation
+- Misc code cleanups and improved null-safety checks across helpers
+
+
+### 🛡️ DLC Ownership Gating (Major Fix)
+- **"Unlock Everything"** no longer unlocks Woolhaven/DLC tab, buildings, or upgrades when you don't own the DLC
+- Added `IsDlcContentName()` centralized helper covering all known Woolhaven keywords
+- **Unlock All Structures** no longer calls `CheatConsole.UnlockAllStructures()` without DLC (root cause of the Woolhaven tab appearing)
+- **Unlock All Clothing** and **Give All Clothing** now skip DLC clothing types without DLC ownership
+- **Give All Clothing** no longer gives WOOL and COTTON materials without the DLC
+- **Upgrade unlock loop** expanded DLC filter to catch all Woolhaven-specific upgrade types
+
+### 🩸 Blood Moon Fix (Persistence Bug)
+- **Disable Blood Moon** now properly persists — pushes `LastHalloween` 7200 seconds into the past so `FollowerBrainStats.IsBloodMoon` immediately returns `false`
+- Explicitly clears `halloweenLutActive` on all LocationManagers to prevent re-trigger on scene transitions
+- Force-resets LightingManager override state and transition settings
+- Music reset now respects winter season
+- Reflection scan now also clears `halloween`-named boolean fields on DataManager
+
+### 👥 Spawn System Overhaul
+- Removed "Spawn at Circle" toggle — all spawned followers now always arrive at the indoctrination circle
+- Prevents bugs caused by auto-indoctrination (negative traits, follower state bugs)
+- Special skin followers, child followers, and all spawn types now use `CreateNewRecruit`
+
+### 💬 Notification Polish
+- **Rename Cult** now shows feedback notification on activation and on failure
+- All cheats verified to have user-facing notification feedback
+
+---
+
+## [1.2.5] - 2025 (Animation Update)
 
 ### 🎬 New Features
 - **Animation Tab**: 11 pre-made player animations with verified assembly names

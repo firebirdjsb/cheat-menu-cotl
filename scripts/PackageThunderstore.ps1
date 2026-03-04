@@ -27,7 +27,7 @@ try {
         @{ Path = "README.md";        Desc = "Readme" },
         @{ Path = "CHANGELOG.md";     Desc = "Changelog" },
         @{ Path = "manifest.json";    Desc = "Manifest" },
-        @{ Path = "bin\cheat_menu.dll"; Desc = "Mod DLL (run build first)" }
+        @{ Path = "bin\CheatMenu\cheat_menu.dll"; Desc = "Mod DLL (run build first)" }
     )
 
     $missing = @()
@@ -84,7 +84,11 @@ try {
     Copy-Item "README.md"          (Join-Path $tempDir "README.md")
     Copy-Item "CHANGELOG.md"       (Join-Path $tempDir "CHANGELOG.md")
     Copy-Item "manifest.json"      (Join-Path $tempDir "manifest.json")
-    Copy-Item "bin\cheat_menu.dll"  (Join-Path $tempDir "cheat_menu.dll")
+
+    # Place DLL inside plugins/CheatMenu/ so mod managers install it correctly
+    $pluginsDir = Join-Path $tempDir "plugins\CheatMenu"
+    New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null
+    Copy-Item "bin\CheatMenu\cheat_menu.dll" (Join-Path $pluginsDir "cheat_menu.dll")
 
     $outputPath = Join-Path $projectRoot $OutputName
     if (Test-Path $outputPath) {
