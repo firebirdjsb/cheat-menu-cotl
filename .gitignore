@@ -2,6 +2,8 @@
 /libs/*
 /obj/*
 /bin/*
+
+# Release artifacts
 /release/
 
 # IDE and tools
