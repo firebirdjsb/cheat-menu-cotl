@@ -74,12 +74,17 @@ internal static class CultUtils {
                     if(typeName.Contains("BERRY") || typeName.Contains("BUSH") || typeName.Contains("BERR")){
                         var structures = StructureManager.GetAllStructuresOfType(FollowerLocation.Base, brainType);
                         foreach(var s in structures){
-                            try { s.Remove(); removed++; } catch { }
+                            try { 
+                                // Add berries before removing - 3 berries per bush
+                                AddInventoryItem(InventoryItem.ITEM_TYPE.BERRY, 3);
+                                s.Remove(); 
+                                removed++; 
+                            } catch { }
                         }
                     }
                 } catch { }
             }
-            PlayNotification(removed > 0 ? $"Berry bushes cleared! ({removed} items)" : "No berry bushes found to clear!");
+            PlayNotification(removed > 0 ? $"Berry bushes cleared! ({removed} bushes, {removed * 3} berries)" : "No berry bushes found!");
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"[CheatMenu] ClearBerryBushes failed: {e.Message}");
             PlayNotification("Failed to clear berry bushes!");

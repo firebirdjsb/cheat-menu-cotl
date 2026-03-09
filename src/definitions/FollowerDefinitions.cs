@@ -96,7 +96,6 @@ public class FollowerDefinitions : IDefinition{
     }
 
     [CheatDetails("Turn all Followers Young", "Changes the age of all followers to young", subGroup: "Life")]
-    [CheatWIP]
     public static void TurnAllFollowersYoung(){
         var followers = DataManager.Instance.Followers;
         foreach(var follower in followers)
@@ -107,7 +106,6 @@ public class FollowerDefinitions : IDefinition{
     }
 
     [CheatDetails("Turn all Followers Old", "Changes the age of all followers to old", subGroup: "Life")]
-    [CheatWIP]
     public static void TurnAllFollowersOld(){
         var followers = DataManager.Instance.Followers;
         foreach(var follower in followers)

@@ -404,26 +404,6 @@ private static readonly int MENU_HEIGHT = 400;
             TotalWindowCalculatedHeight += buttonHeight + spacing;
         }
 
-        // Add a direct Clear Berry Bushes button inside the Cult -> Cleanup category
-        if(CurrentCategory == CheatCategoryEnum.CULT){
-            int buttonHeight = GUIUtils.GetButtonHeight();
-            int spacing = GUIUtils.GetButtonSpacing();
-            int thisButtonIndex = s_currentButtonCounter++;
-            GUIStyle style = GetButtonStyleWithHover(GUIUtils.GetGUIButtonStyle(), thisButtonIndex);
-
-            bool controllerPressed = IsButtonSelected(thisButtonIndex) && s_controllerSelectPressed;
-            if(GUI.Button(new Rect(5, CurrentButtonY, MENU_WIDTH - 10, buttonHeight), "Clear Berry Bushes", style) || controllerPressed){
-                try {
-                    CultUtils.ClearBerryBushes();
-                } catch(Exception e){
-                    UnityEngine.Debug.LogWarning($"Failed to clear berry bushes: {e.Message}");
-                    CultUtils.PlayNotification("Failed to clear berry bushes");
-                }
-            }
-            CurrentButtonY += buttonHeight + spacing;
-            TotalWindowCalculatedHeight += buttonHeight + spacing;
-        }
-
         // Item quantity slider — shown at the top of the Resources category
         if(CurrentCategory == CheatCategoryEnum.RESOURCE){
             int sliderH = 28;

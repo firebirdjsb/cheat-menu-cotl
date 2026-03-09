@@ -501,34 +501,4 @@ public class ResourceDefinitions : IDefinition{
             CultUtils.PlayNotification("Failed to clear inventory!");
         }
     }
-
-    // ── Structure Collection ─────────────────────────────────────────────────
-
-    [CheatDetails("Collect from Scarecrows", "Collects all birds from scarecrows/traps", subGroup: "Cleanup")]
-    public static void CollectFromScarecrows(){
-        try {
-            int birdCount = 0;
-            
-            // Get all scarecrows (SCARECROW and SCARECROW_2)
-            var scarecrows = StructureManager.GetAllStructuresOfType<Structures_Scarecrow>();
-            foreach(var scarecrow in scarecrows){
-                if(scarecrow != null && scarecrow.HasBird){
-                    // Collect the bird - add to inventory and reset the trap
-                    // Birds are typically MEAT or specific bird items
-                    CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MEAT, 1);
-                    scarecrow.EmptyTrap();
-                    birdCount++;
-                }
-            }
-            
-            if(birdCount > 0){
-                CultUtils.PlayNotification($"Collected {birdCount} bird(s) from scarecrows!");
-            } else {
-                CultUtils.PlayNotification("No birds found in scarecrows!");
-            }
-        } catch(Exception e){
-            Debug.LogWarning($"[CheatMenu] CollectFromScarecrows error: {e.Message}");
-            CultUtils.PlayNotification("Failed to collect from scarecrows!");
-        }
-    }
 }

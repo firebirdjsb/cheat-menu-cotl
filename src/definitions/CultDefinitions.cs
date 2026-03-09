@@ -69,6 +69,11 @@ public class CultDefinitions : IDefinition {
         CultUtils.ClearBodies();
     }
 
+    [CheatDetails("Clear Berry Bushes", "Removes berry bushes and gives 3 berries per bush", false, 100, "Cleanup")]
+    public static void ClearBerryBushes(){
+        CultUtils.ClearBerryBushes();
+    }
+
     public static bool Prefix_UpgradeSystem_AddCooldown(){
         //Just skip adding cooldown
         return false;
