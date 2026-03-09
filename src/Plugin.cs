@@ -84,7 +84,7 @@ public class Plugin : BaseUnityPlugin
                 versionNumberType,
                 "OnEnable",
                 patchMethod,
-                BindingFlags.Instance | BindingFlags.Public
+                BindingFlags.Instance | BindingFlags.NonPublic
             );
 
             if(result != null) {
