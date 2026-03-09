@@ -1,4 +1,4 @@
-﻿using Lamb.UI;
+using Lamb.UI;
 using System;
 using System.Collections;
 using src.Extensions;
@@ -12,12 +12,17 @@ namespace CheatMenu;
 
 using DoctrinePairs =  Dictionary<SermonCategory, List<Tuple<DoctrineUpgradeSystem.DoctrineType, DoctrineUpgradeSystem.DoctrineType>>>;
 
-internal class CultUtils {
+// Flag to track if we're currently spawning a follower from the cheat menu
+// Used to prevent the game's auto-spawn from creating duplicates
+internal static class CultUtils {
+    public static bool IsSpawningFollowerFromCheat = false;
     public static bool IsInGame(){
-        return SaveAndLoad.Loaded;
+        bool result = SaveAndLoad.Loaded;
+
+        return result;
     }
 
-    // ── Shared DLC ownership helpers ─────────────────────────────────────
+    // -- Shared DLC ownership helpers -------------------------------------
     public static bool HasMajorDLC()   => IsInGame() && DataManager.Instance.MAJOR_DLC;
     public static bool HasSinfulDLC()  => IsInGame() && DataManager.Instance.DLC_Sinful_Pack;
     public static bool HasCultistDLC() => IsInGame() && DataManager.Instance.DLC_Cultist_Pack;
@@ -59,6 +64,7 @@ internal class CultUtils {
 
     // Removes berry/berry-bush style structures from the base (best-effort)
     public static void ClearBerryBushes(){
+
         try {
             int removed = 0;
             foreach(var brainTypeObj in Enum.GetValues(typeof(StructureBrain.TYPES))){
@@ -166,6 +172,70 @@ internal class CultUtils {
         DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_ReadMind);
         DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_Sacrifice);
         PlayNotification("Cleared all docterines!");
+    }
+
+    // Specific Winter DLC doctrines that require Woolhaven DLC
+    private static readonly DoctrineUpgradeSystem.DoctrineType[] WinterDLCDoctrines = new[]{
+        DoctrineUpgradeSystem.DoctrineType.Winter_FurnaceFollower,       // Cremation of Followers
+        DoctrineUpgradeSystem.DoctrineType.Winter_FurnaceAnimal,         // Cremation of Animals
+        DoctrineUpgradeSystem.DoctrineType.Winter_ConvertToRot,          // Ritual of Decay
+        DoctrineUpgradeSystem.DoctrineType.Winter_RemoveRot,             // Heal the Decay
+        DoctrineUpgradeSystem.DoctrineType.Winter_ColdEnthusiast_Trait,  // Thick Skinned
+        DoctrineUpgradeSystem.DoctrineType.Winter_WorkThroughBlizzard_Trait, // Snowplower
+        DoctrineUpgradeSystem.DoctrineType.Winter_RanchMeat,             // Ritual of Gorging
+        DoctrineUpgradeSystem.DoctrineType.Winter_RanchHarvest           // Ritual of Shearing
+    };
+
+    private static bool IsWinterDLCDoctrine(DoctrineUpgradeSystem.DoctrineType type){
+        foreach(var dlcType in WinterDLCDoctrines){
+            if(type == dlcType) return true;
+        }
+        return false;
+    }
+
+    public static void UnlockAllDoctrines(){
+        try {
+            bool hasMajorDLC = HasMajorDLC();
+            var doctrinePairs = GetAllDoctrinePairs();
+            int count = 0;
+            foreach(var category in doctrinePairs){
+                foreach(var pair in category.Value){
+                    // Skip only the specific Winter DLC doctrines if player doesn't own DLC
+                    bool skipItem1 = !hasMajorDLC && IsWinterDLCDoctrine(pair.Item1);
+                    bool skipItem2 = !hasMajorDLC && IsWinterDLCDoctrine(pair.Item2);
+                    if(!skipItem1 && pair.Item1 != DoctrineUpgradeSystem.DoctrineType.None && !DoctrineUpgradeSystem.GetUnlocked(pair.Item1)){
+                        DoctrineUpgradeSystem.UnlockAbility(pair.Item1);
+                        count++;
+                    }
+                    if(!skipItem2 && pair.Item2 != DoctrineUpgradeSystem.DoctrineType.None && !DoctrineUpgradeSystem.GetUnlocked(pair.Item2)){
+                        DoctrineUpgradeSystem.UnlockAbility(pair.Item2);
+                        count++;
+                    }
+                }
+            }
+            // Also unlock special doctrines (non-DLC)
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_Bonfire);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_ReadMind);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_Sacrifice);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_Brainwashed);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_Consume);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_BecomeDisciple);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_EmbraceRot);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_RejectRot);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Special_HealingTouch);
+            // Unlock remaining Winter doctrines (Snowman, Wedding, Warmth, Midwinter, Furnace_Full, Divorce, Rotstone)
+            // These are not the same as the 8 DLC-specific ones
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Winter_Snowman_Ritual);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Winter_Follower_Wedding_Ritual);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Winter_RitualWarmth);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Winter_RitualMidwinter);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Winter_Furnace_Full);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Winter_Divorce_Ritual);
+            DoctrineUpgradeSystem.UnlockAbility(DoctrineUpgradeSystem.DoctrineType.Winter_Rotstone_Spread);
+            PlayNotification($"All doctrines unlocked! ({count + 16} abilities)");
+        } catch{
+            PlayNotification("Failed to unlock all doctrines!");
+        }
     }
 
     //Avoids removing special and player related upgrades
@@ -821,6 +891,27 @@ internal class CultUtils {
                 return;
             }
 
+            // FIX: Clear any existing recruits first to prevent duplicate spawn bug
+            // The game's recruitment code auto-spawns another recruit after each recruitment
+            // This causes duplicates when using cheats to spawn followers
+            try {
+                int existingRecruits = DataManager.Instance.Followers_Recruit.Count;
+                if(existingRecruits > 0){
+                    UnityEngine.Debug.Log($"[CheatMenu] Clearing {existingRecruits} existing recruits before spawning new one");
+                    // Remove all existing recruits from the data manager
+                    DataManager.Instance.Followers_Recruit.Clear();
+                    // Also destroy any existing FollowerRecruit game objects in the scene
+                    foreach(var existingRecruit in UnityEngine.Object.FindObjectsOfType<FollowerRecruit>()){
+                        UnityEngine.Object.Destroy(existingRecruit.gameObject);
+                    }
+                }
+            } catch(Exception ex){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] Error clearing existing recruits: {ex.Message}");
+            }
+
+            // Set flag to prevent game from auto-spawning more recruits during recruitment
+            IsSpawningFollowerFromCheat = true;
+
             // Always create a recruit for the indoctrination ceremony (pick name, see traits)
             // This prevents bugs caused by auto-indoctrination (e.g. negative traits from resurrection RNG)
             Vector3 circlePos = PlayerFarming.Instance.transform.position;
@@ -831,9 +922,116 @@ internal class CultUtils {
             } catch { }
             FollowerRecruit recruit = FollowerManager.CreateNewRecruit(FollowerLocation.Base, circlePos);
             PlayNotification(recruit != null ? "Follower arrived for indoctrination!" : "Recruit created (check circle)!");
+
+            // Reset flag after a delay to allow recruitment to complete
+            PlayerFarming.Instance.StartCoroutine(ResetSpawnFlagAfterDelay(3f));
         } catch(Exception e){
             UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnFollower error: {e.Message}");
             PlayNotification("Failed to spawn follower!");
+            IsSpawningFollowerFromCheat = false;
+        }
+    }
+
+    private static System.Collections.IEnumerator ResetSpawnFlagAfterDelay(float delay){
+        yield return new UnityEngine.WaitForSeconds(delay);
+        IsSpawningFollowerFromCheat = false;
+        UnityEngine.Debug.Log("[CheatMenu] Reset IsSpawningFollowerFromCheat flag");
+    }
+
+    /// <summary>
+    /// Spawns a golden follower egg in front of the player (the Woolhaven child).
+    /// Does not require a Hatchery - spawns directly in front of player.
+    /// </summary>
+    public static void SpawnFollowerEgg(){
+        try {
+            if(PlayerFarming.Instance == null){
+                PlayNotification("Must be in game to spawn eggs!");
+                return;
+            }
+
+            // Force golden egg
+            DataManager.Instance.ForceGoldenEgg = true;
+
+            // Get random parents from existing followers
+            var followers = DataManager.Instance.Followers;
+            
+            // Create egg data structure
+            StructuresData eggData = StructuresData.GetInfoByType(StructureBrain.TYPES.EGG_FOLLOWER, 0);
+            
+            if(followers.Count < 2){
+                // Use default parents if not enough followers
+                StructuresData.EggData newEgg = new StructuresData.EggData{
+                    EggSeed = UnityEngine.Random.Range(0, 100000),
+                    Parent_1_ID = 0,
+                    Parent_2_ID = 0,
+                    Parent_1_SkinName = "Lamb",
+                    Parent_2_SkinName = "Lamb",
+                    Parent1Name = "Lamb",
+                    Parent2Name = "Lamb",
+                    Traits = new System.Collections.Generic.List<FollowerTrait.TraitType>(),
+                    Golden = true,  // Golden egg!
+                    Rotting = false,
+                    Special = FollowerSpecialType.None
+                };
+
+                eggData.EggInfo = newEgg;
+
+                // Spawn egg in front of player
+                Vector3 eggSpawnPos = PlayerFarming.Instance.transform.position + PlayerFarming.Instance.transform.forward * 2f;
+                StructureManager.BuildStructure(FollowerLocation.Base, eggData, eggSpawnPos, Vector2Int.one, false, delegate(UnityEngine.GameObject obj){
+                    var eggInteraction = obj.GetComponent<Interaction_EggFollower>();
+                    if(eggInteraction != null){
+                        eggInteraction.UpdateEgg(false, false, false, true, FollowerSpecialType.None);  // Golden = true
+                    }
+                    // Make the egg pick-up-able
+                    var pickUp = obj.GetComponent<PickUp>();
+                    if(pickUp != null){
+                        pickUp.Bounce = false;
+                    }
+                }, null, true);
+
+                PlayNotification("Golden follower egg spawned!");
+                return;
+            }
+
+            // Get two random followers as parents
+            var parent1 = followers[UnityEngine.Random.Range(0, followers.Count)];
+            var parent2 = followers[UnityEngine.Random.Range(0, followers.Count)];
+
+            StructuresData.EggData childEggData = new StructuresData.EggData{
+                EggSeed = UnityEngine.Random.Range(0, 100000),
+                Parent_1_ID = parent1.ID,
+                Parent_2_ID = parent2.ID,
+                Parent_1_SkinName = parent1.SkinName,
+                Parent_2_SkinName = parent2.SkinName,
+                Parent1Name = parent1.Name,
+                Parent2Name = parent2.Name,
+                Traits = new System.Collections.Generic.List<FollowerTrait.TraitType>(),
+                Golden = true,  // Golden egg!
+                Rotting = false,
+                Special = FollowerSpecialType.None
+            };
+
+            eggData.EggInfo = childEggData;
+
+            // Spawn egg in front of player
+            Vector3 childEggSpawnPos = PlayerFarming.Instance.transform.position + PlayerFarming.Instance.transform.forward * 2f;
+            StructureManager.BuildStructure(FollowerLocation.Base, eggData, childEggSpawnPos, Vector2Int.one, false, delegate(UnityEngine.GameObject obj){
+                var eggInteraction = obj.GetComponent<Interaction_EggFollower>();
+                if(eggInteraction != null){
+                    eggInteraction.UpdateEgg(false, false, false, true, FollowerSpecialType.None);  // Golden = true
+                }
+                // Make the egg pick-up-able
+                var pickUp = obj.GetComponent<PickUp>();
+                if(pickUp != null){
+                    pickUp.Bounce = false;
+                }
+            }, null, true);
+
+            PlayNotification($"Golden egg spawned from {parent1.Name} and {parent2.Name}!");
+        } catch(Exception e){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnFollowerEgg error: {e.Message}");
+            PlayNotification("Failed to spawn follower egg!");
         }
     }
 

@@ -71,8 +71,7 @@ public class UnityAnnotationHelper {
                     }
                 }
                 method.Invoke(instance, null);
-            } catch(Exception e){
-                UnityEngine.Debug.LogError($"[UnityAnnotationHelper] Failed to run Init on {method.DeclaringType?.Name}.{method.Name}: {e}");
+            } catch(Exception){
             }
         }
     }
@@ -88,8 +87,7 @@ public class UnityAnnotationHelper {
                     }
                 }
                 method.Invoke(instance, null);
-            } catch(Exception e){
-                UnityEngine.Debug.LogError($"[UnityAnnotationHelper] Failed to run Unload on {method.DeclaringType?.Name}.{method.Name}: {e}");
+            } catch(Exception){
             }
         }
     }
@@ -99,8 +97,7 @@ public class UnityAnnotationHelper {
             foreach(var method in _onGuiMethods){
                 try {
                     method.Invoke(null, null);
-                } catch(Exception e){
-                    UnityEngine.Debug.LogError($"[UnityAnnotationHelper] OnGui error in {method.DeclaringType?.Name}.{method.Name}: {e}");
+                } catch(Exception){
                 }
             }
         };
@@ -111,8 +108,7 @@ public class UnityAnnotationHelper {
             foreach(var method in _updateMethods){
                 try {
                     method.Invoke(null, null);
-                } catch(Exception e){
-                    UnityEngine.Debug.LogError($"[UnityAnnotationHelper] Update error in {method.DeclaringType?.Name}.{method.Name}: {e}");
+                } catch(Exception){
                 }
             }
         };

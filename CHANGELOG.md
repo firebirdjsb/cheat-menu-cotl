@@ -4,7 +4,7 @@ All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in
 
 ## [1.3.0] - 2025 (DLC Safety & Stability Update)
 
-## [1.3.2] - 2026 (Patch Release)
+## [1.3.4] - 2026 (Patch Release)
 
 ### ✅ Stability & Polish
 - Minor stability fixes and UI polish after the 1.3.0 release

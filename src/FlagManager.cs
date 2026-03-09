@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace CheatMenu;
 
@@ -34,7 +34,8 @@ public sealed class FlagManager
     public static void FlipFlagValue(string flagID)
     {
         Instance._cheatFlags.TryGetValue(flagID, out bool flag);
-        Instance._cheatFlags[flagID] = !flag;
+        bool newValue = !flag;
+        Instance._cheatFlags[flagID] = newValue;
     }
 
     public static FlagManager Instance { get; } = new FlagManager();

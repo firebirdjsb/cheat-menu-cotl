@@ -19,15 +19,18 @@ public class Definition{
     }
     
     public static string GetCheatFlagID(Type declaringType, string methodName){
-        return $"{declaringType.Name}-{methodName}";
+        string flagId = $"{declaringType.Name}-{methodName}";
+        return flagId;
     }
 
     public static string GetCheatFlagID(MethodBase info){
-        return $"{info.DeclaringType.Name}-{info.Name}";
+        string flagId = $"{info.DeclaringType.Name}-{info.Name}";
+        return flagId;
     }
 
     public static string GetCheatFlagID(MethodInfo info){
-        return $"{info.DeclaringType.Name}-{info.Name}";
+        string flagId = $"{info.DeclaringType.Name}-{info.Name}";
+        return flagId;
     }
 
     public Definition(MethodInfo info, CheatCategoryEnum category){

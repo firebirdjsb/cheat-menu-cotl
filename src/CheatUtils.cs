@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace CheatMenu;
 
@@ -35,4 +35,3 @@ public static class CheatUtils
         return combined;
     }
 }
-

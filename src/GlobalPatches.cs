@@ -1,13 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using Spine;
+using UnityEngine;
 
 namespace CheatMenu;
 
 public class GlobalPatches {
 private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
+
+    /// <summary>
+    /// Patches FollowerManager.SpawnExistingRecruits to prevent duplicate spawns when using cheat menu.
+    /// When CultUtils.IsSpawningFollowerFromCheat is true, this prevents the game from auto-spawning
+    /// additional recruits after recruitment completes.
+    /// </summary>
+    public static bool Prefix_FollowerManager_SpawnExistingRecruits(Vector3 position){
+        if(CultUtils.IsSpawningFollowerFromCheat){
+            UnityEngine.Debug.Log("[CheatMenu] Blocked auto-spawn of existing recruits (cheat menu active)");
+            return false; // Don't run the original method
+        }
+        return true; // Run the original method
+    }
 
     /// <summary>
     /// Returns the default clothing type for follower reset: FollowerClothingType.None.
@@ -35,7 +49,7 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                UnityEngine.Debug.Log("[CheatMenu] UpgradeSystem.UnlockAbility successfully patched");
            }
        } catch(Exception e) {
-           UnityEngine.Debug.Log($"[CheatMenu] UpgradeSystem.UnlockAbility patch not applied (game version may have changed): {e.Message}");
+           UnityEngine.Debug.LogWarning($"[CheatMenu] UpgradeSystem.UnlockAbility patch not applied (game version may have changed): {e.Message}");
        }
 
        // Patch PlayerFarming.Bleat to suppress the in-game bahhh when R3 is used for the cheat menu
@@ -50,7 +64,7 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                UnityEngine.Debug.Log("[CheatMenu] PlayerFarming.Bleat successfully patched (R3 suppression)");
            }
        } catch(Exception e) {
-           UnityEngine.Debug.Log($"[CheatMenu] PlayerFarming.Bleat patch not applied (game version may have changed): {e.Message}");
+           UnityEngine.Debug.LogWarning($"[CheatMenu] PlayerFarming.Bleat patch not applied (game version may have changed): {e.Message}");
        }
 
        // Patch Follower.Init to add defensive skeleton validation before outfit application
@@ -62,7 +76,7 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                UnityEngine.Debug.Log("[CheatMenu] Follower.Init successfully patched (skeleton validation)");
            }
        } catch(Exception e) {
-           UnityEngine.Debug.Log($"[CheatMenu] Follower.Init patch not applied: {e.Message}");
+           UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Init patch not applied: {e.Message}");
        }
 
        // Patch Interaction_WolfBase.Update to make friendly wolf follow player
@@ -76,7 +90,7 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                UnityEngine.Debug.Log("[CheatMenu] Interaction_WolfBase.Update successfully patched (friendly wolf)");
            }
        } catch(Exception e) {
-           UnityEngine.Debug.Log($"[CheatMenu] Interaction_WolfBase.Update patch not applied: {e.Message}");
+           UnityEngine.Debug.LogWarning($"[CheatMenu] Interaction_WolfBase.Update patch not applied: {e.Message}");
        }
 
        // Patch Spine.Skin.AddSkin to prevent NullReferenceException when FindSkin returns null
@@ -88,7 +102,7 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                UnityEngine.Debug.Log("[CheatMenu] Spine.Skin.AddSkin successfully patched (null safety)");
            }
        } catch(Exception e) {
-           UnityEngine.Debug.Log($"[CheatMenu] Spine.Skin.AddSkin patch not applied: {e.Message}");
+           UnityEngine.Debug.LogWarning($"[CheatMenu] Spine.Skin.AddSkin patch not applied: {e.Message}");
        }
 
        // Patch Follower.Init with a finalizer to properly handle crashes and prevent half-initialized followers
@@ -100,7 +114,7 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                UnityEngine.Debug.Log("[CheatMenu] Follower.Init finalizer successfully patched (crash recovery)");
            }
        } catch(Exception e) {
-           UnityEngine.Debug.Log($"[CheatMenu] Follower.Init finalizer patch not applied: {e.Message}");
+           UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Init finalizer patch not applied: {e.Message}");
        }
 
        // Patch Follower.Tick to skip ticking when Outfit is null (prevents FollowerBrainInfo.get_Protection NRE spam)
@@ -111,7 +125,18 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                UnityEngine.Debug.Log("[CheatMenu] Follower.Tick successfully patched (null Outfit guard)");
            }
        } catch(Exception e) {
-           UnityEngine.Debug.Log($"[CheatMenu] Follower.Tick patch not applied: {e.Message}");
+           UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Tick patch not applied: {e.Message}");
+       }
+
+       // Patch FollowerManager.SpawnExistingRecruits to prevent duplicate recruit spawning
+       try {
+           MethodInfo spawnPatch = typeof(GlobalPatches).GetMethod("Prefix_FollowerManager_SpawnExistingRecruits", BindingFlags.Static | BindingFlags.Public);
+           string spawnResult = ReflectionHelper.PatchMethodPrefix(typeof(FollowerManager), "SpawnExistingRecruits", spawnPatch, BindingFlags.Static | BindingFlags.Public, new Type[]{typeof(Vector3)}, silent: true);
+           if(spawnResult != null) {
+               UnityEngine.Debug.Log("[CheatMenu] Patched SpawnExistingRecruits");
+           }
+       } catch(Exception e) {
+           UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnExistingRecruits patch not applied: {e.Message}");
        }
     }
 
@@ -183,7 +208,6 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
     {
         try {
             if(__instance == null || brain == null || outfit == null){
-                UnityEngine.Debug.LogWarning("[CheatMenu] Follower.Init called with null parameters - skipping");
                 return false;
             }
 
@@ -194,7 +218,6 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
             if(brain.Info.Clothing != FollowerClothingType.None && brain.Info.Clothing != FollowerClothingType.Naked){
                 var clothingData = TailorManager.GetClothingData(brain.Info.Clothing);
                 if(clothingData == null){
-                    UnityEngine.Debug.LogWarning($"[CheatMenu] Follower {brain.Info.Name} has clothing type '{brain.Info.Clothing}' with no ClothingData - resetting to default (None/Follower)");
                     brain.Info.Clothing = FollowerClothingType.None;
                     brain.Info.Outfit = FollowerOutfitType.Follower;
                 }
@@ -204,7 +227,6 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
             var spineAnim = Traverse.Create(__instance).Field("Spine").GetValue<Spine.Unity.SkeletonAnimation>();
 
             if(spineAnim == null || spineAnim.skeleton == null || spineAnim.skeleton.Data == null){
-                UnityEngine.Debug.LogWarning($"[CheatMenu] Follower {brain.Info.Name} has null Spine/skeleton/Data - resetting to safe defaults");
                 brain.Info.Outfit = FollowerOutfitType.Follower;
                 brain.Info.Clothing = FollowerClothingType.None;
                 // Still let the original Init run - it checks Spine != null before using AnimationState
@@ -222,13 +244,11 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                     var catSkin = skeletonData.FindSkin("Cat");
                     if(catSkin != null){
                         brain.Info.SkinName = "Cat";
-                        UnityEngine.Debug.LogWarning($"[CheatMenu] Follower {brain.Info.Name} had invalid skin '{skinName}' - reset to 'Cat'");
                     } else {
                         // Cat doesn't exist either - use the first available skin
                         var skins = skeletonData.Skins;
                         if(skins != null && skins.Count > 0){
                             brain.Info.SkinName = skins.Items[0].Name;
-                            UnityEngine.Debug.LogWarning($"[CheatMenu] Follower {brain.Info.Name} had invalid skin '{skinName}' - reset to '{brain.Info.SkinName}'");
                         }
                     }
                     // Also reset outfit to safe defaults since the skin was invalid
@@ -237,19 +257,16 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                 }
             }
 
-            return true;
         } catch(Exception e){
             UnityEngine.Debug.LogError($"[CheatMenu] Error in Follower.Init validation: {e.Message}");
-            // Still let the original run - better to attempt than to skip entirely
-            return true;
         }
+
+        // Let the original run - better to attempt than to skip entirely
+        return true;
     }
 
     /// <summary>
     /// Guards against NullReferenceException spam in FollowerBrainInfo.get_Protection.
-    /// Two cases cause the NRE:
-    /// 1. Follower.Init crashed partway through, leaving the Outfit field null
-    /// 2. Follower has a FollowerClothingType that has no matching ClothingData asset,
     ///    so TailorManager.GetClothingData() returns null and .ProtectionType NREs
     /// This prefix validates both conditions and auto-repairs invalid clothing data.
     /// </summary>
@@ -259,14 +276,13 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
             return false;
         }
         try {
-            // None and Naked are valid - the game handles them without ClothingData
+            // None and Naked are valid
             if(__instance.Brain?.Info != null
                 && __instance.Brain.Info.Clothing != FollowerClothingType.None
                 && __instance.Brain.Info.Clothing != FollowerClothingType.Naked){
                 int followerId = __instance.Brain.Info.ID;
                 if(!s_fixedFollowerIds.Contains(followerId)){
                     if(TailorManager.GetClothingData(__instance.Brain.Info.Clothing) == null){
-                        UnityEngine.Debug.LogWarning($"[CheatMenu] Follower '{__instance.Brain.Info.Name}' has invalid clothing '{__instance.Brain.Info.Clothing}' - resetting to default (None/Follower)");
                         __instance.Brain.Info.Clothing = FollowerClothingType.None;
                         __instance.Brain.Info.Outfit = FollowerOutfitType.Follower;
                         s_fixedFollowerIds.Add(followerId);

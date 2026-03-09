@@ -189,17 +189,25 @@ public class FarmingDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Give All Wool", "Gives x10 wool and x5 of each special wool type (Woolhaven DLC required)", subGroup: "Products")]
-    [RequiresDLC(DlcRequirement.MajorDLC)]
-    public static void GiveAllWool(){
-        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
+    // DISABLED: Gives campaign items (ghost wools) that users don't want
+    // [CheatDetails("Give All Wool", "Gives x10 wool and x5 of each special wool type (Woolhaven DLC required)", subGroup: "Products")]
+    // [RequiresDLC(DlcRequirement.MajorDLC)]
+    // public static void GiveAllWool(){
+    //     if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
+    //     CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.WOOL, 10);
+    //     CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_RANCHER, 5);
+    //     CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_LAMBWAR, 5);
+    //     CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_BLACKSMITH, 5);
+    //     CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_TAROT, 5);
+    //     CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_DECORATION, 5);
+    //     CultUtils.PlayNotification("All wool added!");
+    // }
+
+    [CheatDetails("Give Plain Wool", "Gives x10 regular wool only (no special wool / ghost wools)", subGroup: "Products")]
+    public static void GivePlainWool(){
+        // Only give plain wool - no SPECIAL_WOOL items (those are campaign/quest items)
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.WOOL, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_RANCHER, 5);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_LAMBWAR, 5);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_BLACKSMITH, 5);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_TAROT, 5);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SPECIAL_WOOL_DECORATION, 5);
-        CultUtils.PlayNotification("All wool added!");
+        CultUtils.PlayNotification("Plain wool added!");
     }
 
     [CheatDetails("Give Eggs & Yolks", "Gives x5 follower eggs and x10 yolks (Woolhaven DLC required)", subGroup: "Products")]

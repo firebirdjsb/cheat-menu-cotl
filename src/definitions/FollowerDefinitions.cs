@@ -20,12 +20,31 @@ public class FollowerDefinitions : IDefinition{
         CultUtils.SpawnFollower(FollowerRole.Worshipper);
     }
 
+    [CheatDetails("Spawn Follower Egg", "Spawns a golden follower egg in front of the player (Woolhaven child)", subGroup: "Spawn")]
+    public static void SpawnFollowerEgg(){
+        CultUtils.SpawnFollowerEgg();
+    }
+
     [CheatDetails("Spawn 'Arrived' Follower", "Spawns a follower ready for indoctrination at the circle", subGroup: "Spawn")]
     public static void SpawnArrivedFollower(){
         try {
             if(PlayerFarming.Instance == null){
                 CultUtils.PlayNotification("Must be in game to spawn followers!");
                 return;
+            }
+
+            // FIX: Clear any existing recruits first to prevent duplicate spawn bug
+            try {
+                int existingRecruits = DataManager.Instance.Followers_Recruit.Count;
+                if(existingRecruits > 0){
+                    UnityEngine.Debug.Log($"[CheatMenu] Clearing {existingRecruits} existing recruits before spawning");
+                    DataManager.Instance.Followers_Recruit.Clear();
+                    foreach(var existingRecruit in UnityEngine.Object.FindObjectsOfType<FollowerRecruit>()){
+                        UnityEngine.Object.Destroy(existingRecruit.gameObject);
+                    }
+                }
+            } catch(Exception ex){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] Error clearing recruits: {ex.Message}");
             }
 
             Vector3 spawnPos = GetFollowerSpawnPosition();
@@ -50,6 +69,21 @@ public class FollowerDefinitions : IDefinition{
                 CultUtils.PlayNotification("Must be in game to spawn followers!");
                 return;
             }
+
+            // FIX: Clear any existing recruits first to prevent duplicate spawn bug
+            try {
+                int existingRecruits = DataManager.Instance.Followers_Recruit.Count;
+                if(existingRecruits > 0){
+                    UnityEngine.Debug.Log($"[CheatMenu] Clearing {existingRecruits} existing recruits before spawning child");
+                    DataManager.Instance.Followers_Recruit.Clear();
+                    foreach(var existingRecruit in UnityEngine.Object.FindObjectsOfType<FollowerRecruit>()){
+                        UnityEngine.Object.Destroy(existingRecruit.gameObject);
+                    }
+                }
+            } catch(Exception ex){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] Error clearing recruits: {ex.Message}");
+            }
+
             FollowerInfo info = FollowerInfo.NewCharacter(FollowerLocation.Base);
             info.Age = 0;
             Vector3 spawnPos = GetFollowerSpawnPosition();
@@ -61,7 +95,7 @@ public class FollowerDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Turn all Followers Young", "Changes the age of all followers to young")]
+    [CheatDetails("Turn all Followers Young", "Changes the age of all followers to young", subGroup: "Life")]
     [CheatWIP]
     public static void TurnAllFollowersYoung(){
         var followers = DataManager.Instance.Followers;
@@ -72,7 +106,7 @@ public class FollowerDefinitions : IDefinition{
         CultUtils.PlayNotification("All followers are young now!");
     }
 
-    [CheatDetails("Turn all Followers Old", "Changes the age of all followers to old")]
+    [CheatDetails("Turn all Followers Old", "Changes the age of all followers to old", subGroup: "Life")]
     [CheatWIP]
     public static void TurnAllFollowersOld(){
         var followers = DataManager.Instance.Followers;
@@ -298,6 +332,24 @@ public class FollowerDefinitions : IDefinition{
                 CultUtils.PlayNotification("Must be in game to spawn followers!");
                 return;
             }
+
+            // FIX: Clear any existing recruits first to prevent duplicate spawn bug
+            try {
+                int existingRecruits = DataManager.Instance.Followers_Recruit.Count;
+                if(existingRecruits > 0){
+                    UnityEngine.Debug.Log($"[CheatMenu] Clearing {existingRecruits} existing recruits before spawning {skinName}");
+                    DataManager.Instance.Followers_Recruit.Clear();
+                    foreach(var existingRecruit in UnityEngine.Object.FindObjectsOfType<FollowerRecruit>()){
+                        UnityEngine.Object.Destroy(existingRecruit.gameObject);
+                    }
+                }
+            } catch(Exception ex){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] Error clearing recruits: {ex.Message}");
+            }
+
+            // Set flag to prevent game from auto-spawning more recruits
+            CultUtils.IsSpawningFollowerFromCheat = true;
+
             DataManager.SetFollowerSkinUnlocked(skinName);
             List<string> blacklist = DataManager.Instance.FollowerSkinsBlacklist;
             bool wasBlacklisted = blacklist.Contains(skinName);
@@ -307,13 +359,22 @@ public class FollowerDefinitions : IDefinition{
                 Vector3 spawnPos = GetFollowerSpawnPosition();
                 FollowerRecruit recruit = FollowerManager.CreateNewRecruit(info, spawnPos);
                 CultUtils.PlayNotification(recruit != null ? $"{skinName} follower arrived for indoctrination!" : $"{skinName} recruit created (check circle)!");
+                // Reset flag after delay
+                PlayerFarming.Instance.StartCoroutine(ResetSpawnFlagDelayed(3f));
             } finally {
                 if(wasBlacklisted && !blacklist.Contains(skinName)) blacklist.Add(skinName);
             }
         } catch(Exception e){
             Debug.LogWarning($"[CheatMenu] Failed to spawn {skinName} follower: {e.Message}");
             CultUtils.PlayNotification($"Failed to spawn {skinName} follower!");
+            CultUtils.IsSpawningFollowerFromCheat = false;
         }
+    }
+
+    private static System.Collections.IEnumerator ResetSpawnFlagDelayed(float delay){
+        yield return new UnityEngine.WaitForSeconds(delay);
+        CultUtils.IsSpawningFollowerFromCheat = false;
+        UnityEngine.Debug.Log("[CheatMenu] Reset spawn flag");
     }
 
     [CheatDetails("Spawn Lamb Follower", "Spawns a follower with the Lamb skin", subGroup: "Special Skins")]

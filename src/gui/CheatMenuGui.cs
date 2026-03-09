@@ -233,6 +233,9 @@ private static readonly int MENU_HEIGHT = 400;
             btn = true;
         }
 
+        if(btn) {
+        }
+
         CurrentButtonY += GUIUtils.GetButtonHeight() + spacing;
         TotalWindowCalculatedHeight += GUIUtils.GetButtonHeight() + spacing;
         return btn;
@@ -401,8 +404,8 @@ private static readonly int MENU_HEIGHT = 400;
             TotalWindowCalculatedHeight += buttonHeight + spacing;
         }
 
-        // Add a direct Clear Berry Bushes button inside the Farming category
-        if(CurrentCategory == CheatCategoryEnum.FARMING){
+        // Add a direct Clear Berry Bushes button inside the Cult -> Cleanup category
+        if(CurrentCategory == CheatCategoryEnum.CULT){
             int buttonHeight = GUIUtils.GetButtonHeight();
             int spacing = GUIUtils.GetButtonSpacing();
             int thisButtonIndex = s_currentButtonCounter++;

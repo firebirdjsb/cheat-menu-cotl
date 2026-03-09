@@ -62,23 +62,28 @@ public class DlcDefinitions : IDefinition{
         CultUtils.PlayNotification("DLC seeds added!");
     }
 
-    [CheatDetails("Give All Drinks", "Gives x10 of every drink type (Major DLC required)")]
-    [RequiresDLC(DlcRequirement.MajorDLC)]
+    [CheatDetails("Give All Drinks", "Gives x10 of every drink type (base drinks always, DLC drinks require Major DLC)")]
     public static void GiveAllDlcDrinks(){
-        if(!HasMajorDLC()){ CultUtils.PlayNotification("Requires Major DLC!"); return; }
+        // Base game drinks - always give these
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_BEER, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_WINE, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_COCKTAIL, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_EGGNOG, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_GIN, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_SIN, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_CHILLI, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_LIGHTNING, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_GRASS, 10);
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_POOP_JUICE, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_MUSHROOM_JUICE, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_MILKSHAKE, 10);
-        CultUtils.PlayNotification("All drinks added!");
+        
+        // DLC drinks - only give if user has Major DLC
+        if(HasMajorDLC()){
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_SIN, 10);
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_CHILLI, 10);
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_LIGHTNING, 10);
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_GRASS, 10);
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_MUSHROOM_JUICE, 10);
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_MILKSHAKE, 10);
+            CultUtils.PlayNotification("All drinks (base + DLC) added!");
+        } else {
+            CultUtils.PlayNotification("Base drinks added! (DLC drinks require Major DLC)");
+        }
     }
 
     [CheatDetails("Give Brewing Ingredients", "Gives x30 hops, grapes, chilli, cotton, snow fruit, milk (Major DLC required)")]
@@ -107,73 +112,7 @@ public class DlcDefinitions : IDefinition{
         CultUtils.PlayNotification("All forge materials added!");
     }
 
-    [CheatDetails("Give Sin Items Bundle", "Gives sin drinks, soot, sozo seeds, charcoal, magma stones (Sinful DLC required)")]
-    [RequiresDLC(DlcRequirement.SinfulDLC)]
-    public static void GiveSinItemsBundle(){
-        if(!HasSinfulDLC()){ CultUtils.PlayNotification("Requires Sinful DLC!"); return; }
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.DRINK_SIN, 10);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SOOT, 50);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SEED_SOZO, 20);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.CHARCOAL, 30);
-        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MAGMA_STONE, 20);
-        CultUtils.PlayNotification("Sin items bundle added!");
-    }
 
-    [CheatDetails("Add Sin Currency", "Adds the proper SIN currency (Sinful DLC required)")]
-    [RequiresDLC(DlcRequirement.SinfulDLC)]
-    public static void AddSinCurrency(){
-        if(!HasSinfulDLC()){ CultUtils.PlayNotification("Requires Sinful DLC!"); return; }
-        try {
-            // Many builds store sin currency in DataManager or a specific SinManager type. Try known locations.
-            bool added = false;
-            // Try DataManager first
-            try {
-                var dm = DataManager.Instance;
-                var prop = dm.GetType().GetProperty("SinCount") ?? dm.GetType().GetProperty("SinCurrency") ?? dm.GetType().GetProperty("Sin");
-                if(prop != null && prop.PropertyType == typeof(int)){
-                    int cur = (int)prop.GetValue(dm);
-                    prop.SetValue(dm, cur + 50);
-                    added = true;
-                }
-            } catch { }
-
-            if(!added){
-                // Try to find a SinManager type in loaded assemblies
-                foreach(var asm in AppDomain.CurrentDomain.GetAssemblies()){
-                    try {
-                        var sinType = asm.GetType("SinManager") ?? asm.GetType("SinCurrency") ?? asm.GetType("DLC.SinManager");
-                        if(sinType == null) continue;
-                        var instProp = sinType.GetProperty("Instance") ?? sinType.GetProperty("Singleton");
-                        object inst = null;
-                        if(instProp != null) inst = instProp.GetValue(null);
-                        if(inst == null) continue;
-                        // Try field then property names
-                        try {
-                            var fi = sinType.GetField("SinCount");
-                            if(fi != null && fi.FieldType == typeof(int)){
-                                int val = (int)fi.GetValue(inst);
-                                fi.SetValue(inst, val + 50);
-                                added = true; break;
-                            }
-                        } catch { }
-                        try {
-                            var pi = sinType.GetProperty("SinCount") ?? sinType.GetProperty("Sin");
-                            if(pi != null && pi.PropertyType == typeof(int)){
-                                int val = (int)pi.GetValue(inst);
-                                pi.SetValue(inst, val + 50);
-                                added = true; break;
-                            }
-                        } catch { }
-                    } catch { }
-                }
-            }
-
-            CultUtils.PlayNotification(added ? "Added 50 SIN currency (if present)" : "SIN currency type not found in this build");
-        } catch(Exception e){
-            Debug.LogWarning($"Failed to add SIN currency: {e.Message}");
-            CultUtils.PlayNotification("Failed to add SIN currency");
-        }
-    }
 
     [CheatDetails("Give Broken Weapons", "Gives one of each broken weapon for repair (Major DLC required)")]
     [RequiresDLC(DlcRequirement.MajorDLC)]

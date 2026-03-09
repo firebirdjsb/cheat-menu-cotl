@@ -504,7 +504,7 @@ public class ResourceDefinitions : IDefinition{
 
     // ── Structure Collection ─────────────────────────────────────────────────
 
-    [CheatDetails("Collect from Scarecrows", "Collects all birds from scarecrows/traps", subGroup: "Structures")]
+    [CheatDetails("Collect from Scarecrows", "Collects all birds from scarecrows/traps", subGroup: "Cleanup")]
     public static void CollectFromScarecrows(){
         try {
             int birdCount = 0;

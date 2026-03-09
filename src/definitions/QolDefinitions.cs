@@ -76,12 +76,6 @@ public class CombatDefinitions : IDefinition {
         CultUtils.PlayNotification("All tarot cards unlocked!");
     }
 
-    [CheatDetails("Enable Tarot Building", "Enables the tarot card reading building", subGroup: "Unlock")]
-    public static void EnableTarotBuilding(){
-        DataManager.Instance.HasTarotBuilding = true;
-        CultUtils.PlayNotification("Tarot building enabled!");
-    }
-
     [CheatDetails("Enable Black Souls", "Enables the black souls currency system", subGroup: "Unlock")]
     public static void EnableBlackSouls(){
         DataManager.Instance.BlackSoulsEnabled = true;
@@ -153,7 +147,10 @@ public class CombatDefinitions : IDefinition {
                 foreach(var ct in Enum.GetValues(typeof(FollowerClothingType))){
                     try {
                         FollowerClothingType clothType = (FollowerClothingType)ct;
-                        if(!hasMajorDLC && CultUtils.IsDlcContentName(clothType.ToString())) continue;
+                        // Skip CozyShawl - it can cause a soft lock
+                        string typeName = clothType.ToString();
+                        if(typeName == "CozyShawl") continue;
+                        if(!hasMajorDLC && CultUtils.IsDlcContentName(typeName)) continue;
                         DataManager.Instance.AddNewClothes(clothType);
                     } catch {}
                 }
@@ -169,9 +166,6 @@ public class CombatDefinitions : IDefinition {
 
             // Enable black souls
             try { DataManager.Instance.BlackSoulsEnabled = true; } catch {}
-
-            // Enable tarot building
-            try { DataManager.Instance.HasTarotBuilding = true; } catch {}
 
             // Discover map
             try { if(MiniMap.Instance != null) MiniMap.Instance.DiscoverAll(); } catch {}

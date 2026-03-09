@@ -290,6 +290,11 @@ public class CultDefinitions : IDefinition {
         CultUtils.ClearAllDocterines();
     }
 
+    [CheatDetails("Unlock All Doctrines", "Unlocks all doctrine abilities without clearing existing ones", subGroup: "Rituals")]
+    public static void UnlockAllDoctrines(){
+        CultUtils.UnlockAllDoctrines();
+    }
+
     [CheatDetails("All Rituals", "All Rituals (Off)", "All Rituals (On)", "While enabled you will have access to all rituals (including both sides of every pair)", subGroup: "Rituals")]
     public static void UnlockAllRituals(bool flag){
         CheatConsole.UnlockAllRituals = flag;
@@ -304,7 +309,12 @@ public class CultDefinitions : IDefinition {
             foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
                 FollowerClothingType type = (FollowerClothingType)clothingType;
                 if(type == FollowerClothingType.None || type == FollowerClothingType.Count) continue;
-                if(!hasMajorDLC && CultUtils.IsDlcContentName(type.ToString())) continue;
+                // Skip special boss clothing types (Robes_Baal and Robes_Aym) - these are earned through gameplay (rescuing from Ewefall)
+                if(type == FollowerClothingType.Robes_Baal || type == FollowerClothingType.Robes_Aym) continue;
+                // Skip CozyShawl - it can cause a soft lock
+                string typeName = type.ToString();
+                if(typeName == "CozyShawl") continue;
+                if(!hasMajorDLC && CultUtils.IsDlcContentName(typeName)) continue;
                 if(!DataManager.Instance.ClothesUnlocked(type)){
                     DataManager.Instance.AddNewClothes(type);
                     count++;
@@ -328,7 +338,12 @@ public class CultDefinitions : IDefinition {
             foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
                 FollowerClothingType type = (FollowerClothingType)clothingType;
                 if(type == FollowerClothingType.None || type == FollowerClothingType.Count) continue;
-                if(!hasMajorDLC && CultUtils.IsDlcContentName(type.ToString())) continue;
+                // Skip special boss clothing types (Robes_Baal and Robes_Aym) - these are earned through gameplay (rescuing from Ewefall)
+                if(type == FollowerClothingType.Robes_Baal || type == FollowerClothingType.Robes_Aym) continue;
+                // Skip CozyShawl - it can cause a soft lock
+                string typeName = type.ToString();
+                if(typeName == "CozyShawl") continue;
+                if(!hasMajorDLC && CultUtils.IsDlcContentName(typeName)) continue;
                 if(!DataManager.Instance.ClothesUnlocked(type)){
                     DataManager.Instance.AddNewClothes(type);
                 }
@@ -343,7 +358,12 @@ public class CultDefinitions : IDefinition {
             foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
                 FollowerClothingType type = (FollowerClothingType)clothingType;
                 if(type == FollowerClothingType.None || type == FollowerClothingType.Count || type == FollowerClothingType.Naked) continue;
-                if(!hasMajorDLC && CultUtils.IsDlcContentName(type.ToString())) continue;
+                // Skip special boss clothing types
+                if(type == FollowerClothingType.Robes_Baal || type == FollowerClothingType.Robes_Aym) continue;
+                // Skip CozyShawl - it can cause a soft lock (check by name since it may not be in all enum versions)
+                string typeName = type.ToString();
+                if(typeName == "CozyShawl") continue;
+                if(!hasMajorDLC && CultUtils.IsDlcContentName(typeName)) continue;
                 if(TailorManager.GetClothingData(type) != null){
                     wearableTypes.Add(type);
                 }

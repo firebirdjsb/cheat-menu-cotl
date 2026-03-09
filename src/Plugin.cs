@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace CheatMenu;
 
-[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.3.2")]
+[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.3.4")]
 public class Plugin : BaseUnityPlugin
 {    
     private UnityAnnotationHelper _annotationHelper;
@@ -13,41 +13,41 @@ public class Plugin : BaseUnityPlugin
 
     public void Awake()
     {        
-        new CheatConfig(Config);
+        Logger.LogInfo("========================");
+        Logger.LogInfo("Starting Cheat Menu v1.3.4...");
+        Logger.LogInfo("Cult of the Lamb: Cheaters Edition!");
+        Logger.LogInfo("=========================");
 
-        UnityEngine.Debug.Log("[CheatMenu] ========================");
-        UnityEngine.Debug.Log("[CheatMenu] Starting Cheat Menu v1.3.2...");
-        UnityEngine.Debug.Log("[CheatMenu] Cult of the Lamb: Cheaters Edition!");
-        UnityEngine.Debug.Log("[CheatMenu] ========================");
+        new CheatConfig(Config);
 
         try {
             // RunAllInit() must run first — it calls ReflectionHelper.Init() which creates
             // the Harmony instance needed by all subsequent patches.
             _annotationHelper = new UnityAnnotationHelper();
+            
             _annotationHelper.RunAllInit();
-            UnityEngine.Debug.Log("[CheatMenu] Annotation system initialized successfully");
+            Logger.LogInfo("Annotation system initialized successfully");
 
             // Patch VersionNumber.OnEnable so the main menu shows "Cheaters Edition"
             PatchVersionText();
 
             _onGUIFn = _annotationHelper.BuildRunAllOnGuiDelegate();
             _updateFn = _annotationHelper.BuildRunAllUpdateDelegate();
-            UnityEngine.Debug.Log("[CheatMenu] Patching and loading completed successfully!");
-            UnityEngine.Debug.Log("[CheatMenu] Cheat Menu is ready to use!");
+            Logger.LogInfo("Patching and loading completed successfully!");
+            Logger.LogInfo("Cheat Menu is ready to use!");
         } catch(Exception e) {
-            UnityEngine.Debug.LogError($"[CheatMenu] FATAL ERROR during initialization: {e.Message}");
-            UnityEngine.Debug.LogError($"[CheatMenu] Stack trace: {e.StackTrace}");
+            Logger.LogError($"FATAL ERROR during initialization: {e.Message}");
         }
     }
 
     public void OnDisable()
     {
         try {
-            UnityEngine.Debug.Log("[CheatMenu] Shutting down Cheat Menu...");
+            Logger.LogInfo("Shutting down Cheat Menu...");
             _annotationHelper?.RunAllUnload();
-            UnityEngine.Debug.Log("[CheatMenu] Cheat Menu disabled successfully");
+            Logger.LogInfo("Cheat Menu disabled successfully");
         } catch(Exception e) {
-            UnityEngine.Debug.LogError($"[CheatMenu] Error during shutdown: {e.Message}");
+            Logger.LogError($"Error during shutdown: {e.Message}");
         }
     }
 
@@ -56,63 +56,65 @@ public class Plugin : BaseUnityPlugin
         try {
             _onGUIFn?.Invoke();
         } catch(Exception e) {
-            UnityEngine.Debug.LogError($"[CheatMenu] OnGUI error: {e.Message}");
+            Logger.LogError($"OnGUI error: {e.Message}");
         }
     }
 
     public void Update()
-    {        
+    {
         try {
             _updateFn?.Invoke();
         } catch(Exception e) {
-            UnityEngine.Debug.LogError($"[CheatMenu] Update error: {e.Message}");
+            Logger.LogError($"Update error: {e.Message}");
         }
     }
 
     private void PatchVersionText()
     {
         try {
-            MethodInfo versionPatch = typeof(Plugin).GetMethod(
-                nameof(Prefix_VersionNumber_OnEnable),
-                BindingFlags.Static | BindingFlags.Public
-            );
-            // VersionNumber.OnEnable is private
-            string result = ReflectionHelper.PatchMethodPrefix(
-                typeof(VersionNumber),
+            MethodInfo patchMethod = typeof(Plugin).GetMethod("Prefix_VersionNumber_OnEnable", BindingFlags.Static | BindingFlags.Public);
+            Type versionNumberType = HarmonyLib.AccessTools.TypeByName("VersionNumber");
+            
+            if(versionNumberType == null) {
+                Logger.LogWarning("VersionNumber type not found");
+                return;
+            }
+
+            var result = ReflectionHelper.PatchMethodPrefix(
+                versionNumberType,
                 "OnEnable",
-                versionPatch,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                silent: true
+                patchMethod,
+                BindingFlags.Instance | BindingFlags.Public
             );
+
             if(result != null) {
-                UnityEngine.Debug.Log("[CheatMenu] ✓ VersionNumber.OnEnable patched");
+                Logger.LogInfo("✓ VersionNumber.OnEnable patched");
             } else {
-                UnityEngine.Debug.LogWarning("[CheatMenu] ✗ VersionNumber.OnEnable patch failed (method not found)");
+                Logger.LogWarning("✗ VersionNumber.OnEnable patch failed (method not found)");
             }
         } catch(Exception e) {
-            UnityEngine.Debug.LogWarning($"[CheatMenu] VersionNumber patch failed: {e.Message}");
+            Logger.LogWarning($"VersionNumber patch failed: {e.Message}");
         }
     }
 
-    /// <summary>
-    /// Replaces VersionNumber.OnEnable to display "Cheaters Edition ??".
-    /// VersionNumber has a public field "Text" of type UnityEngine.UI.Text.
-    /// The original method simply does: this.Text.text = Application.version;
-    /// We use Traverse to avoid needing a UnityEngine.UI assembly reference.
-    /// </summary>
     public static bool Prefix_VersionNumber_OnEnable(VersionNumber __instance)
     {
         try {
-            // "Text" is a public field on VersionNumber (type: UnityEngine.UI.Text)
-            object textComponent = HarmonyLib.Traverse.Create(__instance).Field("Text").GetValue();
-            if(textComponent != null) {
-                // "text" is a property on UnityEngine.UI.Text
-                HarmonyLib.Traverse.Create(textComponent).Property("text")
-                    .SetValue($"{UnityEngine.Application.version} - Cheaters Edition");
-                return false;
+            // Use reflection to get the Text field - avoids needing UnityEngine.UI reference
+            var textField = typeof(VersionNumber).GetField("Text", BindingFlags.Instance | BindingFlags.Public);
+            if(textField != null) {
+                var textComponent = textField.GetValue(__instance);
+                if(textComponent != null) {
+                    var textProperty = textComponent.GetType().GetProperty("text", BindingFlags.Instance | BindingFlags.Public);
+                    if(textProperty != null) {
+                        textProperty.SetValue(textComponent, $"{UnityEngine.Application.version} - Cheaters Edition");
+                    }
+                }
             }
+            return false;
         } catch(Exception e){
-            UnityEngine.Debug.LogWarning($"[CheatMenu] Version text patch error: {e.Message}");
+            // Can't use Logger in static method
+            UnityEngine.Debug.LogWarning($"Version text patch error: {e.Message}");
         }
         return true;
     }
