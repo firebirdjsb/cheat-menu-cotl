@@ -112,7 +112,31 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
         // Patch LocalizationManager.SetupFonts to skip loading missing localization fonts
         // These fonts (Chinese, Korean, Japanese, Arabic) don't exist and cause error spam
         try {
-            Type locManagerType = Type.GetType("LocalizationManager, I2Loc");
+            // Try to find LocalizationManager in all loaded assemblies
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            Type locManagerType = null;
+            
+            foreach (Assembly asm in assemblies) {
+                if (asm.FullName.Contains("I2Loc")) {
+                    locManagerType = asm.GetType("LocalizationManager");
+                    if (locManagerType != null) {
+                        UnityEngine.Debug.Log($"[CheatMenu] Found LocalizationManager in assembly: {asm.FullName}");
+                        break;
+                    }
+                }
+            }
+            
+            if (locManagerType == null) {
+                // Try direct load if not found
+                try {
+                    Assembly i2Loc = Assembly.Load("I2Loc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+                    if (i2Loc != null) {
+                        locManagerType = i2Loc.GetType("LocalizationManager");
+                        UnityEngine.Debug.Log($"[CheatMenu] Loaded I2Loc assembly, type: {locManagerType}");
+                    }
+                } catch { }
+            }
+            
             if (locManagerType != null) {
                 MethodInfo setupFontsPatch = typeof(GlobalPatches).GetMethod("Prefix_LocalizationManager_SetupFonts", BindingFlags.Static | BindingFlags.Public);
                 string patchResult = ReflectionHelper.PatchMethodPrefix(locManagerType, "SetupFonts", setupFontsPatch, BindingFlags.Static | BindingFlags.Public, silent: true);
@@ -120,7 +144,7 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
                     UnityEngine.Debug.Log("[CheatMenu] LocalizationManager.SetupFonts patched (suppress missing font errors)");
                 }
             } else {
-                UnityEngine.Debug.LogWarning("[CheatMenu] LocalizationManager type not found");
+                UnityEngine.Debug.LogWarning("[CheatMenu] LocalizationManager type not found in any assembly");
             }
         } catch(Exception e) {
             UnityEngine.Debug.LogWarning($"[CheatMenu] LocalizationManager.SetupFonts patch failed: {e.Message}");
