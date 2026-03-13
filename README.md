@@ -1,15 +1,21 @@
 # 🍇 Cheat Menu for Cult of the Lamb
 
-> **v1.3.5** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
+> **v1.3.6** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 [![BepInEx](https://img.shields.io/badge/BepInEx-5.4.21+-green)](https://github.com/BepInEx)
 
 ---
 
-## ✨ What's New (v1.3.5)
+## ✨ What's New (v1.3.6)
 
-- **Wolf Skin Changer** — completely new feature to customize your wolf companion's appearance!
+- **Real-time Combat Equipment** — Change weapon, relic, and curse while in dungeons!
+- **Weapon Level Slider** — Adjust weapon level from 1-99 in real-time
+- **Curse Level Slider** — Adjust curse/ability level from 1-99 in real-time
+- **Complete Tarot Selection** — Select any tarot card from all 80+ available cards
+- **Organized Combat Menu** — Weapon, Relic, Curse, and Tarot now in separate submenus
+- **Fixed Sin Currency** — Verified Black Souls and Pleasure Points are NOT DLC blocked
+- **Wolf Skin Changer** — customize your wolf companion's appearance!
 - **RGB Glowing Halos** — customizable glowing halo effects with RGB color cycling
 - **Rotating Halos** — halo rotation with adjustable speed
 - **Remove Animal Halos** — toggle to remove halos from all animals
@@ -44,7 +50,7 @@ Full gamepad support for Xbox, PlayStation, Switch Pro, Steam Deck!
 ## 🕹️ Features
 
 ### Health & Combat
-Godmode, One Hit Kill, Unlimited Ammo, Unlock All Weapons & Tarots
+Godmode, One Hit Kill, Unlimited Ammo, Unlock All Weapons & Tarots, **Real-time Equipment Swapping**
 
 ### Resources (40+)
 All seeds, fish, food, materials, crystals, gold, souls, arrows
