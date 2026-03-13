@@ -26,6 +26,18 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
     }
 
     /// <summary>
+    /// Patches LocalizationManager.SetupFonts to prevent error spam from missing localization fonts.
+    /// Returns false to skip the original method entirely, preventing the game from trying to load
+    /// Chinese, Korean, Japanese, and Arabic fonts that don't exist in the game files.
+    /// </summary>
+    public static bool Prefix_LocalizationManager_SetupFonts()
+    {
+        // Skip loading the missing localization fonts entirely to prevent error spam
+        // These fonts are optional and not included in the base game
+        return false;
+    }
+
+    /// <summary>
     /// Patches SkeletonAnimationLODGlobalManager.Update to prevent NullReferenceException spam.
     /// The game can throw NRE when:
     /// 1. DynamicResolutionManager._fps is accessed before initialization (can be Infinity)
@@ -97,10 +109,22 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
     [EnforceOrderLast]
     public static void Init()
     {
-        // Suppress font loading errors for missing localization fonts (Chinese, Korean, Japanese, Arabic)
-        // These errors occur during startup when Unity tries to load optional language fonts
-        // Unfortunately, Unity logs these before our callback, so we can't fully suppress them
-        // This is a known Unity limitation with missing font assets
+        // Patch LocalizationManager.SetupFonts to skip loading missing localization fonts
+        // These fonts (Chinese, Korean, Japanese, Arabic) don't exist and cause error spam
+        try {
+            Type locManagerType = Type.GetType("LocalizationManager, I2Loc");
+            if (locManagerType != null) {
+                MethodInfo setupFontsPatch = typeof(GlobalPatches).GetMethod("Prefix_LocalizationManager_SetupFonts", BindingFlags.Static | BindingFlags.Public);
+                string patchResult = ReflectionHelper.PatchMethodPrefix(locManagerType, "SetupFonts", setupFontsPatch, BindingFlags.Static | BindingFlags.Public, silent: true);
+                if(patchResult != null) {
+                    UnityEngine.Debug.Log("[CheatMenu] LocalizationManager.SetupFonts patched (suppress missing font errors)");
+                }
+            } else {
+                UnityEngine.Debug.LogWarning("[CheatMenu] LocalizationManager type not found");
+            }
+        } catch(Exception e) {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] LocalizationManager.SetupFonts patch failed: {e.Message}");
+        }
 
         MethodInfo interactorPatch = typeof(GlobalPatches).GetMethod("Prefix_Interactor_Update", BindingFlags.Static | BindingFlags.Public);
        ReflectionHelper.PatchMethodPrefix(typeof(Interactor), "Update", interactorPatch, BindingFlags.Instance | BindingFlags.NonPublic);
