@@ -440,16 +440,36 @@ public static class GUIUtils {
 
     // 0 neither button clicked, 1 first button clicked, 2 second button clicked
     public static int ToggleButton(Rect sizeAndPlacement, string buttonOneText, string buttonTwoText, int state = 0){
+        return ToggleButton(sizeAndPlacement, buttonOneText, buttonTwoText, state, false);
+    }
+
+    // 0 neither button clicked, 1 first button clicked, 2 second button clicked
+    // selected: whether this button group is currently selected by controller
+    public static int ToggleButton(Rect sizeAndPlacement, string buttonOneText, string buttonTwoText, int state = 0, bool selected = false){
         int halfWidth = (int)(sizeAndPlacement.width / 2) - 2;
+        
+        // Determine styles - use controller selection highlight if selected
+        GUIStyle firstStyle;
+        GUIStyle secondStyle;
+        
+        if(selected){
+            // Controller selection: show highlight
+            firstStyle = state == 1 ? GetControllerSelectedStyle() : GetControllerHoverStyle();
+            secondStyle = state == 2 ? GetControllerSelectedStyle() : GetControllerHoverStyle();
+        } else {
+            firstStyle = state == 1 ? GetGUIButtonSelectedStyle() : GetGUIButtonStyle();
+            secondStyle = state == 2 ? GetGUIButtonSelectedStyle() : GetGUIButtonStyle();
+        }
+        
         bool firstClicked = GUI.Button(
             new Rect(sizeAndPlacement.x, sizeAndPlacement.y, halfWidth, sizeAndPlacement.height),
             buttonOneText,
-            state == 1 ? GetGUIButtonSelectedStyle() : GetGUIButtonStyle()
+            firstStyle
         );
         bool secondClicked = GUI.Button(
             new Rect(sizeAndPlacement.x + halfWidth + 4, sizeAndPlacement.y, halfWidth, sizeAndPlacement.height),
             buttonTwoText,
-            state == 2 ? GetGUIButtonSelectedStyle() : GetGUIButtonStyle()
+            secondStyle
         );
         if(firstClicked || secondClicked){
             return firstClicked ? 1 : 2;
@@ -465,8 +485,39 @@ public static class GUIUtils {
         return 2;
     }
 
+    // Controller selection highlight style (red background like main menu)
+    private static GUIStyle s_controllerSelectedStyle;
+    public static GUIStyle GetControllerSelectedStyle(){
+        if(s_controllerSelectedStyle == null){
+            s_controllerSelectedStyle = new GUIStyle(GetGUIButtonStyle());
+            s_controllerSelectedStyle.normal = new GUIStyleState(){
+                background = TextureHelper.GetSolidTexture(new Color(0.75f, 0.15f, 0.15f, 1f), true),
+                textColor = new Color(0.95f, 0.92f, 0.88f, 1f)
+            };
+        }
+        return s_controllerSelectedStyle;
+    }
+
+    // Controller hover/focus style (slightly lighter than selected)
+    private static GUIStyle s_controllerHoverStyle;
+    public static GUIStyle GetControllerHoverStyle(){
+        if(s_controllerHoverStyle == null){
+            s_controllerHoverStyle = new GUIStyle(GetGUIButtonStyle());
+            s_controllerHoverStyle.normal = new GUIStyleState(){
+                background = TextureHelper.GetSolidTexture(new Color(0.5f, 0.2f, 0.2f, 1f), true),
+                textColor = new Color(0.95f, 0.92f, 0.88f, 1f)
+            };
+        }
+        return s_controllerHoverStyle;
+    }
+
     public static bool Button(int y, int width, string buttonText){
-        var btn = GUI.Button(new Rect(5, y, width, GetButtonHeight()), buttonText, GetGUIButtonStyle());
+        return Button(y, width, buttonText, false);
+    }
+
+    public static bool Button(int y, int width, string buttonText, bool selected = false){
+        GUIStyle style = selected ? GetControllerSelectedStyle() : GetGUIButtonStyle();
+        var btn = GUI.Button(new Rect(5, y, width, GetButtonHeight()), buttonText, style);
         return btn;
     }
 }

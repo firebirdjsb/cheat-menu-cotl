@@ -2,79 +2,78 @@ using System;
 
 namespace CheatMenu;
 
-public class CheatDetails : Attribute {
-private readonly string _title;
-private readonly string _description;
-private readonly string _onTitle;
-private readonly string _offTitle;
-private readonly bool _isMultiNameFlagCheat = false;
-private readonly bool _isFlagCheat = false;
-private readonly int _sortOrder = 0;
-private readonly string _subGroup = null;
-
-//Used for simple cheats and mode cheats that have the same state no matter the flag state.
-public CheatDetails(string title, string description, bool isFlagCheat = false, int sortOrder = 0, string subGroup = null){
-    this._isFlagCheat = isFlagCheat;
-    this._title = title;
-    this._description = description;
-    this._sortOrder = sortOrder;
-    this._subGroup = subGroup;
-}
-
-//Used for mode cheats that have different 'names' when being off and on
-//Hide/Show UI is the simpliest example of this
-public CheatDetails(string cheatTitle, string offTitle, string onTitle, string description, bool isFlagCheat = true, int sortOrder = 0, string subGroup = null){
-    if(isFlagCheat == false){
-        throw new Exception("Multi name flag cheat can not have isFlagCheat set to false!");
-    }
-
-    this._onTitle = onTitle;
-    this._offTitle = offTitle;
-    this._description = description;
-    this._title = cheatTitle;
-    this._isMultiNameFlagCheat = true;
-    this._isFlagCheat = true;
-    this._sortOrder = sortOrder;
-    this._subGroup = subGroup;
-}
-
-    public virtual string Title
+/// <summary>
+/// Attribute for marking cheat methods with display metadata.
+/// Applied to static methods in definition classes to expose them in the cheat menu.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+public class CheatDetails : Attribute
+{
+    /// <summary>
+    /// Creates a CheatDetails attribute for simple cheats or mode cheats with same state.
+    /// </summary>
+    /// <param name="title">Display title in the UI.</param>
+    /// <param name="description">Tooltip description shown in the menu.</param>
+    /// <param name="isFlagCheat">Whether this is a toggle/flag cheat.</param>
+    /// <param name="sortOrder">UI ordering priority (lower shows first).</param>
+    /// <param name="subGroup">Sub-group name for organizing related cheats.</param>
+    public CheatDetails(string title, string description, bool isFlagCheat = false, int sortOrder = 0, string subGroup = null)
     {
-        get {return _title;}
+        Title = title;
+        Description = description;
+        IsFlagCheat = isFlagCheat;
+        SortOrder = sortOrder;
+        SubGroup = subGroup;
     }
 
-    public virtual string Description
+    /// <summary>
+    /// Creates a CheatDetails attribute for mode cheats with different on/off titles.
+    /// </summary>
+    /// <param name="title">Base title for the cheat.</param>
+    /// <param name="offTitle">Title shown when cheat is OFF.</param>
+    /// <param name="onTitle">Title shown when cheat is ON.</param>
+    /// <param name="description">Tooltip description.</param>
+    /// <param name="isFlagCheat">Must be true for multi-name flags.</param>
+    /// <param name="sortOrder">UI ordering priority.</param>
+    /// <param name="subGroup">Sub-group for organization.</param>
+    public CheatDetails(string title, string offTitle, string onTitle, string description, bool isFlagCheat = true, int sortOrder = 0, string subGroup = null)
     {
-        get {return _description;}
+        if (!isFlagCheat)
+        {
+            throw new Exception("Multi name flag cheat can not have isFlagCheat set to false!");
+        }
+
+        Title = title;
+        OffTitle = offTitle;
+        OnTitle = onTitle;
+        Description = description;
+        IsFlagCheat = true;
+        IsMultiNameFlagCheat = true;
+        SortOrder = sortOrder;
+        SubGroup = subGroup;
     }
 
-    public virtual string OnTitle
-    {
-        get {return _onTitle;}
-    }
+    /// <summary>The display title of the cheat.</summary>
+    public string Title { get; }
 
-    public virtual string OffTitle
-    {
-        get {return _offTitle;}
-    }
+    /// <summary>The description shown in tooltip.</summary>
+    public string Description { get; }
 
-    public virtual bool IsFlagCheat
-    {
-        get {return _isFlagCheat;}
-    }
+    /// <summary>Title shown when flag is ON.</summary>
+    public string OnTitle { get; }
 
-    public virtual bool IsMultiNameFlagCheat
-    {
-        get {return _isMultiNameFlagCheat;}
-    }
+    /// <summary>Title shown when flag is OFF.</summary>
+    public string OffTitle { get; }
 
-    public virtual int SortOrder
-    {
-        get {return _sortOrder;}
-    }
+    /// <summary>Whether this is a toggle/flag cheat.</summary>
+    public bool IsFlagCheat { get; }
 
-    public virtual string SubGroup
-    {
-        get {return _subGroup;}
-    }
+    /// <summary>Whether this cheat has different on/off titles.</summary>
+    public bool IsMultiNameFlagCheat { get; }
+
+    /// <summary>UI sort order (lower values appear first).</summary>
+    public int SortOrder { get; }
+
+    /// <summary>Sub-group for organizing cheats in UI.</summary>
+    public string SubGroup { get; }
 }

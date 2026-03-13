@@ -2,14 +2,16 @@ using System;
 
 namespace CheatMenu;
 
-public class CheatCategory : Attribute {
-    private readonly CheatCategoryEnum _category;
-
-    public CheatCategory(CheatCategoryEnum enumValue){
-        this._category = enumValue;
+/// <summary>
+/// Attribute for marking definition classes with a category.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public class CheatCategory : Attribute
+{
+    public CheatCategory(CheatCategoryEnum category)
+    {
+        Category = category;
     }
 
-    public virtual CheatCategoryEnum Category {
-        get {return _category;}
-    }
+    public CheatCategoryEnum Category { get; }
 }

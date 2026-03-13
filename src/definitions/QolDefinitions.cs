@@ -6,8 +6,17 @@ using HarmonyLib;
 
 namespace CheatMenu;
 
+/// <summary>
+/// Definition class containing quality-of-life and combat cheats.
+/// Includes combat enhancements, weapon unlocks, and dungeon-related features.
+/// </summary>
+/// <remarks>
+/// This class provides combat-focused cheats like one-hit-kill, unlimited ammo,
+/// and weapon unlocks. Many cheats require the player to be in a dungeon.
+/// Uses Harmony patches to modify game behavior at runtime.
+/// </remarks>
 [CheatCategory(CheatCategoryEnum.COMBAT)]
-public class CombatDefinitions : IDefinition {
+public class QolDefinitions : IDefinition {
 
     private static bool s_oneHitKillEnabled = false;
     private static bool s_unlimitedRelicsEnabled = false;
@@ -137,7 +146,7 @@ public class CombatDefinitions : IDefinition {
             } catch {}
 
             // Unlock doctrines
-            try { CultUtils.ClearAllDocterines(); } catch {}
+            try { CultUtils.ClearAllDoctrines(); } catch {}
 
             // Unlock structures (already DLC-safe — skips Ranch/Furnace/etc. without Woolhaven)
             try { CultDefinitions.UnlockAllStructures(); } catch {}
@@ -196,7 +205,7 @@ public class CombatDefinitions : IDefinition {
     private static void PatchMiniMapReveal(){
         if(s_mapRevealPatched) return;
         try {
-            MethodInfo patchMethod = typeof(CombatDefinitions).GetMethod("Postfix_MiniMap_OnBiomeGenerated", BindingFlags.Static | BindingFlags.Public);
+            MethodInfo patchMethod = typeof(QolDefinitions).GetMethod("Postfix_MiniMap_OnBiomeGenerated", BindingFlags.Static | BindingFlags.Public);
             ReflectionHelper.PatchMethodPostfix(
                 typeof(MiniMap),
                 "OnBiomeGenerated",
@@ -265,7 +274,7 @@ public class CombatDefinitions : IDefinition {
     public static void UnlimitedRelics(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
-            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(CombatDefinitions), "UnlimitedRelics"), false);
+            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(QolDefinitions), "UnlimitedRelics"), false);
             return;
         }
         s_unlimitedRelicsEnabled = flag;
@@ -278,7 +287,7 @@ public class CombatDefinitions : IDefinition {
                     }
                 }
                 // Patch ResetChargedAmount so relics re-charge after every use
-                MethodInfo patchMethod = typeof(CombatDefinitions).GetMethod("Prefix_PlayerRelic_ResetChargedAmount", BindingFlags.Static | BindingFlags.Public);
+                MethodInfo patchMethod = typeof(QolDefinitions).GetMethod("Prefix_PlayerRelic_ResetChargedAmount", BindingFlags.Static | BindingFlags.Public);
                 ReflectionHelper.PatchMethodPrefix(
                     typeof(PlayerRelic),
                     "ResetChargedAmount",
@@ -311,13 +320,13 @@ public class CombatDefinitions : IDefinition {
     public static void OneHitKill(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
-            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(CombatDefinitions), "OneHitKill"), false);
+            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(QolDefinitions), "OneHitKill"), false);
             return;
         }
         s_oneHitKillEnabled = flag;
         if(flag){
             try {
-                MethodInfo patchMethod = typeof(CombatDefinitions).GetMethod("Prefix_Health_DealDamage", BindingFlags.Static | BindingFlags.Public);
+                MethodInfo patchMethod = typeof(QolDefinitions).GetMethod("Prefix_Health_DealDamage", BindingFlags.Static | BindingFlags.Public);
                 ReflectionHelper.PatchMethodPrefix(
                     typeof(Health),
                     "DealDamage",
@@ -383,7 +392,7 @@ public class CombatDefinitions : IDefinition {
         if(s_ammoPatched) return;
         try {
             // Patch BlunderAmmo.UseAmmo to prevent ammo consumption
-            MethodInfo blunderPatch = typeof(CombatDefinitions).GetMethod("Prefix_BlunderAmmo_UseAmmo", BindingFlags.Static | BindingFlags.Public);
+            MethodInfo blunderPatch = typeof(QolDefinitions).GetMethod("Prefix_BlunderAmmo_UseAmmo", BindingFlags.Static | BindingFlags.Public);
             ReflectionHelper.PatchMethodPrefix(
                 typeof(BlunderAmmo),
                 "UseAmmo",
@@ -396,7 +405,7 @@ public class CombatDefinitions : IDefinition {
         }
         try {
             // Patch PlayerArrows.RestockArrow to make reloading instant
-            MethodInfo arrowPatch = typeof(CombatDefinitions).GetMethod("Prefix_PlayerArrows_RestockArrow", BindingFlags.Static | BindingFlags.Public);
+            MethodInfo arrowPatch = typeof(QolDefinitions).GetMethod("Prefix_PlayerArrows_RestockArrow", BindingFlags.Static | BindingFlags.Public);
             ReflectionHelper.PatchMethodPrefix(
                 typeof(PlayerArrows),
                 "RestockArrow",
@@ -421,7 +430,7 @@ public class CombatDefinitions : IDefinition {
     public static void UnlimitedAmmo(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
-            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(CombatDefinitions), "UnlimitedAmmo"), false);
+            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(QolDefinitions), "UnlimitedAmmo"), false);
             return;
         }
         s_unlimitedAmmoEnabled = flag;
@@ -443,7 +452,7 @@ public class CombatDefinitions : IDefinition {
     public static void UnlimitedFervour(bool flag){
         if(flag && !IsInDungeon()){
             CultUtils.PlayNotification("Must be in a dungeon to use this!");
-            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(CombatDefinitions), "UnlimitedFervour"), false);
+            FlagManager.SetFlagValue(Definition.GetCheatFlagID(typeof(QolDefinitions), "UnlimitedFervour"), false);
             return;
         }
         try {

@@ -5,9 +5,23 @@ using HarmonyLib;
 
 namespace CheatMenu;
 
+/// <summary>
+/// Definition class containing cheats related to farming and ranching.
+/// Includes animal spawning, animal management, and farming products.
+/// </summary>
+/// <remarks>
+/// Most features require the Woolhaven (Major) DLC. All cheats interact with
+/// the game's Interaction_Ranch, AnimalData, and StructureManager systems.
+/// </remarks>
 [CheatCategory(CheatCategoryEnum.FARMING)]
 public class FarmingDefinitions : IDefinition{
 
+    /// <summary>
+    /// Internal helper to spawn an animal at the player's position in a ranch.
+    /// Finds an available ranch with space and creates the animal there.
+    /// </summary>
+    /// <param name="animalType">The type of animal to spawn.</param>
+    /// <param name="animalName">Display name for notification messages.</param>
     private static void SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE animalType, string animalName){
         try {
             if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
@@ -48,18 +62,30 @@ public class FarmingDefinitions : IDefinition{
         }
     }
 
+    /// <summary>
+    /// Spawns a goat at the player's position in an available ranch.
+    /// </summary>
+    /// <remarks>Requires Woolhaven DLC.</remarks>
     [CheatDetails("Spawn Goat at Player", "Spawns a live goat at the player's position", subGroup: "Spawn")]
     [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnGoat(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_GOAT, "Goat");
     }
 
+    /// <summary>
+    /// Spawns a cow at the player's position in an available ranch.
+    /// </summary>
+    /// <remarks>Requires Woolhaven DLC.</remarks>
     [CheatDetails("Spawn Cow at Player", "Spawns a live cow at the player's position", subGroup: "Spawn")]
     [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnCow(){
         SpawnAnimalAtPlayer(InventoryItem.ITEM_TYPE.ANIMAL_COW, "Cow");
     }
 
+    /// <summary>
+    /// Spawns a llama at the player's position in an available ranch.
+    /// </summary>
+    /// <remarks>Requires Woolhaven DLC.</remarks>
     [CheatDetails("Spawn Llama at Player", "Spawns a live llama at the player's position", subGroup: "Spawn")]
     [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void SpawnLlama(){
@@ -246,11 +272,18 @@ public class FarmingDefinitions : IDefinition{
         CultUtils.ForceGrowAllAnimals();
     }
 
-    [CheatDetails("Add Halos to Animals", "Adds a glowing pink halo above all ranch animals (Woolhaven DLC required)", subGroup: "Special")]
+    [CheatDetails("Add Halos to Animals", "Adds RGB glowing halos above all ranch animals (Woolhaven DLC required)", subGroup: "Special")]
     [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void AddHalosToAnimals(){
         if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
         CultUtils.AddHalosToAnimals();
+    }
+    
+    [CheatDetails("Remove All Animal Halos", "Removes all halos from ranch animals (Woolhaven DLC required)", subGroup: "Special")]
+    [RequiresDLC(DlcRequirement.MajorDLC)]
+    public static void RemoveAllAnimalHalos(){
+        if(!CultUtils.HasMajorDLC()){ CultUtils.PlayNotification("Requires Woolhaven DLC!"); return; }
+        CultUtils.RemoveAllAnimalHalos();
     }
 
     [CheatDetails("Ascend All Animals", "Ascends all ranch animals with full animation, sound effects, and visual resource drops (Woolhaven DLC required)", subGroup: "Special")]

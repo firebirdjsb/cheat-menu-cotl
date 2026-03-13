@@ -2,6 +2,41 @@
 
 All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in this file.
 
+## [1.3.5] - 2026 (Wolf Companion & Halo Update)
+
+### 🐺 Wolf Companion Overhaul
+- **Added Wolf Skin Changer** — completely new feature to change your wolf companion's appearance
+- Fixed wolf companion skin application with proper asset bundle handling
+- Added wolf skin data management with skin ID tracking
+- Wolf skins now properly persist across game sessions
+
+### ✨ Halo System Improvements
+- **Added RGB Glowing Halos** — customizable glowing halo effects with RGB color cycling
+- **Added Rotating Halos** — halo rotation with adjustable speed
+- **Added Remove Animal Halos** — toggle to remove halos from all animals
+- Fixed animal halo positions for proper alignment
+
+### 🐛 Bug Fixes
+- **Fixed Spawn Child Follower duplicate bug** — added coroutine delay to prevent duplicate spawns
+- **Fixed Change Rituals controller compatibility** — ritual selection now works with controllers
+- **Added SkeletonAnimationLODGlobalManager error fix patch** — prevents LOD-related errors in console
+
+### 🏗️ Code Refactoring
+- **Split CultUtils.cs** into smaller partial class files for better maintainability:
+  - CultUtils.cs (main class)
+  - CultUtils_Cult.cs (cult management)
+  - CultUtils_Followers.cs (follower spawning/management)
+  - CultUtils_Farming.cs (farming and animals)
+  - CultUtils_Structures.cs (buildings and structures)
+  - CultUtils_DLC.cs (DLC-related functions)
+  - CultUtils_Wolf.cs (wolf companion features)
+
+### ⚡ Misc Improvements
+- Improved code organization and maintainability
+- Better error handling across multiple modules
+
+---
+
 ## [1.3.0] - 2025 (DLC Safety & Stability Update)
 
 ## [1.3.4] - 2026 (Patch Release)

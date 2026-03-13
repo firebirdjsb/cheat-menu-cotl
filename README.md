@@ -1,19 +1,21 @@
 # 🍇 Cheat Menu for Cult of the Lamb
 
-> **v1.3.4** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
+> **v1.3.5** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 [![BepInEx](https://img.shields.io/badge/BepInEx-5.4.21+-green)](https://github.com/BepInEx)
 
 ---
 
-## ✨ What's New (v1.3.4)
+## ✨ What's New (v1.3.5)
 
-- **Unlock All Doctrines** — unlock every doctrine ability instantly
-- **Spawn Follower Egg** — spawn a golden Woolhaven child
-- **Fixed duplicate followers** when using spawn cheats
-- **Fixed CozyShawl softlock** and boss robes unlocking
-- **Better DLC detection** — no more phantom Woolhaven tab
+- **Wolf Skin Changer** — completely new feature to customize your wolf companion's appearance!
+- **RGB Glowing Halos** — customizable glowing halo effects with RGB color cycling
+- **Rotating Halos** — halo rotation with adjustable speed
+- **Remove Animal Halos** — toggle to remove halos from all animals
+- **Fixed Spawn Child Follower** duplicate bug with coroutine delay
+- **Fixed Change Rituals** controller compatibility
+- **Code refactoring** — split CultUtils.cs into smaller partial class files
 
 ---
 

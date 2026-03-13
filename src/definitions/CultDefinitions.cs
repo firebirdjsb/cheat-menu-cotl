@@ -7,10 +7,57 @@ using System.Text.RegularExpressions;
 
 namespace CheatMenu;
 
+/// <summary>
+/// Definition class containing cheats related to cult management.
+/// Includes teleportation, building, rituals, doctrines, and cleanup operations.
+/// </summary>
+/// <remarks>
+/// This class provides a wide range of cheats for managing the cult base,
+/// including building modifications, ritual unlocks, and environmental cleanup.
+/// Some cheats use dynamic GUI windows for interactive selection.
+/// </remarks>
 [CheatCategory(CheatCategoryEnum.CULT)]
 public class CultDefinitions : IDefinition {
     private static GUIUtils.ScrollableWindowParams s_ritualGui;
     private static GUIUtils.ScrollableWindowParams s_docterineGui;
+
+    // Controller navigation state for Change Rituals UI
+    private static int s_ritualSelectedIndex = 0;
+    private static bool s_ritualConfirmPressed = false;
+    private static float s_ritualNavDelay = 0f;
+    private static float s_ritualInputDelay = 0f;
+    private static float s_ritualOpenTime = 0f;
+    private static readonly float RITUAL_NAV_DELAY = 0.15f;
+    private static readonly float RITUAL_HORIZONTAL_DELAY = 0.2f;
+    private static float s_ritualHorizontalDelay = 0f;
+
+    /// <summary>
+    /// Updates the scroll position to keep the selected ritual item visible in the list.
+    /// </summary>
+    private static void UpdateRitualScrollPosition(int ritualCount, float firstButtonY, float buttonHeight){
+        // Calculate the Y position of the selected item
+        float selectedY;
+        if(s_ritualSelectedIndex < ritualCount){
+            // It's a ritual pair button
+            selectedY = firstButtonY + (s_ritualSelectedIndex * buttonHeight);
+        } else {
+            // It's the confirm button (at the end)
+            selectedY = firstButtonY + (ritualCount * buttonHeight) + 10f;
+        }
+
+        // Get the visible area height (window height minus title bar and some padding)
+        float viewHeight = s_ritualGui.ClientRect.height - 50f;
+        float currentScroll = s_ritualGui.ScrollPosition.y;
+
+        // If selected item is above the visible area, scroll up
+        if(selectedY < currentScroll){
+            s_ritualGui.ScrollPosition.y = selectedY;
+        } 
+        // If selected item is below the visible area, scroll down
+        else if(selectedY + buttonHeight > currentScroll + viewHeight){
+            s_ritualGui.ScrollPosition.y = selectedY + buttonHeight - viewHeight;
+        }
+    }
 
 
     [Init]
@@ -226,19 +273,31 @@ public class CultDefinitions : IDefinition {
         }
     }
 
-    [CheatDetails("Change Rituals", "Change Rituals",  "Change Rituals (Close)", "Lets you change the selected Rituals along with unlocking not yet acquired ones", true, subGroup: "Rituals")]
+    [CheatDetails("Change Rituals", "Change Rituals",  "Change Rituals (Close)", "Lets you change the selected Rituals along with unlocking not yet acquired ones. Use [B] to close.", true, subGroup: "Rituals")]
     public static void ChangeAllRituals(bool flag){
         if(flag) {
             List<Tuple<UpgradeSystem.Type, UpgradeSystem.Type>> pairs = CultUtils.GetRitualPairs();
             int currentHeight = 20;
             string guiFunctionKey = "";
             int[] pairStates = new int[pairs.Count];
+            int totalButtons = pairs.Count + 1; // +1 for confirm button
+
+            // Reset controller state when opening
+            s_ritualSelectedIndex = 0;
+            s_ritualConfirmPressed = false;
+            s_ritualOpenTime = Time.unscaledTime;
+            s_ritualInputDelay = 0.3f;
+            s_ritualNavDelay = 0f;
+            s_ritualHorizontalDelay = 0f;
+            
+            // Block controller input to main menu while ritual selection is open
+            CheatMenuGui.InputBlockedForModal = true;
 
             //Pre-populate ritual states
             for(int pairIdx = 0; pairIdx < pairStates.Length; pairIdx++){
                 var tuplePair = pairs[pairIdx];
                 bool hasItem1 = UpgradeSystem.UnlockedUpgrades.Contains(tuplePair.Item1);
-                bool hasItem2 = UpgradeSystem.UnlockedUpgrades.Contains(tuplePair.Item1);
+                bool hasItem2 = UpgradeSystem.UnlockedUpgrades.Contains(tuplePair.Item2);
                 if(hasItem1 || hasItem2){
                     pairStates[pairIdx] = hasItem1 ? 1 : 2;
                 }
@@ -263,25 +322,95 @@ public class CultDefinitions : IDefinition {
                 UpgradeSystem.UnlockAbility(UpgradeSystem.PrimaryRitual1);
             };
 
+            void HandleControllerInput()
+            {
+                if(!CheatConfig.Instance.ControllerSupport.Value) return;
+
+                float currentTime = Time.unscaledTime;
+                
+                // Add delay before accepting any input after opening the menu
+                if(currentTime < s_ritualOpenTime + s_ritualInputDelay) return;
+                
+                // Handle navigation delay
+                if(currentTime < s_ritualNavDelay) return;
+
+                // Handle B button to close the menu
+                if(RewiredInputHelper.GetBackPressed()){
+                    CheatMenuGui.InputBlockedForModal = false;
+                    GUIManager.CloseGuiFunction(guiFunctionKey);
+                    return;
+                }
+
+                // Vertical navigation (up/down) - invert the direction so up on stick selects item above
+                int navVertical = RewiredInputHelper.GetNavigationVertical();
+                if(navVertical != 0){
+                    s_ritualSelectedIndex -= navVertical;
+                    // Wrap around
+                    if(s_ritualSelectedIndex < 0) s_ritualSelectedIndex = totalButtons - 1;
+                    if(s_ritualSelectedIndex >= totalButtons) s_ritualSelectedIndex = 0;
+                    s_ritualNavDelay = currentTime + RITUAL_NAV_DELAY;
+                    
+                    // Auto-scroll to keep selected item visible
+                    UpdateRitualScrollPosition(pairs.Count, 125f, 95f);
+                }
+
+                // Handle left/right for toggle buttons (when on a ritual pair)
+                if(s_ritualSelectedIndex < pairs.Count){
+                    int navHorizontal = RewiredInputHelper.GetNavigationHorizontal();
+                    if(navHorizontal != 0 && currentTime >= s_ritualHorizontalDelay){
+                        // Toggle between the two options
+                        int currentState = pairStates[s_ritualSelectedIndex];
+                        int newState = (currentState == 1) ? 2 : 1;
+                        if(currentState == 0) newState = 1; // Default to first if none selected
+                        pairStates[s_ritualSelectedIndex] = newState;
+                        s_ritualHorizontalDelay = currentTime + RITUAL_HORIZONTAL_DELAY;
+                    }
+                }
+
+                // Handle select button
+                if(RewiredInputHelper.GetSelectPressed()){
+                    s_ritualConfirmPressed = true;
+                }
+            };
+
             void GuiContents()
             {
-                GUI.Label(new Rect(10, 35, 615, 50), "Select one ritual from each pair below, then press confirm at the bottom", GUIUtils.GetGUILabelStyle(620, 0.85f));
-                currentHeight = 100;
+                // Handle controller input
+                HandleControllerInput();
+
+                // Show controller hints
+                if(CheatConfig.Instance.ControllerSupport.Value){
+                    string hintText = "[Left Stick] Navigate | [Right Stick] Toggle | [A] Confirm | [B] Close";
+                    GUI.Label(new Rect(10, 35, 615, 25), hintText, GUIUtils.GetGUILabelStyle(620, 0.7f));
+                }
+
+                GUI.Label(new Rect(10, CheatConfig.Instance.ControllerSupport.Value ? 60 : 35, 615, 50), "Select one ritual from each pair below, then press confirm at the bottom", GUIUtils.GetGUILabelStyle(620, 0.85f));
+                currentHeight = CheatConfig.Instance.ControllerSupport.Value ? 125 : 100;
 
                 for(int idx = 0; idx < pairs.Count; idx++){
                     Tuple<UpgradeSystem.Type, UpgradeSystem.Type> tupleSet = pairs[idx];
                     string ritualOneName = UpgradeSystem.GetLocalizedName(tupleSet.Item1);
                     string ritualTwoName = UpgradeSystem.GetLocalizedName(tupleSet.Item2);
-                    pairStates[idx] = GUIUtils.ToggleButton(new Rect(5, currentHeight, 620, 90), $"{ritualOneName}", $"{ritualTwoName}", pairStates[idx]);
+                    
+                    // Check if this button is selected by controller
+                    bool isSelected = CheatConfig.Instance.ControllerSupport.Value && s_ritualSelectedIndex == idx;
+                    pairStates[idx] = GUIUtils.ToggleButton(new Rect(5, currentHeight, 620, 90), $"{ritualOneName}", $"{ritualTwoName}", pairStates[idx], isSelected);
                     currentHeight += 95;
                 }
-                if(GUIUtils.Button(currentHeight, 620, "Confirm Selection")){
+
+                // Confirm button
+                bool confirmSelected = CheatConfig.Instance.ControllerSupport.Value && s_ritualSelectedIndex == pairs.Count;
+                if(GUIUtils.Button(currentHeight, 620, "Confirm Selection", confirmSelected) || s_ritualConfirmPressed){
+                    CheatMenuGui.InputBlockedForModal = false;
                     Confirm();
                     CultUtils.PlayNotification("Rituals unlocked!");
                     GUIManager.CloseGuiFunction(guiFunctionKey);
                 }
                 currentHeight += GUIUtils.GetButtonHeight() + 10;
                 s_ritualGui.ScrollHeight = currentHeight;
+
+                // Reset confirm pressed after handling
+                s_ritualConfirmPressed = false;
             }
 
             guiFunctionKey = GUIManager.SetGuiWindowScrollableFunction(s_ritualGui, GuiContents);
@@ -292,7 +421,7 @@ public class CultDefinitions : IDefinition {
 
     [CheatDetails("Clear All Doctrines", "Clears all docterine categories and rewards (Apart from special rituals)", subGroup: "Rituals")]
     public static void ClearAllDoctrines(){
-        CultUtils.ClearAllDocterines();
+        CultUtils.ClearAllDoctrines();
     }
 
     [CheatDetails("Unlock All Doctrines", "Unlocks all doctrine abilities without clearing existing ones", subGroup: "Rituals")]

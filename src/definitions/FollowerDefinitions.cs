@@ -5,6 +5,14 @@ using UnityEngine;
 
 namespace CheatMenu;
 
+/// <summary>
+/// Definition class containing cheats for follower management.
+/// Includes spawning, killing, reviving, and modifying follower properties.
+/// </summary>
+/// <remarks>
+/// Provides extensive follower manipulation including age changes, stats,
+/// skin changes (special follower types), and status effect removal.
+/// </remarks>
 [CheatCategory(CheatCategoryEnum.FOLLOWER)]
 public class FollowerDefinitions : IDefinition{
 
@@ -16,7 +24,7 @@ public class FollowerDefinitions : IDefinition{
     }
 
     [CheatDetails("Spawn Follower (Worshipper)", "Spawns a follower waiting for indoctrination at the circle", subGroup: "Spawn")]
-    public static void SpawnWorkerWorshipper(){
+    public static void SpawnWorshipperFollower(){
         CultUtils.SpawnFollower(FollowerRole.Worshipper);
     }
 
@@ -62,7 +70,7 @@ public class FollowerDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Spawn Child Follower", "Spawns a child follower waiting for indoctrination at the circle", subGroup: "Spawn")]
+    [CheatDetails("Spawn Child Follower", "Spawns a normal child follower (hatched from egg) waiting for indoctrination at the circle", subGroup: "Spawn")]
     public static void SpawnChildFollower(){
         try {
             if(PlayerFarming.Instance == null){
@@ -70,11 +78,14 @@ public class FollowerDefinitions : IDefinition{
                 return;
             }
 
+            // Set flag to prevent game from auto-spawning more recruits during recruitment
+            CultUtils.IsSpawningFollowerFromCheat = true;
+
             // FIX: Clear any existing recruits first to prevent duplicate spawn bug
             try {
                 int existingRecruits = DataManager.Instance.Followers_Recruit.Count;
                 if(existingRecruits > 0){
-                    UnityEngine.Debug.Log($"[CheatMenu] Clearing {existingRecruits} existing recruits before spawning child");
+                    UnityEngine.Debug.Log($"[CheatMenu] Clearing {existingRecruits} existing recruits before spawning");
                     DataManager.Instance.Followers_Recruit.Clear();
                     foreach(var existingRecruit in UnityEngine.Object.FindObjectsOfType<FollowerRecruit>()){
                         UnityEngine.Object.Destroy(existingRecruit.gameObject);
@@ -84,14 +95,100 @@ public class FollowerDefinitions : IDefinition{
                 UnityEngine.Debug.LogWarning($"[CheatMenu] Error clearing recruits: {ex.Message}");
             }
 
-            FollowerInfo info = FollowerInfo.NewCharacter(FollowerLocation.Base);
-            info.Age = 0;
+            // Create simple recruit first (like SpawnArrivedFollower does)
             Vector3 spawnPos = GetFollowerSpawnPosition();
-            FollowerRecruit recruit = FollowerManager.CreateNewRecruit(info, spawnPos);
-            CultUtils.PlayNotification(recruit != null ? "Child follower arrived for indoctrination!" : "Child recruit created (check circle)!");
+            FollowerRecruit recruit = FollowerManager.CreateNewRecruit(FollowerLocation.Base, spawnPos);
+            
+            // Now modify the recruit to be a child
+            if(recruit != null && recruit.Follower != null && recruit.Follower.Brain != null){
+                // Set BornInCult on the info
+                recruit.Follower.Brain._directInfoAccess.BornInCult = true;
+                
+                // Call MakeChild() to properly convert to a child (same as hatchery does)
+                // This sets Age = 1 and applies Thought.Child curse state
+                recruit.Follower.Brain.MakeChild();
+                FollowerBrain.SetFollowerCostume(recruit.Follower.Spine.Skeleton, recruit.Follower.Brain._directInfoAccess, false, true, true);
+                recruit.Follower.Spine.transform.localScale = Vector3.one * 0.65f;
+            }
+            
+            CultUtils.PlayNotification(recruit != null ? "Child follower hatched and arrived for indoctrination!" : "Child recruit created (check circle)!");
+            
+            // Reset flag after delay using coroutine (same pattern as SpawnFollowerWithSkin)
+            PlayerFarming.Instance.StartCoroutine(ResetSpawnFlagDelayed(3f));
         } catch(Exception e){
             Debug.LogWarning($"Failed to spawn child: {e.Message}");
             CultUtils.PlayNotification("Failed to spawn child!");
+            CultUtils.IsSpawningFollowerFromCheat = false;
+        }
+    }
+
+    [CheatDetails("Spawn Golden Egg Child", "Spawns a golden egg child follower with special skin (Seal/Lemur/Caterpillar) and extra traits", subGroup: "Spawn")]
+    public static void SpawnGoldenEggChild(){
+        try {
+            if(PlayerFarming.Instance == null){
+                CultUtils.PlayNotification("Must be in game to spawn followers!");
+                return;
+            }
+
+            // Set flag to prevent game from auto-spawning more recruits during recruitment
+            CultUtils.IsSpawningFollowerFromCheat = true;
+
+            // FIX: Clear any existing recruits first to prevent duplicate spawn bug
+            try {
+                int existingRecruits = DataManager.Instance.Followers_Recruit.Count;
+                if(existingRecruits > 0){
+                    UnityEngine.Debug.Log($"[CheatMenu] Clearing {existingRecruits} existing recruits before spawning");
+                    DataManager.Instance.Followers_Recruit.Clear();
+                    foreach(var existingRecruit in UnityEngine.Object.FindObjectsOfType<FollowerRecruit>()){
+                        UnityEngine.Object.Destroy(existingRecruit.gameObject);
+                    }
+                }
+            } catch(Exception ex){
+                UnityEngine.Debug.LogWarning($"[CheatMenu] Error clearing recruits: {ex.Message}");
+            }
+
+            // Golden egg children have special skins: Seal, Lemur, Caterpillar
+            string[] goldenSkins = new string[] { "Seal", "Lemur", "Caterpillar" };
+            string selectedSkin = goldenSkins[UnityEngine.Random.Range(0, goldenSkins.Length)];
+            
+            // Create FollowerInfo with golden skin
+            FollowerInfo info = FollowerInfo.NewCharacter(FollowerLocation.Base, selectedSkin);
+            info.BornInCult = true;
+            DataManager.SetFollowerSkinUnlocked(selectedSkin);
+            
+            // Add extra traits for golden egg children AFTER the brain is created
+            // We don't set TraitsSet here - let the brain generate base traits first, then add more
+            
+            Vector3 spawnPos = GetFollowerSpawnPosition();
+            FollowerRecruit recruit = FollowerManager.CreateNewRecruit(info, spawnPos);
+            
+            // Now modify the recruit to be a golden child
+            if(recruit != null && recruit.Follower != null && recruit.Follower.Brain != null){
+                // Set BornInCult
+                recruit.Follower.Brain._directInfoAccess.BornInCult = true;
+                
+                // Add extra bonus traits for golden egg (3-4 total vs normal 2-3)
+                // The brain already generated 2-3 traits, add 1-2 more
+                recruit.Follower.Brain._directInfoAccess.Traits.Add(FollowerTrait.GetStartingTrait());
+                if(UnityEngine.Random.value <= 0.5f){
+                    recruit.Follower.Brain._directInfoAccess.Traits.Add(FollowerTrait.GetStartingTrait());
+                }
+                recruit.Follower.Brain._directInfoAccess.TraitsSet = true;
+                
+                // Call MakeChild() to properly convert to a child
+                recruit.Follower.Brain.MakeChild();
+                FollowerBrain.SetFollowerCostume(recruit.Follower.Spine.Skeleton, recruit.Follower.Brain._directInfoAccess, false, true, true);
+                recruit.Follower.Spine.transform.localScale = Vector3.one * 0.65f;
+            }
+            
+            CultUtils.PlayNotification(recruit != null ? $"Golden egg child ({selectedSkin}) hatched with extra traits!" : "Golden child recruit created!");
+            
+            // Reset flag after delay using coroutine (same pattern as SpawnFollowerWithSkin)
+            PlayerFarming.Instance.StartCoroutine(ResetSpawnFlagDelayed(3f));
+        } catch(Exception e){
+            Debug.LogWarning($"Failed to spawn golden child: {e.Message}");
+            CultUtils.PlayNotification("Failed to spawn golden child!");
+            CultUtils.IsSpawningFollowerFromCheat = false;
         }
     }
 

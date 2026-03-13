@@ -11,9 +11,19 @@ public class CompanionDefinitions : IDefinition{
         CultUtils.SpawnFriendlyWolf();
     }
 
+    [CheatDetails("Change Wolf Skin", "Change your friendly wolf's skin (cycles through available skins)")]
+    public static void ChangeWolfSkin(){
+        CultUtils.ChangeWolfSkin();
+    }
+
     [CheatDetails("Dismiss Wolf", "Dismisses your friendly wolf or clears all spawned wolves")]
     public static void DismissFriendlyWolf(){
         CultUtils.DismissFriendlyWolf();
+    }
+
+    [CheatDetails("Dismiss All Companions", "Dismisses all spawned companion followers")]
+    public static void DismissAllCompanions(){
+        CultUtils.DismissAllCompanions();
     }
 
     [CheatDetails("Pet Wolf", "Pet your friendly wolf!")]

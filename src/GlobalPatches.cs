@@ -4,6 +4,8 @@ using System.Reflection;
 using HarmonyLib;
 using Spine;
 using UnityEngine;
+using System.Reflection.Emit;
+using System.Linq;
 
 namespace CheatMenu;
 
@@ -21,6 +23,62 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
             return false; // Don't run the original method
         }
         return true; // Run the original method
+    }
+
+    /// <summary>
+    /// Patches SkeletonAnimationLODGlobalManager.Update to prevent NullReferenceException spam.
+    /// The game can throw NRE when:
+    /// 1. DynamicResolutionManager._fps is accessed before initialization (can be Infinity)
+    /// 2. CameraFollowTarget.Instance becomes null between check and use
+    /// 3. The skeletons dictionary is accessed before initialization
+    /// </summary>
+    public static bool Prefix_SkeletonAnimationLODGlobalManager_Update(SkeletonAnimationLODGlobalManager __instance)
+    {
+        try
+        {
+            // Check if instance is null
+            if (__instance == null)
+            {
+                return false;
+            }
+            
+            // Use reflection to access the private 'skeletons' field safely
+            var skeletonsField = typeof(SkeletonAnimationLODGlobalManager).GetField("skeletons", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (skeletonsField == null)
+            {
+                return false;
+            }
+            
+            var skeletons = skeletonsField.GetValue(__instance) as Dictionary<Transform, SkeletonAnimationLODManager>;
+            
+            // If skeletons is null or empty, skip the update logic
+            if (skeletons == null || skeletons.Count == 0)
+            {
+                return false;
+            }
+            
+            // Check if CameraFollowTarget.Instance is available
+            var cameraFollowTargetType = Type.GetType("CameraFollowTarget, Assembly-CSharp");
+            if (cameraFollowTargetType != null)
+            {
+                var instanceProp = cameraFollowTargetType.GetProperty("Instance");
+                if (instanceProp != null)
+                {
+                    var instance = instanceProp.GetValue(null);
+                    if (instance == null)
+                    {
+                        return false;
+                    }
+                }
+            }
+            
+            return true; // Run original method
+        }
+        catch (Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] SkeletonAnimationLODGlobalManager.Update patch error: {ex.Message}");
+            return false; // Skip original on error
+        }
     }
 
     /// <summary>
@@ -138,6 +196,20 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
        } catch(Exception e) {
            UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnExistingRecruits patch not applied: {e.Message}");
        }
+
+       // Patch SkeletonAnimationLODGlobalManager.Update to prevent NullReferenceException spam
+       try {
+           MethodInfo skeletonLODPatch = typeof(GlobalPatches).GetMethod("Prefix_SkeletonAnimationLODGlobalManager_Update", BindingFlags.Static | BindingFlags.Public);
+           Type skeletonLODType = Type.GetType("SkeletonAnimationLODGlobalManager, Assembly-CSharp");
+           if (skeletonLODType != null) {
+               string patchResult = ReflectionHelper.PatchMethodPrefix(skeletonLODType, "Update", skeletonLODPatch, BindingFlags.Instance | BindingFlags.Public, silent: true);
+               if(patchResult != null) {
+                   UnityEngine.Debug.Log("[CheatMenu] SkeletonAnimationLODGlobalManager.Update successfully patched (NRE fix)");
+               }
+           }
+       } catch(Exception e) {
+           UnityEngine.Debug.LogWarning($"[CheatMenu] SkeletonAnimationLODGlobalManager.Update patch not applied: {e.Message}");
+       }
     }
 
     [Unload]
@@ -154,6 +226,18 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
         ReflectionHelper.UnpatchTracked(typeof(BlunderAmmo), "UseAmmo");
         ReflectionHelper.UnpatchTracked(typeof(PlayerArrows), "RestockArrow");
         ReflectionHelper.UnpatchTracked(typeof(MiniMap), "OnBiomeGenerated");
+        ReflectionHelper.UnpatchTracked(typeof(FollowerManager), "SpawnExistingRecruits");
+        
+        // Unpatch SkeletonAnimationLODGlobalManager.Update
+        try {
+            Type skeletonLODType = Type.GetType("SkeletonAnimationLODGlobalManager, Assembly-CSharp");
+            if (skeletonLODType != null) {
+                ReflectionHelper.UnpatchTracked(skeletonLODType, "Update");
+            }
+        } catch { }
+        
+        // Clear the fixed follower IDs set to prevent memory leak on new game load
+        s_fixedFollowerIds.Clear();
     }
 
     //If because of our mod we try to active both sides of a pair of a ritual we want

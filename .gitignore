@@ -38,3 +38,9 @@ Thumbs.db
 # NuGet packages
 *.nupkg
 packages/
+
+# Kilo Code mode configs
+.kilocodemodes
+
+# Project plans/planning docs
+plans/

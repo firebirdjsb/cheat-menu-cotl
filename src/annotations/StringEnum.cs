@@ -2,14 +2,16 @@ using System;
 
 namespace CheatMenu;
 
-public class StringEnum : Attribute {
-    private readonly string _value;
+/// <summary>
+/// Attribute for marking enum values with string representations.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+public class StringEnum : Attribute
+{
+    public string Value { get; }
 
-    public StringEnum(string value){
-        this._value = value;
-    }
-
-    public virtual string Value {
-        get { return _value; }
+    public StringEnum(string value)
+    {
+        Value = value;
     }
 }

@@ -2,4 +2,9 @@ using System;
 
 namespace CheatMenu;
 
-public class CheatWIP : Attribute {}
+/// <summary>
+/// Attribute to mark cheat methods as Work In Progress.
+/// WIP cheats are hidden in release builds.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method)]
+public class CheatWIP : Attribute { }

@@ -4,10 +4,21 @@ using HarmonyLib;
 
 namespace CheatMenu;
 
+/// <summary>
+/// Definition class containing cheats for giving resources and items.
+/// Provides cheat methods for adding various item types to player inventory.
+/// </summary>
+/// <remarks>
+/// Uses a slider-controlled quantity system (ItemSpawnQty) for flexible item amounts.
+/// Most DLC-specific items are gated behind ownership checks.
+/// </remarks>
 [CheatCategory(CheatCategoryEnum.RESOURCE)]
 public class ResourceDefinitions : IDefinition{
 
     // Controlled by the Item Qty slider in the Resources category menu
+    /// <summary>
+    /// Quantity multiplier for item spawn cheats. Controlled by UI slider.
+    /// </summary>
     public static int ItemSpawnQty = 1;
 
     [CheatDetails("Give Resources", "Gives 100 of the main primary resources (Woolhaven DLC resources require ownership)", subGroup: "Currency")]
@@ -32,7 +43,7 @@ public class ResourceDefinitions : IDefinition{
 
     [CheatDetails("Give Commandment Stone", "Gives a Commandment Stone", subGroup: "Currency")]
     public static void GiveCommandmentStone(){
-        CultUtils.GiveDocterineStone();
+        CultUtils.GiveDoctrineStone();
     }
 
     [CheatDetails("Give Monster Heart", "Gives hearts of the heretic (qty controlled by slider)", subGroup: "Gifts & More")]

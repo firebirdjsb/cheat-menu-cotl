@@ -392,7 +392,7 @@ private static readonly int MENU_HEIGHT = 400;
                     // Provide immediate feedback to the user
                     CultUtils.PlayNotification("Running unlock sequence...");
                     // Call the global unlock helper on the Combat/QoL definitions
-                    CombatDefinitions.UnlockAbsolutelyEverything();
+                    QolDefinitions.UnlockAbsolutelyEverything();
                     // Final notification is also emitted by the unlock method, but ensure at least one
                     CultUtils.PlayNotification("Unlock command executed");
                 } catch(Exception e) {

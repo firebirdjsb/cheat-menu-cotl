@@ -1,6 +1,9 @@
 using System;
+
 namespace CheatMenu;
 
-public class CheatFlag : Attribute {
-    public CheatFlag(){}
-}
+/// <summary>
+/// Attribute to mark methods that work with flags/toggles.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method)]
+public class CheatFlag : Attribute { }

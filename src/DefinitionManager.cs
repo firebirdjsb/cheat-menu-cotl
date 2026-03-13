@@ -5,7 +5,21 @@ using System.Reflection.Emit;
 
 namespace CheatMenu;
 
+/// <summary>
+/// Manages discovery and organization of cheat definitions.
+/// Provides methods to scan assemblies for cheat methods and organize them for the UI.
+/// </summary>
+/// <remarks>
+/// Uses reflection to discover all methods marked with [CheatDetails] attribute
+/// and creates Definition wrappers. Also handles grouping by category and sub-group.
+/// Uses IL generation to build efficient GUI rendering delegates.
+/// </remarks>
 public static class DefinitionManager{
+    /// <summary>
+    /// Discovers all cheat methods in the assembly using reflection.
+    /// Scans all IDefinition-implementing classes for methods with CheatDetails attribute.
+    /// </summary>
+    /// <returns>List of all discovered cheat definitions.</returns>
     public static List<Definition> GetAllCheatMethods(){
         List<Definition> methodsRet = new();
         
@@ -25,6 +39,9 @@ public static class DefinitionManager{
         return methodsRet;
     }
 
+    /// <summary>
+    /// Creates a dictionary mapping method names to their definitions.
+    /// </summary>
     public static Dictionary<string, Definition> CheatFunctionToDetails(List<Definition> allCheats){
         Dictionary<string, Definition> cheatFunctionToDetails = new();
 
@@ -38,6 +55,9 @@ public static class DefinitionManager{
         return cheatFunctionToDetails;
     }
 
+    /// <summary>
+    /// Groups cheats by their category enum.
+    /// </summary>
     public static Dictionary<CheatCategoryEnum, List<Definition>> GroupCheatsByCategory(List<Definition> allCheats){
         Dictionary<CheatCategoryEnum, List<Definition>> categoryCheats = new();
 
@@ -62,6 +82,10 @@ public static class DefinitionManager{
         return categoryCheats;
     }
 
+    /// <summary>
+    /// Builds an optimized IL-generated delegate for rendering GUI content.
+    /// Uses DynamicMethod to generate efficient GUI rendering code at runtime.
+    /// </summary>
     public static Action BuildGUIContentFn(){
         DynamicMethod guiContentMethod = new("", typeof(void), new Type[]{});
 
