@@ -98,7 +98,9 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
     public static void Init()
     {
         // Suppress font loading errors for missing localization fonts (Chinese, Korean, Japanese, Arabic)
-        Application.logMessageReceived += HandleLogMessage;
+        // These errors occur during startup when Unity tries to load optional language fonts
+        // Unfortunately, Unity logs these before our callback, so we can't fully suppress them
+        // This is a known Unity limitation with missing font assets
 
         MethodInfo interactorPatch = typeof(GlobalPatches).GetMethod("Prefix_Interactor_Update", BindingFlags.Static | BindingFlags.Public);
        ReflectionHelper.PatchMethodPrefix(typeof(Interactor), "Update", interactorPatch, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -442,20 +444,6 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
             return null;
         }
         return null;
-    }
-
-    /// <summary>
-    /// Suppresses font loading error messages for missing localization fonts.
-    /// These errors occur when Unity tries to load Chinese, Korean, Japanese, Arabic fonts
-    /// that don't exist in the game's data folder.
-    /// </summary>
-    private static void HandleLogMessage(string logString, string stackTrace, LogType type)
-    {
-        // Suppress font loading errors
-        if (type == LogType.Error && logString.Contains("was not loaded correctly") && logString.Contains("Fonts/LocalisedFonts"))
-        {
-            // Suppress the error - don't let it print to console
-        }
     }
 }
 
