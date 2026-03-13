@@ -2,6 +2,50 @@
 
 All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in this file.
 
+## [1.3.6] - 2026 (Combat Equipment Update)
+
+### ⚔️ Real-Time Combat Equipment
+- **New Combat Equipment System** — change weapons, relics, curses, and tarot cards while in a dungeon
+- Added weapon selector with Next/Prev cycling
+- Added relic selector with Next/Prev cycling
+- Added curse/power-up selector with Next/Prev cycling
+- All equipment swapping works in real-time during dungeons
+
+### 📊 Level Sliders
+- **Weapon Level Slider (1-99)** — adjust weapon level with slider, press Apply to set
+- **Curse Level Slider (1-99)** — adjust curse level with slider, press Apply to set
+- Sliders appear inside their respective submenus (Weapon, Curse)
+- Controller-compatible with right stick navigation
+
+### 🃏 Complete Tarot Card Selection
+- **Added ALL tarot cards** — over 80 individual cards to choose from
+- No more random cards — pick exactly what you want
+- Cards organized by category:
+  - Health & Hearts (Hearts1-3, Lovers1-2, Sun, Moon, etc.)
+  - Stats & Boosts (Movement Speed, Attack Rate, Damage, etc.)
+  - Special Effects (Death's Door, The Deal, Telescope, etc.)
+  - Bombs & Traps (Bomb On Roll, Goop, Poison, etc.)
+  - Resources & Cooldowns (Black Soul, Ammo, etc.)
+  - Immunity & Movement (Trap Immunity, Walk Through Blocks, etc.)
+  - Boss & Special
+  - Corrupted Cards (all 9 corrupted tarots)
+  - Weapon & Curse Tarots (Sword, Dagger, Fireball, etc.)
+  - Co-op & DLC cards
+  - Mutated & Special DLC cards
+- **Fixed Clear All Tarot** — now properly removes all tarot cards
+
+### 💰 Currency
+- **Verified Sin Currency (Black Souls/Pleasure Points) NOT DLC blocked** — works without DLC
+
+### 🏗️ Menu Reorganization
+- Combat menu restructured with submenus:
+  - Combat > Combat > Weapon (Next/Prev, Apply, Slider)
+  - Combat > Combat > Relic (Next/Prev)
+  - Combat > Combat > Curse (Next/Prev, Apply, Slider)
+  - Combat > Tarot (all cards + Clear All)
+
+---
+
 ## [1.3.5] - 2026 (Wolf Companion & Halo Update)
 
 ### 🐺 Wolf Companion Overhaul

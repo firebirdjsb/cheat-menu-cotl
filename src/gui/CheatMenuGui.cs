@@ -404,6 +404,82 @@ private static readonly int MENU_HEIGHT = 400;
             TotalWindowCalculatedHeight += buttonHeight + spacing;
         }
 
+        // Combat level sliders — shown inside Weapon or Curse subGroups
+        if(CurrentCategory == CheatCategoryEnum.COMBAT && CurrentSubGroup != null){
+            int sliderH = 28;
+            int spacing = GUIUtils.GetButtonSpacing();
+            int sliderWidth = 140;
+
+            // Controller: left/right on right stick adjusts level with acceleration
+            if(CheatConfig.Instance.ControllerSupport.Value){
+                int navH = RewiredInputHelper.GetNavigationHorizontal();
+                if(navH != 0){
+                    s_sliderHoldTime += Time.unscaledDeltaTime;
+                    float accel = s_sliderHoldTime < 0.4f ? 1f : s_sliderHoldTime < 1.0f ? 5f : 20f;
+                    s_sliderAccum += accel * Time.unscaledDeltaTime * 15f;
+                    int steps = Mathf.FloorToInt(s_sliderAccum);
+                    if(steps > 0){
+                        s_sliderAccum -= steps;
+                        if(CurrentSubGroup == "Weapon"){
+                            CombatEquipmentDefinitions.WeaponLevelSliderValue = Mathf.Clamp(CombatEquipmentDefinitions.WeaponLevelSliderValue + steps * navH, 1, 99);
+                        } else if(CurrentSubGroup == "Curse"){
+                            CombatEquipmentDefinitions.CurseLevelSliderValue = Mathf.Clamp(CombatEquipmentDefinitions.CurseLevelSliderValue + steps * navH, 1, 99);
+                        }
+                    }
+                } else {
+                    s_sliderHoldTime = 0f;
+                    s_sliderAccum = 0f;
+                }
+            }
+
+            if(CurrentSubGroup == "Weapon"){
+                // Weapon Level Slider
+                GUIStyle wStyle = new GUIStyle(GUIUtils.GetGUILabelStyle(MENU_WIDTH, 0.85f));
+                wStyle.alignment = TextAnchor.MiddleLeft;
+                wStyle.fontSize = 12;
+                GUI.Label(new Rect(5, CurrentButtonY, 60, sliderH), "Wpn Lv:", wStyle);
+
+                float wRawVal = GUI.HorizontalSlider(
+                    new Rect(65, CurrentButtonY + 9, sliderWidth, 14),
+                    (float)CombatEquipmentDefinitions.WeaponLevelSliderValue,
+                    1f,
+                    99f
+                );
+                CombatEquipmentDefinitions.WeaponLevelSliderValue = Mathf.RoundToInt(Mathf.Clamp(wRawVal, 1f, 99f));
+
+                GUIStyle wNumStyle = new GUIStyle(GUIUtils.GetGUILabelStyle(MENU_WIDTH, 0.85f));
+                wNumStyle.alignment = TextAnchor.MiddleLeft;
+                wNumStyle.fontSize = 12;
+                GUI.Label(new Rect(65 + sliderWidth + 2, CurrentButtonY, 30, sliderH), CombatEquipmentDefinitions.WeaponLevelSliderValue.ToString(), wNumStyle);
+
+                TotalWindowCalculatedHeight += sliderH + spacing;
+                CurrentButtonY += sliderH + spacing;
+            }
+            else if(CurrentSubGroup == "Curse"){
+                // Curse Level Slider
+                GUIStyle cStyle = new GUIStyle(GUIUtils.GetGUILabelStyle(MENU_WIDTH, 0.85f));
+                cStyle.alignment = TextAnchor.MiddleLeft;
+                cStyle.fontSize = 12;
+                GUI.Label(new Rect(5, CurrentButtonY, 60, sliderH), "Curse Lv:", cStyle);
+
+                float cRawVal = GUI.HorizontalSlider(
+                    new Rect(65, CurrentButtonY + 9, sliderWidth, 14),
+                    (float)CombatEquipmentDefinitions.CurseLevelSliderValue,
+                    1f,
+                    99f
+                );
+                CombatEquipmentDefinitions.CurseLevelSliderValue = Mathf.RoundToInt(Mathf.Clamp(cRawVal, 1f, 99f));
+
+                GUIStyle cNumStyle = new GUIStyle(GUIUtils.GetGUILabelStyle(MENU_WIDTH, 0.85f));
+                cNumStyle.alignment = TextAnchor.MiddleLeft;
+                cNumStyle.fontSize = 12;
+                GUI.Label(new Rect(65 + sliderWidth + 2, CurrentButtonY, 30, sliderH), CombatEquipmentDefinitions.CurseLevelSliderValue.ToString(), cNumStyle);
+
+                TotalWindowCalculatedHeight += sliderH + spacing;
+                CurrentButtonY += sliderH + spacing;
+            }
+        }
+
         // Item quantity slider — shown at the top of the Resources category
         if(CurrentCategory == CheatCategoryEnum.RESOURCE){
             int sliderH = 28;

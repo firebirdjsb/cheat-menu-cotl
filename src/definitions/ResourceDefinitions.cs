@@ -46,6 +46,12 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.GiveDoctrineStone();
     }
 
+    [CheatDetails("Give Forgotten Commandment Stone", "Gives a Forgotten Commandment Stone (Crystal Doctrine Stone)", subGroup: "Currency")]
+    public static void GiveForgottenCommandmentStone(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.CRYSTAL_DOCTRINE_STONE, ItemSpawnQty);
+        CultUtils.PlayNotification($"{ItemSpawnQty}x Forgotten Commandment Stones added!");
+    }
+
     [CheatDetails("Give Monster Heart", "Gives hearts of the heretic (qty controlled by slider)", subGroup: "Gifts & More")]
     public static void GiveMonsterHeart(){
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.MONSTER_HEART, ItemSpawnQty);
@@ -300,6 +306,17 @@ public class ResourceDefinitions : IDefinition{
         } catch(Exception e){
             Debug.LogWarning($"[CheatMenu] GiveBlackSouls error: {e.Message}");
             CultUtils.PlayNotification("Failed to add black souls!");
+        }
+    }
+
+    [CheatDetails("Give Pleasure Points", "Gives qty pleasure points (sin currency, qty controlled by slider)", subGroup: "Currency")]
+    public static void GivePleasurePoints(){
+        try {
+            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.PLEASURE_POINT, ItemSpawnQty);
+            CultUtils.PlayNotification($"{ItemSpawnQty} pleasure points added!");
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] GivePleasurePoints error: {e.Message}");
+            CultUtils.PlayNotification("Failed to add pleasure points!");
         }
     }
 
