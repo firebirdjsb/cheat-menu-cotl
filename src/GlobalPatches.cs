@@ -202,7 +202,7 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
            MethodInfo skeletonLODPatch = typeof(GlobalPatches).GetMethod("Prefix_SkeletonAnimationLODGlobalManager_Update", BindingFlags.Static | BindingFlags.Public);
            Type skeletonLODType = Type.GetType("SkeletonAnimationLODGlobalManager, Assembly-CSharp");
            if (skeletonLODType != null) {
-               string patchResult = ReflectionHelper.PatchMethodPrefix(skeletonLODType, "Update", skeletonLODPatch, BindingFlags.Instance | BindingFlags.Public, silent: true);
+               string patchResult = ReflectionHelper.PatchMethodPrefix(skeletonLODType, "Update", skeletonLODPatch, BindingFlags.Instance | BindingFlags.NonPublic, silent: true);
                if(patchResult != null) {
                    UnityEngine.Debug.Log("[CheatMenu] SkeletonAnimationLODGlobalManager.Update successfully patched (NRE fix)");
                }
