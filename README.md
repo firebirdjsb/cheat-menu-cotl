@@ -1,5 +1,5 @@
 # 🍇 Cheat Menu for Cult of the Lamb
-
+  (this was made with the help of AI)
 > **v1.3.6** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
