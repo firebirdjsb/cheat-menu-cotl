@@ -12,21 +12,13 @@
 - **Menu Restructuring** — Resources menu reorganized for better usability
 - **Clear Inventory** — Now accessible at top-level Resources menu (under back button)
 - **Give Resources** — Moved from Currency to Materials subGroup
-- **Deleted some unused cheats**
+- **Save Editor** — Full in-game save file editor with follower, player, cult, inventory, and game state editing
+- **Real-time Combat Equipment** — Change weapon, relic, and curse while in dungeons!
+- **Weapon Level Slider** — Adjust weapon level from 1-99 in real-time
+- **Curse Level Slider** — Adjust curse/ability level from 1-99 in real-time
+- **Complete Tarot Selection** — Select any tarot card from all 80+ available cards
 
 ---
-## ✨ What's New (v1.3.7)
-
- **Save Editor** — password LOCKED in-game save file editor with follower, player, cult, inventory, and game state editing 
-## [1.3.7] - 2026 (Woolhaven Gate & Quest Clothing Fix)
-
-### 🐛 Bug Fixes
-- **Fixed "Set Buried Fleeces"** — The cheat now properly removes special wool items (SPECIAL_WOOL_RANCHER, SPECIAL_WOOL_LAMBWAR, SPECIAL_WOOL_BLACKSMITH, SPECIAL_WOOL_TAROT, SPECIAL_WOOL_DECORATION) from inventory in addition to setting the NPC rescue flags. This fixes the Woolhaven gate not opening after using the cheat.
-
-### ⚠️ Clothing Bug Fixes
-- **Fixed "Unlock All Clothing" / "Give All Clothing"** — These cheats now skip quest-specific clothing types that are given by NPCs during gameplay. Unlocking these early can cause softlocks when the game tries to give them through quest progression.
-- **Excluded Quest Clothing:** Special_1-7, Normal_MajorDLC_1/3/6, Winter_1-6, Apple_1-2
-- **Added "Fix Quest Clothing Bug"** — New cheat to fix affected saves by removing quest-specific clothing from the unlocked list. Players whose games are stuck can run this cheat and reload their save to fix the softlock.
 
 ## 🚀 Quick Start
 
