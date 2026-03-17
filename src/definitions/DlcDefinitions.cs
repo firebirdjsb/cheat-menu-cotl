@@ -1,6 +1,7 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace CheatMenu;
@@ -178,16 +179,68 @@ public class DlcDefinitions : IDefinition{
         CultUtils.PlayNotification("Story collectibles added!");
     }
 
-    [CheatDetails("Reset DLC Dungeon", "Resets the DLC dungeon map progress (Major DLC required)")]
+    [CheatDetails("Set Buried Fleeces", "Sets all buried fleece flags and removes special wool from inventory (fixes Woolhaven gate)")]
     [RequiresDLC(DlcRequirement.MajorDLC)]
-    public static void ResetDlcMap(){
+    public static void SetBuriedFleeces(){
         if(!HasMajorDLC()){ CultUtils.PlayNotification("Requires Major DLC!"); return; }
         try {
-            DataManager.Instance.DLCDungeonNodesCompleted.Clear();
-            CultUtils.PlayNotification("DLC dungeon progress reset!");
+            int setCount = 0;
+            int removedCount = 0;
+            
+            // Set the NPC rescue flags - this is what the game checks for buried fleeces
+            // The wool items should not be in inventory (buried), and these flags indicate rescue
+            
+            // Rancher
+            DataManager.Instance.NPCGhostRancherRescued = true;
+            setCount++;
+            
+            // Flockade (LambWar)
+            DataManager.Instance.NPCGhostFlockadeRescued = true;
+            setCount++;
+            
+            // Tarot
+            DataManager.Instance.NPCGhostTarotRescued = true;
+            setCount++;
+            
+            // Blacksmith
+            DataManager.Instance.NPCGhostBlacksmithRescued = true;
+            setCount++;
+            
+            // Deco (Decoration)
+            DataManager.Instance.NPCGhostDecoRescued = true;
+            setCount++;
+            
+            // Graveyard
+            DataManager.Instance.NPCGhostGraveyardRescued = true;
+            setCount++;
+            
+            // Remove special wool items from inventory (these are the "buried" wools)
+            // The game checks that these are NOT in inventory to consider them "buried"
+            var inventory = Inventory.items;
+            if(inventory != null){
+                // Count items before removal
+                int rancherWool = inventory.FindAll(i => i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_RANCHER).Count;
+                int lambwarWool = inventory.FindAll(i => i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_LAMBWAR).Count;
+                int blacksmithWool = inventory.FindAll(i => i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_BLACKSMITH).Count;
+                int tarotWool = inventory.FindAll(i => i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_TAROT).Count;
+                int decoWool = inventory.FindAll(i => i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_DECORATION).Count;
+                
+                removedCount = rancherWool + lambwarWool + blacksmithWool + tarotWool + decoWool;
+                
+                // Remove all special wool items
+                inventory.RemoveAll(i => 
+                    i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_RANCHER ||
+                    i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_LAMBWAR ||
+                    i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_BLACKSMITH ||
+                    i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_TAROT ||
+                    i.type == (int)InventoryItem.ITEM_TYPE.SPECIAL_WOOL_DECORATION
+                );
+            }
+            
+            CultUtils.PlayNotification($"Set {setCount} fleece flags, removed {removedCount} wool item(s)!");
         } catch(Exception e){
-            Debug.LogWarning($"Failed to reset DLC map: {e.Message}");
-            CultUtils.PlayNotification("Failed to reset DLC map!");
+            Debug.LogWarning($"[CheatMenu] Failed to set buried fleeces: {e.Message}");
+            CultUtils.PlayNotification("Failed to set buried fleeces!");
         }
     }
 
@@ -236,13 +289,96 @@ public class DlcDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Finish All Missions", "Instantly completes all follower missionary tasks (Major DLC required)")]
+    [CheatDetails("Finish All Missions", "Instantly completes all follower missionary tasks and sets all mission flags (Major DLC required)")]
     [RequiresDLC(DlcRequirement.MajorDLC)]
     public static void FinishAllMissions(){
         if(!HasMajorDLC()){ CultUtils.PlayNotification("Requires Major DLC!"); return; }
+        int completed = 0;
+        bool hasMajor = HasMajorDLC();
+        bool hasSinful = HasSinfulDLC();
+        bool hasCultist = HasCultistDLC();
+        bool hasHeretic = HasHereticDLC();
+        bool hasPilgrim = HasPilgrimDLC();
+        
         try {
-            Traverse.Create(typeof(CheatConsole)).Method("FinishAllMissions").GetValue();
-            CultUtils.PlayNotification("All missions completed!");
+            // Try the built-in cheat console method first
+            try {
+                Traverse.Create(typeof(CheatConsole)).Method("FinishAllMissions").GetValue();
+                completed++;
+            } catch { }
+            
+            // Try to find and complete all mission-related fields in DataManager
+            try {
+                var dmType = typeof(DataManager);
+                // Look for mission-related fields - only process if user has relevant DLC
+                foreach(var field in dmType.GetFields(BindingFlags.Instance | BindingFlags.Public)){
+                    string fieldName = field.Name;
+                    bool shouldProcess = false;
+                    
+                    // Check if this field is DLC-specific and if user has that DLC
+                    if(fieldName.Contains("Winter") || fieldName.Contains("Woolhaven") || fieldName.Contains("Major")){
+                        shouldProcess = hasMajor;
+                    } else if(fieldName.Contains("Sinful") || fieldName.Contains("Sin")){
+                        shouldProcess = hasSinful;
+                    } else if(fieldName.Contains("Cultist") || fieldName.Contains("Cult")){
+                        shouldProcess = hasCultist;
+                    } else if(fieldName.Contains("Heretic") || fieldName.Contains("Heretic")){
+                        shouldProcess = hasHeretic;
+                    } else if(fieldName.Contains("Pilgrim") || fieldName.Contains("Pilgrim")){
+                        shouldProcess = hasPilgrim;
+                    } else {
+                        // Not DLC-specific, process it
+                        shouldProcess = true;
+                    }
+                    
+                    if(!shouldProcess) continue;
+                    
+                    try {
+                        var val = field.GetValue(DataManager.Instance);
+                        // Check if it's a list/collection we can clear or mark complete
+                        if(val is System.Collections.IList list){
+                            list.Clear();
+                            completed++;
+                        } else if(val is bool boolVal){
+                            // If it's a bool that can be set to true
+                            if(fieldName.Contains("Completed") || fieldName.Contains("Finished") || fieldName.Contains("Done")){
+                                field.SetValue(DataManager.Instance, true);
+                                completed++;
+                            }
+                        }
+                    } catch { }
+                }
+            } catch { }
+            
+            // Try to find and invoke mission manager
+            try {
+                Type missionMgrType = null;
+                foreach(var asm in AppDomain.CurrentDomain.GetAssemblies()){
+                    foreach(var type in asm.GetTypes()){
+                        if(type.Name != null && (type.Name.Contains("Mission") && type.Name.Contains("Manager"))){
+                            missionMgrType = type;
+                            break;
+                        }
+                    }
+                    if(missionMgrType != null) break;
+                }
+                if(missionMgrType != null){
+                    var instanceProp = missionMgrType.GetProperty("Instance");
+                    if(instanceProp != null){
+                        var mgr = instanceProp.GetValue(null);
+                        if(mgr != null){
+                            // Try CompleteAll or FinishAll methods
+                            foreach(var method in missionMgrType.GetMethods()){
+                                if(method.Name.Contains("Complete") || method.Name.Contains("Finish") || method.Name.Contains("Done")){
+                                    try { method.Invoke(mgr, null); completed++; } catch { }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch { }
+            
+            CultUtils.PlayNotification($"All missions processed! ({completed} actions)");
         } catch(Exception e){
             Debug.LogWarning($"Failed to finish missions: {e.Message}");
             CultUtils.PlayNotification("Failed to finish missions!");
@@ -274,6 +410,45 @@ public class DlcDefinitions : IDefinition{
         } catch(Exception e){
             Debug.LogWarning($"[CheatMenu] Failed to unlock winter mode: {e.Message}");
             CultUtils.PlayNotification("Failed to unlock winter mode!");
+        }
+    }
+
+    [CheatDetails("Unlock All Relics", "Unlocks all base game relics. If Major DLC is owned, also unlocks Woolhaven DLC relics.")]
+    public static void UnlockAllRelics(){
+        try {
+            bool hasDlc = HasMajorDLC();
+            int unlocked = 0;
+            int skippedDlc = 0;
+            
+            // Get all RelicType enum values
+            var relicTypes = Enum.GetValues(typeof(RelicType));
+            
+            foreach(RelicType relicType in relicTypes){
+                // Skip invalid/None relic type
+                if(relicType == RelicType.None) continue;
+                
+                // Check if this relic is DLC-specific
+                bool isDlcRelic = RelicData.GetRelicDLC(relicType);
+                
+                // If it's a DLC relic and player doesn't have the DLC, skip it
+                if(isDlcRelic && !hasDlc){
+                    skippedDlc++;
+                    continue;
+                }
+                
+                // Unlock the relic
+                DataManager.UnlockRelic(relicType);
+                unlocked++;
+            }
+            
+            string message = hasDlc 
+                ? $"Unlocked {unlocked} relic(s) (all base + DLC)!"
+                : $"Unlocked {unlocked} base relic(s)! {skippedDlc} DLC relic(s) skipped (requires Major DLC)";
+            
+            CultUtils.PlayNotification(message);
+        } catch(Exception e){
+            Debug.LogWarning($"[CheatMenu] Failed to unlock relics: {e.Message}");
+            CultUtils.PlayNotification("Failed to unlock relics!");
         }
     }
 

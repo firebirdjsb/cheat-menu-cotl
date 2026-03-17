@@ -93,6 +93,11 @@ public class QolDefinitions : IDefinition {
 
     [CheatDetails("Unlock All Fleeces", "Unlocks all fleece types that change crusade abilities (DLC fleeces require ownership)", subGroup: "Unlock")]
     public static void UnlockAllFleeces(){
+        // Must be in-game to unlock fleeces
+        if(!CultUtils.IsInGame()){
+            CultUtils.PlayNotification("This cheat only works in-game!");
+            return;
+        }
         try {
             int count = 0;
             bool hasHeretic = CultUtils.HasHereticDLC();
@@ -108,8 +113,12 @@ public class QolDefinitions : IDefinition {
                     if(!hasMajor && (typeName.Contains("DLC") || typeName.Contains("Dlc"))) continue;
                     UpgradeSystem.Type type = (UpgradeSystem.Type)upgradeType;
                     if(!UpgradeSystem.GetUnlocked(type)){
-                        UpgradeSystem.UnlockAbility(type, false);
-                        count++;
+                        try {
+                            UpgradeSystem.UnlockAbility(type, false);
+                            count++;
+                        } catch {
+                            // Skip if individual fleece fails - some may not be available
+                        }
                     }
                 }
             }
@@ -122,6 +131,11 @@ public class QolDefinitions : IDefinition {
 
     [CheatDetails("Unlock EVERYTHING", "Unlocks all upgrades, rituals, weapons, structures, tarot (respects DLC ownership)", subGroup: "Unlock")]
     public static void UnlockAbsolutelyEverything(){
+        // This cheat requires being in-game
+        if (!CultUtils.IsInGame()) {
+            CultUtils.PlayNotification("This cheat only works in-game!");
+            return;
+        }
         try {
             bool hasMajorDLC = CultUtils.HasMajorDLC();
             bool hasSinfulDLC = CultUtils.HasSinfulDLC();

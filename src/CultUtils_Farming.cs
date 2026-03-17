@@ -19,7 +19,6 @@ internal static partial class CultUtils {
     // -- RGB Halo Animation State ------------------------------------------------
     
     private static float s_hueOffset = 0f;
-    private static Coroutine s_haloCoroutine;
     // -- Animals & Ranching ----------------------------------------------------
 
     public static void ForceGrowAllAnimals(){
@@ -231,7 +230,6 @@ internal static partial class CultUtils {
             GameObject animHelper = new GameObject("HaloAnimationHelper");
             UnityEngine.Object.DontDestroyOnLoad(animHelper);
             HaloAnimator animator = animHelper.AddComponent<HaloAnimator>();
-            s_haloCoroutine = null;
             s_hueOffset = 0f;
             
             int count = 0;
@@ -387,7 +385,6 @@ internal static partial class CultUtils {
                 UnityEngine.Object.Destroy(helper.gameObject);
             }
         }
-        s_haloCoroutine = null;
         s_hueOffset = 0f;
     }
     

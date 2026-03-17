@@ -163,106 +163,91 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
            UnityEngine.Debug.LogWarning($"[CheatMenu] UpgradeSystem.UnlockAbility patch not applied (game version may have changed): {e.Message}");
        }
 
-       // Patch PlayerFarming.Bleat to suppress the in-game bahhh when R3 is used for the cheat menu
-       try {
-           MethodInfo bleatPatch = typeof(GlobalPatches).GetMethod("Prefix_PlayerFarming_Bleat", BindingFlags.Static | BindingFlags.Public);
-           string bleatResult = ReflectionHelper.PatchMethodPrefix(typeof(PlayerFarming), "Bleat", bleatPatch, BindingFlags.Instance | BindingFlags.NonPublic, silent: true);
-           if(bleatResult == null){
-               // Try public binding if private didn't work
-               bleatResult = ReflectionHelper.PatchMethodPrefix(typeof(PlayerFarming), "Bleat", bleatPatch, BindingFlags.Instance | BindingFlags.Public, silent: true);
-           }
-           if(bleatResult != null) {
-               UnityEngine.Debug.Log("[CheatMenu] PlayerFarming.Bleat successfully patched (R3 suppression)");
-           }
-       } catch(Exception e) {
-           UnityEngine.Debug.LogWarning($"[CheatMenu] PlayerFarming.Bleat patch not applied (game version may have changed): {e.Message}");
-       }
+        // Patch Follower.Init to add defensive skeleton validation before outfit application
+        try {
+            MethodInfo followerInitPatch = typeof(GlobalPatches).GetMethod("Prefix_Follower_Init", BindingFlags.Static | BindingFlags.Public);
+            Type[] initParams = new Type[] { typeof(FollowerBrain), typeof(FollowerOutfit) };
+            string initResult = ReflectionHelper.PatchMethodPrefix(typeof(Follower), "Init", followerInitPatch, BindingFlags.Instance | BindingFlags.Public, initParams, silent: true);
+            if(initResult != null) {
+                UnityEngine.Debug.Log("[CheatMenu] Follower.Init successfully patched (skeleton validation)");
+            }
+        } catch(Exception e) {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Init patch not applied: {e.Message}");
+        }
 
-       // Patch Follower.Init to add defensive skeleton validation before outfit application
-       try {
-           MethodInfo followerInitPatch = typeof(GlobalPatches).GetMethod("Prefix_Follower_Init", BindingFlags.Static | BindingFlags.Public);
-           Type[] initParams = new Type[] { typeof(FollowerBrain), typeof(FollowerOutfit) };
-           string initResult = ReflectionHelper.PatchMethodPrefix(typeof(Follower), "Init", followerInitPatch, BindingFlags.Instance | BindingFlags.Public, initParams, silent: true);
-           if(initResult != null) {
-               UnityEngine.Debug.Log("[CheatMenu] Follower.Init successfully patched (skeleton validation)");
-           }
-       } catch(Exception e) {
-           UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Init patch not applied: {e.Message}");
-       }
+        // Patch Interaction_WolfBase.Update to make friendly wolf follow player
+        try {
+            MethodInfo wolfUpdatePatch = typeof(GlobalPatches).GetMethod("Prefix_WolfBase_Update", BindingFlags.Static | BindingFlags.Public);
+            string wolfResult = ReflectionHelper.PatchMethodPrefix(typeof(Interaction_WolfBase), "Update", wolfUpdatePatch, BindingFlags.Instance | BindingFlags.NonPublic, silent: true);
+            if(wolfResult == null){
+                wolfResult = ReflectionHelper.PatchMethodPrefix(typeof(Interaction_WolfBase), "Update", wolfUpdatePatch, BindingFlags.Instance | BindingFlags.Public, silent: true);
+            }
+            if(wolfResult != null) {
+                UnityEngine.Debug.Log("[CheatMenu] Interaction_WolfBase.Update successfully patched (friendly wolf)");
+            }
+        } catch(Exception e) {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Interaction_WolfBase.Update patch not applied: {e.Message}");
+        }
 
-       // Patch Interaction_WolfBase.Update to make friendly wolf follow player
-       try {
-           MethodInfo wolfUpdatePatch = typeof(GlobalPatches).GetMethod("Prefix_WolfBase_Update", BindingFlags.Static | BindingFlags.Public);
-           string wolfResult = ReflectionHelper.PatchMethodPrefix(typeof(Interaction_WolfBase), "Update", wolfUpdatePatch, BindingFlags.Instance | BindingFlags.NonPublic, silent: true);
-           if(wolfResult == null){
-               wolfResult = ReflectionHelper.PatchMethodPrefix(typeof(Interaction_WolfBase), "Update", wolfUpdatePatch, BindingFlags.Instance | BindingFlags.Public, silent: true);
-           }
-           if(wolfResult != null) {
-               UnityEngine.Debug.Log("[CheatMenu] Interaction_WolfBase.Update successfully patched (friendly wolf)");
-           }
-       } catch(Exception e) {
-           UnityEngine.Debug.LogWarning($"[CheatMenu] Interaction_WolfBase.Update patch not applied: {e.Message}");
-       }
+        // Patch Spine.Skin.AddSkin to prevent NullReferenceException when FindSkin returns null
+        // This is the root cause - SetFollowerCostume calls AddSkin(FindSkin(...)) without null checks
+        try {
+            MethodInfo addSkinPatch = typeof(GlobalPatches).GetMethod("Prefix_Skin_AddSkin", BindingFlags.Static | BindingFlags.Public);
+            string addSkinResult = ReflectionHelper.PatchMethodPrefix(typeof(Spine.Skin), "AddSkin", addSkinPatch, BindingFlags.Instance | BindingFlags.Public, new Type[]{typeof(Spine.Skin)}, silent: true);
+            if(addSkinResult != null) {
+                UnityEngine.Debug.Log("[CheatMenu] Spine.Skin.AddSkin successfully patched (null safety)");
+            }
+        } catch(Exception e) {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Spine.Skin.AddSkin patch not applied: {e.Message}");
+        }
 
-       // Patch Spine.Skin.AddSkin to prevent NullReferenceException when FindSkin returns null
-       // This is the root cause - SetFollowerCostume calls AddSkin(FindSkin(...)) without null checks
-       try {
-           MethodInfo addSkinPatch = typeof(GlobalPatches).GetMethod("Prefix_Skin_AddSkin", BindingFlags.Static | BindingFlags.Public);
-           string addSkinResult = ReflectionHelper.PatchMethodPrefix(typeof(Spine.Skin), "AddSkin", addSkinPatch, BindingFlags.Instance | BindingFlags.Public, new Type[]{typeof(Spine.Skin)}, silent: true);
-           if(addSkinResult != null) {
-               UnityEngine.Debug.Log("[CheatMenu] Spine.Skin.AddSkin successfully patched (null safety)");
-           }
-       } catch(Exception e) {
-           UnityEngine.Debug.LogWarning($"[CheatMenu] Spine.Skin.AddSkin patch not applied: {e.Message}");
-       }
+        // Patch Follower.Init with a finalizer to properly handle crashes and prevent half-initialized followers
+        try {
+            MethodInfo initFinalizerPatch = typeof(GlobalPatches).GetMethod("Finalizer_Follower_Init", BindingFlags.Static | BindingFlags.Public);
+            Type[] initParams = new Type[] { typeof(FollowerBrain), typeof(FollowerOutfit) };
+            string finalizerResult = ReflectionHelper.PatchMethodFinalizer(typeof(Follower), "Init", initFinalizerPatch, BindingFlags.Instance | BindingFlags.Public, initParams, silent: true);
+            if(finalizerResult != null) {
+                UnityEngine.Debug.Log("[CheatMenu] Follower.Init finalizer successfully patched (crash recovery)");
+            }
+        } catch(Exception e) {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Init finalizer patch not applied: {e.Message}");
+        }
 
-       // Patch Follower.Init with a finalizer to properly handle crashes and prevent half-initialized followers
-       try {
-           MethodInfo initFinalizerPatch = typeof(GlobalPatches).GetMethod("Finalizer_Follower_Init", BindingFlags.Static | BindingFlags.Public);
-           Type[] initParams = new Type[] { typeof(FollowerBrain), typeof(FollowerOutfit) };
-           string finalizerResult = ReflectionHelper.PatchMethodFinalizer(typeof(Follower), "Init", initFinalizerPatch, BindingFlags.Instance | BindingFlags.Public, initParams, silent: true);
-           if(finalizerResult != null) {
-               UnityEngine.Debug.Log("[CheatMenu] Follower.Init finalizer successfully patched (crash recovery)");
-           }
-       } catch(Exception e) {
-           UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Init finalizer patch not applied: {e.Message}");
-       }
+        // Patch Follower.Tick to skip ticking when Outfit is null (prevents FollowerBrainInfo.get_Protection NRE spam)
+        try {
+            MethodInfo followerTickPatch = typeof(GlobalPatches).GetMethod("Prefix_Follower_Tick", BindingFlags.Static | BindingFlags.Public);
+            string tickResult = ReflectionHelper.PatchMethodPrefix(typeof(Follower), "Tick", followerTickPatch, BindingFlags.Instance | BindingFlags.Public, new Type[]{typeof(float)}, silent: true);
+            if(tickResult != null) {
+                UnityEngine.Debug.Log("[CheatMenu] Follower.Tick successfully patched (null Outfit guard)");
+            }
+        } catch(Exception e) {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Tick patch not applied: {e.Message}");
+        }
 
-       // Patch Follower.Tick to skip ticking when Outfit is null (prevents FollowerBrainInfo.get_Protection NRE spam)
-       try {
-           MethodInfo followerTickPatch = typeof(GlobalPatches).GetMethod("Prefix_Follower_Tick", BindingFlags.Static | BindingFlags.Public);
-           string tickResult = ReflectionHelper.PatchMethodPrefix(typeof(Follower), "Tick", followerTickPatch, BindingFlags.Instance | BindingFlags.Public, new Type[]{typeof(float)}, silent: true);
-           if(tickResult != null) {
-               UnityEngine.Debug.Log("[CheatMenu] Follower.Tick successfully patched (null Outfit guard)");
-           }
-       } catch(Exception e) {
-           UnityEngine.Debug.LogWarning($"[CheatMenu] Follower.Tick patch not applied: {e.Message}");
-       }
+        // Patch FollowerManager.SpawnExistingRecruits to prevent duplicate recruit spawning
+        try {
+            MethodInfo spawnPatch = typeof(GlobalPatches).GetMethod("Prefix_FollowerManager_SpawnExistingRecruits", BindingFlags.Static | BindingFlags.Public);
+            string spawnResult = ReflectionHelper.PatchMethodPrefix(typeof(FollowerManager), "SpawnExistingRecruits", spawnPatch, BindingFlags.Static | BindingFlags.Public, new Type[]{typeof(Vector3)}, silent: true);
+            if(spawnResult != null) {
+                UnityEngine.Debug.Log("[CheatMenu] Patched SpawnExistingRecruits");
+            }
+        } catch(Exception e) {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnExistingRecruits patch not applied: {e.Message}");
+        }
 
-       // Patch FollowerManager.SpawnExistingRecruits to prevent duplicate recruit spawning
-       try {
-           MethodInfo spawnPatch = typeof(GlobalPatches).GetMethod("Prefix_FollowerManager_SpawnExistingRecruits", BindingFlags.Static | BindingFlags.Public);
-           string spawnResult = ReflectionHelper.PatchMethodPrefix(typeof(FollowerManager), "SpawnExistingRecruits", spawnPatch, BindingFlags.Static | BindingFlags.Public, new Type[]{typeof(Vector3)}, silent: true);
-           if(spawnResult != null) {
-               UnityEngine.Debug.Log("[CheatMenu] Patched SpawnExistingRecruits");
-           }
-       } catch(Exception e) {
-           UnityEngine.Debug.LogWarning($"[CheatMenu] SpawnExistingRecruits patch not applied: {e.Message}");
-       }
-
-       // Patch SkeletonAnimationLODGlobalManager.Update to prevent NullReferenceException spam
-       try {
-           MethodInfo skeletonLODPatch = typeof(GlobalPatches).GetMethod("Prefix_SkeletonAnimationLODGlobalManager_Update", BindingFlags.Static | BindingFlags.Public);
-           Type skeletonLODType = Type.GetType("SkeletonAnimationLODGlobalManager, Assembly-CSharp");
-           if (skeletonLODType != null) {
-               string patchResult = ReflectionHelper.PatchMethodPrefix(skeletonLODType, "Update", skeletonLODPatch, BindingFlags.Instance | BindingFlags.NonPublic, silent: true);
-               if(patchResult != null) {
-                   UnityEngine.Debug.Log("[CheatMenu] SkeletonAnimationLODGlobalManager.Update successfully patched (NRE fix)");
-               }
-           }
-       } catch(Exception e) {
-           UnityEngine.Debug.LogWarning($"[CheatMenu] SkeletonAnimationLODGlobalManager.Update patch not applied: {e.Message}");
-       }
+        // Patch SkeletonAnimationLODGlobalManager.Update to prevent NullReferenceException spam
+        try {
+            MethodInfo skeletonLODPatch = typeof(GlobalPatches).GetMethod("Prefix_SkeletonAnimationLODGlobalManager_Update", BindingFlags.Static | BindingFlags.Public);
+            Type skeletonLODType = Type.GetType("SkeletonAnimationLODGlobalManager, Assembly-CSharp");
+            if (skeletonLODType != null) {
+                string patchResult = ReflectionHelper.PatchMethodPrefix(skeletonLODType, "Update", skeletonLODPatch, BindingFlags.Instance | BindingFlags.NonPublic, silent: true);
+                if(patchResult != null) {
+                    UnityEngine.Debug.Log("[CheatMenu] SkeletonAnimationLODGlobalManager.Update successfully patched (NRE fix)");
+                }
+            }
+        } catch(Exception e) {
+            UnityEngine.Debug.LogWarning($"[CheatMenu] SkeletonAnimationLODGlobalManager.Update patch not applied: {e.Message}");
+        }
     }
 
     [Unload]
@@ -270,7 +255,6 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
     {
         ReflectionHelper.UnpatchTracked(typeof(Interactor), "Update");
         ReflectionHelper.UnpatchTracked(typeof(UpgradeSystem), "UnlockAbility");
-        ReflectionHelper.UnpatchTracked(typeof(PlayerFarming), "Bleat");
         ReflectionHelper.UnpatchTracked(typeof(Follower), "Init");
         ReflectionHelper.UnpatchTracked(typeof(Follower), "Tick");
         ReflectionHelper.UnpatchTracked(typeof(Spine.Skin), "AddSkin");
@@ -310,17 +294,6 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
     public static bool Prefix_Interactor_Update()
     {
         return !CheatMenuGui.GuiEnabled;
-    }
-
-    /// <summary>
-    /// Blocks the in-game bahhh/bleat action when R3 was just consumed by the cheat menu toggle.
-    /// </summary>
-    public static bool Prefix_PlayerFarming_Bleat()
-    {
-        if(CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.ShouldSuppressR3){
-            return false;
-        }
-        return true;
     }
 
     /// <summary>
@@ -494,9 +467,5 @@ private static HashSet<int> s_fixedFollowerIds = new HashSet<int>();
         return null;
     }
 }
-
-
-
-
 
 

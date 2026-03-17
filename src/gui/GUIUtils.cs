@@ -14,21 +14,31 @@ public static class GUIUtils {
     private static GUIStyle s_subGroupButtonStyle = null;
 
     // Cult of the Lamb Theme Colors
-    private static readonly Color CULT_DARK_RED = new Color(0.18f, 0.09f, 0.11f, 0.98f);      // Dark burgundy background
-    private static readonly Color CULT_RED = new Color(0.65f, 0.13f, 0.18f, 1f);              // Crimson red for accents
-    private static readonly Color CULT_BLOOD_RED = new Color(0.75f, 0.15f, 0.15f, 1f);        // Blood red for hover
-    private static readonly Color CULT_BONE_WHITE = new Color(0.95f, 0.92f, 0.88f, 1f);       // Bone white text
-    private static readonly Color CULT_DARK_PURPLE = new Color(0.15f, 0.08f, 0.18f, 1f);      // Dark purple for selected
-    private static readonly Color CULT_GOLD = new Color(0.85f, 0.75f, 0.45f, 1f);             // Golden accents
-    private static readonly Color CULT_BLACK = new Color(0.08f, 0.08f, 0.1f, 0.95f);          // Nearly black for panels
-    private static readonly Color CULT_SHADOW = new Color(0.12f, 0.05f, 0.08f, 1f);           // Shadow red for depth
+    public static readonly Color CULT_DARK_RED = new Color(0.18f, 0.09f, 0.11f, 0.98f);      // Dark burgundy background
+    public static readonly Color CULT_RED = new Color(0.65f, 0.13f, 0.18f, 1f);              // Crimson red for accents
+    public static readonly Color CULT_BLOOD_RED = new Color(0.75f, 0.15f, 0.15f, 1f);        // Blood red for hover
+    public static readonly Color CULT_BONE_WHITE = new Color(0.95f, 0.92f, 0.88f, 1f);       // Bone white text
+    public static readonly Color CULT_DARK_PURPLE = new Color(0.15f, 0.08f, 0.18f, 1f);      // Dark purple for selected
+    public static readonly Color CULT_GOLD = new Color(0.85f, 0.75f, 0.45f, 1f);             // Golden accents
+    public static readonly Color CULT_BLACK = new Color(0.08f, 0.08f, 0.1f, 0.95f);          // Nearly black for panels
+    public static readonly Color CULT_SHADOW = new Color(0.12f, 0.05f, 0.08f, 1f);           // Shadow red for depth
 
     [Init]
     public static void Init(){
         string[] fonts = Font.GetOSInstalledFontNames();
         List<string> fontsList = new(fonts);
 
-        s_uiFont = fontsList.Contains("Arial") ? Font.CreateDynamicFontFromOSFont("Arial", 16) : Font.CreateDynamicFontFromOSFont(fonts[0], 16);
+        // Use larger font size (24) to reduce atlas pressure - larger glyphs mean fewer total glyphs needed
+        // This helps prevent "Required atlas size exceeds supported max (4096x4096)" errors
+        string fontName = fontsList.Contains("Arial") ? "Arial" : fonts[0];
+        s_uiFont = Font.CreateDynamicFontFromOSFont(fontName, 24);
+        
+        // Pre-warm the font with ASCII character set to prevent continuous atlas regeneration
+        // This caches all basic characters upfront rather than generating them on-demand
+        // Using a consistent font size (24) for all requests to avoid generating duplicate glyphs at different sizes
+        string asciiChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-=_+[]{}|;':,.<>?/\\ `~";
+        asciiChars += "\"#%^*+=_{}\\[]|~<>€£¥•·„…†‡•‰‹›€◆◇○●★☆♠♣♥♦✓✗←→↑↓↔≈≠±×÷";
+        s_uiFont.RequestCharactersInTexture(asciiChars, 24, FontStyle.Normal);
     }
 
     [Unload]

@@ -64,4 +64,31 @@ internal static partial class CultUtils {
             }
         }
     }
+
+    /// <summary>
+    /// Requires the player to be in-game. Returns true if in game, otherwise logs warning and returns false.
+    /// Use this to reduce repeated null-check patterns.
+    /// </summary>
+    public static bool RequireInGame(string actionName = "This action"){
+        if(!IsInGame()){
+            UnityEngine.Debug.LogWarning($"[CheatMenu] {actionName} requires being in-game");
+            PlayNotification($"{actionName} requires being in-game!");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Safely executes an action with error handling. Reduces repeated try-catch patterns.
+    /// </summary>
+    public static void SafeExecute(Action action, string actionName, string successMessage = null, string errorPrefix = null){
+        try {
+            action();
+            if(successMessage != null) PlayNotification(successMessage);
+        } catch(Exception e) {
+            string msg = $"[CheatMenu] {errorPrefix ?? actionName} error: {e.Message}";
+            UnityEngine.Debug.LogWarning(msg);
+            PlayNotification($"Failed to {actionName.ToLower()}!");
+        }
+    }
 }

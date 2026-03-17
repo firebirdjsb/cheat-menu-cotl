@@ -1,29 +1,32 @@
 # 🍇 Cheat Menu for Cult of the Lamb
 
-> **v1.3.6** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
+> **v1.3.9** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 [![BepInEx](https://img.shields.io/badge/BepInEx-5.4.21+-green)](https://github.com/BepInEx)
 
 ---
 
-## ✨ What's New (v1.3.6)
+## ✨ What's New (v1.3.9)
 
-- **Real-time Combat Equipment** — Change weapon, relic, and curse while in dungeons!
-- **Weapon Level Slider** — Adjust weapon level from 1-99 in real-time
-- **Curse Level Slider** — Adjust curse/ability level from 1-99 in real-time
-- **Complete Tarot Selection** — Select any tarot card from all 80+ available cards
-- **Organized Combat Menu** — Weapon, Relic, Curse, and Tarot now in separate submenus
-- **Fixed Sin Currency** — Verified Black Souls and Pleasure Points are NOT DLC blocked
-- **Wolf Skin Changer** — customize your wolf companion's appearance!
-- **RGB Glowing Halos** — customizable glowing halo effects with RGB color cycling
-- **Rotating Halos** — halo rotation with adjustable speed
-- **Remove Animal Halos** — toggle to remove halos from all animals
-- **Fixed Spawn Child Follower** duplicate bug with coroutine delay
-- **Fixed Change Rituals** controller compatibility
-- **Code refactoring** — split CultUtils.cs into smaller partial class files
+- **Menu Restructuring** — Resources menu reorganized for better usability
+- **Clear Inventory** — Now accessible at top-level Resources menu (under back button)
+- **Give Resources** — Moved from Currency to Materials subGroup
+- **Deleted some unused cheats**
 
 ---
+## ✨ What's New (v1.3.7)
+
+ **Save Editor** — password LOCKED in-game save file editor with follower, player, cult, inventory, and game state editing 
+## [1.3.7] - 2026 (Woolhaven Gate & Quest Clothing Fix)
+
+### 🐛 Bug Fixes
+- **Fixed "Set Buried Fleeces"** — The cheat now properly removes special wool items (SPECIAL_WOOL_RANCHER, SPECIAL_WOOL_LAMBWAR, SPECIAL_WOOL_BLACKSMITH, SPECIAL_WOOL_TAROT, SPECIAL_WOOL_DECORATION) from inventory in addition to setting the NPC rescue flags. This fixes the Woolhaven gate not opening after using the cheat.
+
+### ⚠️ Clothing Bug Fixes
+- **Fixed "Unlock All Clothing" / "Give All Clothing"** — These cheats now skip quest-specific clothing types that are given by NPCs during gameplay. Unlocking these early can cause softlocks when the game tries to give them through quest progression.
+- **Excluded Quest Clothing:** Special_1-7, Normal_MajorDLC_1/3/6, Winter_1-6, Apple_1-2
+- **Added "Fix Quest Clothing Bug"** — New cheat to fix affected saves by removing quest-specific clothing from the unlocked list. Players whose games are stuck can run this cheat and reload their save to fix the softlock.
 
 ## 🚀 Quick Start
 
@@ -48,6 +51,9 @@ Full gamepad support for Xbox, PlayStation, Switch Pro, Steam Deck!
 ---
 
 ## 🕹️ Features
+
+### 💾 Save Editor
+Full in-game save file editor with follower, player, cult, inventory, and game state editing
 
 ### Health & Combat
 Godmode, One Hit Kill, Unlimited Ammo, Unlock All Weapons & Tarots, **Real-time Equipment Swapping**

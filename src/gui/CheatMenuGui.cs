@@ -1,16 +1,70 @@
 using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CheatMenu;
 
-public static class CheatMenuGui {    
+public static class CheatMenuGui {
+    /// <summary>
+    /// Checks if the player is currently at the main menu (not in a game scene)
+    /// </summary>
+    public static bool IsAtMainMenu() {
+        try {
+            Scene scene = SceneManager.GetActiveScene();
+            string name = scene.name?.ToLower() ?? "";
+            // Main menu scenes typically contain "menu" or "main" in their name
+            return name.Contains("menu") || name.Contains("main") || name.Contains("title");
+        } catch {
+            // If we can't determine, assume not at main menu
+            return false;
+        }
+    }
+    
 public static bool GuiEnabled = false;
 public static bool InputBlockedForModal = false;
 public static CheatCategoryEnum CurrentCategory = CheatCategoryEnum.NONE;
 public static string CurrentSubGroup = null;
 public static int CurrentButtonY = 0;
 public static int TotalWindowCalculatedHeight = 0;
-    
+
+// Developer Console - Password protected experimental features
+private static bool _devConsoleOpen = false;
+private static string _devConsoleInput = "";
+private static List<string> _devConsoleHistory = new List<string>();
+private static bool _saveEditorUnlocked = false; // Requires password to access
+private static bool _saveSelectorUnlocked = false; // Requires password to access
+
+// XOR-obfuscated password data
+// Obfuscated using XOR with key 0x5A
+private static byte[] _obfuscatedPasswordData = new byte[] { 
+    0x1E, 0x3F, 0x2C, 0x0E, 0x3F, 0x29, 0x2E 
+};
+private const byte _xorKey = 0x5A;
+
+// Public accessor methods for save editor unlock status
+public static bool IsSaveEditorUnlocked() => _saveEditorUnlocked;
+public static bool IsSaveSelectorUnlocked() => _saveSelectorUnlocked;
+
+// XOR-based password verification (much harder to reverse than Base64)
+private static bool VerifyPassword(string input) {
+    try {
+        // XOR decode the password
+        char[] chars = new char[_obfuscatedPasswordData.Length];
+        for(int i = 0; i < _obfuscatedPasswordData.Length; i++) {
+            chars[i] = (char)(_obfuscatedPasswordData[i] ^ _xorKey);
+        }
+        string correctPassword = new string(chars);
+        
+        // Case-insensitive comparison
+        return string.Equals(input, correctPassword, StringComparison.OrdinalIgnoreCase);
+    } catch {
+        return false;
+    }
+}
+
 // Controller navigation
 private static int s_selectedButtonIndex = 0;
 private static int s_totalButtons = 0;
@@ -97,6 +151,11 @@ private static readonly int MENU_HEIGHT = 400;
     }
 
     public static bool SubGroupButton(string subGroupText){
+        // At main menu, only show Save subGroup
+        if(IsAtMainMenu()){
+            if(subGroupText != "Save") return false;
+        }
+        
         int buttonHeight = GUIUtils.GetButtonHeight();
         int spacing = GUIUtils.GetButtonSpacing();
         int thisButtonIndex = s_currentButtonCounter++;
@@ -133,7 +192,10 @@ private static readonly int MENU_HEIGHT = 400;
     }
 
     private static bool ShouldShowCategory(CheatCategoryEnum category){
-        if(!CultUtils.IsInGame()) return false;
+        // At main menu, only show Misc category
+        if(IsAtMainMenu()){
+            return category == CheatCategoryEnum.MISC;
+        }
         if(category == CheatCategoryEnum.FARMING && !CultUtils.HasMajorDLC()) return false;
         return true;
     }
@@ -283,6 +345,12 @@ private static readonly int MENU_HEIGHT = 400;
     [OnGui]
     public static void OnGUI(){
         if (GuiEnabled || s_animatingOut){
+            // Don't draw cheat menu if save editor is open
+            if (SaveEditorGui.IsOpen) {
+                SaveEditorGui.Draw();
+                return;
+            }
+            
             s_scrollParams.Title = "Cult Cheat Menu";
             if(IsWithinCategory()){
                 s_scrollParams.Title = $"Cult Cheat Menu - {CurrentCategory.GetCategoryName()}";
@@ -295,8 +363,17 @@ private static readonly int MENU_HEIGHT = 400;
             s_scrollParams = GUIUtils.CustomWindowScrollableLocked(s_scrollParams, CheatWindow);
             
             DrawKeybindHints();
-        } else if(CultUtils.IsInGame()){
+        } else {
+            // Always show hint at main menu too
             DrawPersistentHint();
+        }
+
+        // Draw Save Editor if open
+        SaveEditorGui.Draw();
+        
+        // Draw Developer Console if open
+        if(_devConsoleOpen) {
+            DrawDevConsole();
         }
 
         Action[] guiFunctions = GUIManager.GetAllGuiFunctions();
@@ -344,9 +421,144 @@ private static readonly int MENU_HEIGHT = 400;
         
         GUI.Label(new Rect(hintX, hintY, hintWidth, hintHeight), hintText, hintStyle);
     }
+    
+    // Developer Console - Password protected experimental features
+    private static void DrawDevConsole() {
+        // Console window dimensions
+        int consoleWidth = 600;
+        int consoleHeight = 400;
+        int consoleX = (Screen.width - consoleWidth) / 2;
+        int consoleY = (Screen.height - consoleHeight) / 2;
+        
+        // Dark background
+        GUI.color = new Color(0.1f, 0.1f, 0.1f, 0.95f);
+        GUI.DrawTexture(new Rect(consoleX, consoleY, consoleWidth, consoleHeight), Texture2D.whiteTexture);
+        
+        // Border
+        GUI.color = new Color(0.8f, 0.2f, 0.2f, 1f);
+        GUI.DrawTexture(new Rect(consoleX, consoleY, consoleWidth, 2), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(consoleX, consoleY + consoleHeight - 2, consoleWidth, 2), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(consoleX, consoleY, 2, consoleHeight), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(consoleX + consoleWidth - 2, consoleY, 2, consoleHeight), Texture2D.whiteTexture);
+        
+        // Title
+        GUI.color = Color.white;
+        GUIStyle titleStyle = new GUIStyle(GUI.skin.label);
+        titleStyle.fontSize = 16;
+        titleStyle.fontStyle = FontStyle.Bold;
+        titleStyle.alignment = TextAnchor.UpperCenter;
+        GUI.Label(new Rect(consoleX, consoleY + 10, consoleWidth, 30), "DEVELOPER CONSOLE", titleStyle);
+        
+        // Instructions
+        GUIStyle infoStyle = new GUIStyle(GUI.skin.label);
+        infoStyle.fontSize = 11;
+        infoStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
+        GUI.Label(new Rect(consoleX + 10, consoleY + 40, consoleWidth - 20, 20), "Type 'help' for available commands. Use 'unlock [feature]' to unlock features.", infoStyle);
+        
+        // Show unlock status
+        string statusText = "Locked: SaveEditor, SaveSelector";
+        if(_saveEditorUnlocked && _saveSelectorUnlocked) {
+            statusText = "Unlocked: All features";
+        } else if(_saveEditorUnlocked) {
+            statusText = "Unlocked: SaveEditor" + (_saveSelectorUnlocked ? ", SaveSelector" : "");
+        } else if(_saveSelectorUnlocked) {
+            statusText = "Unlocked: SaveSelector";
+        }
+        GUI.Label(new Rect(consoleX + 10, consoleY + 55, consoleWidth - 20, 20), statusText, infoStyle);
+        
+        // Command history
+        GUIStyle historyStyle = new GUIStyle(GUI.skin.label);
+        historyStyle.fontSize = 12;
+        historyStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+        float historyY = consoleY + 80;
+        int maxHistoryLines = 10;
+        int startIdx = Math.Max(0, _devConsoleHistory.Count - maxHistoryLines);
+        for(int i = startIdx; i < _devConsoleHistory.Count && i < startIdx + maxHistoryLines; i++) {
+            GUI.Label(new Rect(consoleX + 10, historyY, consoleWidth - 20, 20), "> " + _devConsoleHistory[i], historyStyle);
+            historyY += 18;
+        }
+        
+        // Input field
+        GUI.color = Color.white;
+        _devConsoleInput = GUI.TextField(new Rect(consoleX + 10, consoleY + consoleHeight - 35, consoleWidth - 80, 25), _devConsoleInput);
+        
+        // Execute button
+        if(GUI.Button(new Rect(consoleX + consoleWidth - 65, consoleY + consoleHeight - 35, 55, 25), "Execute")) {
+            ExecuteConsoleCommand(_devConsoleInput);
+            _devConsoleInput = "";
+        }
+    }
+    
+    private static void ExecuteConsoleCommand(string command) {
+        if(string.IsNullOrWhiteSpace(command)) return;
+        
+        // Add to history
+        _devConsoleHistory.Add(command);
+        if(_devConsoleHistory.Count > 50) _devConsoleHistory.RemoveAt(0);
+        
+        string cmd = command.Trim().ToLower();
+        string[] parts = cmd.Split(' ');
+        
+        switch(parts[0]) {
+            case "help":
+                _devConsoleHistory.Add("Available commands:");
+                _devConsoleHistory.Add("  help - Show this help message");
+                _devConsoleHistory.Add("  unlock saveeditor [password] - Unlock Save Editor & Selector (requires password)");
+                _devConsoleHistory.Add("  lock - Lock all features");
+                _devConsoleHistory.Add("  clear - Clear console history");
+                _devConsoleHistory.Add("  status - Show unlock status");
+                break;
+                
+            case "unlock":
+                if(parts.Length < 2) {
+                    _devConsoleHistory.Add("Usage: unlock saveeditor [password]");
+                    break;
+                }
+                string feature = parts[1].ToLower(); // Make case insensitive
+                string password = parts.Length > 2 ? parts[2] : "";
+                
+                if(!VerifyPassword(password)) {
+                    _devConsoleHistory.Add("ERROR: Incorrect password!");
+                    break;
+                }
+                
+                if(feature == "saveeditor" || feature == "all") {
+                    // unlock saveeditor also unlocks saveselector (same permission level)
+                    _saveEditorUnlocked = true;
+                    _saveSelectorUnlocked = true;
+                    _devConsoleHistory.Add("SUCCESS: Save Editor & Selector unlocked!");
+                } else {
+                    _devConsoleHistory.Add("Unknown feature: " + feature);
+                    _devConsoleHistory.Add("Usage: unlock saveeditor [password]");
+                }
+                break;
+                
+            case "lock":
+                _saveEditorUnlocked = false;
+                _saveSelectorUnlocked = false;
+                _devConsoleHistory.Add("All features locked.");
+                break;
+                
+            case "clear":
+                _devConsoleHistory.Clear();
+                break;
+                
+            case "status":
+                _devConsoleHistory.Add("SaveEditor: " + (_saveEditorUnlocked ? "UNLOCKED" : "LOCKED"));
+                _devConsoleHistory.Add("SaveSelector: " + (_saveSelectorUnlocked ? "UNLOCKED" : "LOCKED"));
+                break;
+                
+            default:
+                _devConsoleHistory.Add("Unknown command: " + parts[0]);
+                _devConsoleHistory.Add("Type 'help' for available commands.");
+                break;
+        }
+    }
 
     private static void DrawPersistentHint()
     {
+        if (CheatConfig.Instance == null) return;
+        
         float margin = 10f;
         int hintHeight = 22;
         int hintX = (int)margin;
@@ -378,7 +590,8 @@ private static readonly int MENU_HEIGHT = 400;
     private static void CheatWindow()
     {
         // Inject a root-level quick action so users can access it from the main page without entering a category
-        if(CurrentCategory == CheatCategoryEnum.NONE){
+        // Don't show at main menu - only show in-game
+        if(CurrentCategory == CheatCategoryEnum.NONE && CultUtils.IsInGame()){
             int buttonHeight = GUIUtils.GetButtonHeight();
             int spacing = GUIUtils.GetButtonSpacing();
             int thisButtonIndex = s_currentButtonCounter++;
@@ -528,8 +741,7 @@ private static readonly int MENU_HEIGHT = 400;
 
         s_guiContent();
         s_scrollParams.ScrollHeight = TotalWindowCalculatedHeight;
-
-        // Auto-scroll to keep the selected controller button visible
+  // Auto-scroll to keep the selected controller button visible
         if(s_needsScrollUpdate && CheatConfig.Instance.ControllerSupport.Value && s_totalButtons > 0){
             int buttonHeight = GUIUtils.GetButtonHeight();
             int spacing = GUIUtils.GetButtonSpacing();
@@ -544,7 +756,6 @@ private static readonly int MENU_HEIGHT = 400;
             }
             s_needsScrollUpdate = false;
         }
-
         ResetLayoutValues();
     }
 
@@ -575,6 +786,37 @@ private static readonly int MENU_HEIGHT = 400;
                 // Exclude SOULS and FLEECES
                 string itemName = type.ToString().ToUpperInvariant();
                 if(itemName.Contains("SOUL") || itemName.Contains("FLEECE")) continue;
+                
+                // FILTER: Never spawn these items - they are special/meta items that shouldn't be given
+                // RATAU_STAFF - quest item
+                // BOP - DLC quest item  
+                // FOUND_ITEM_DECORATION_ALT, FOUND_ITEM_DECORATION - special decoration items
+                // UNUSED - unused items in the enum
+                // DISCIPLE_POINTS - special currency (not actual inventory item)
+                // TRINKET_CARD_UNLOCKED - special unlock item
+                // PERMANENT_HALF_HEART, BLACK_HEART - special health items
+                // FOUND_ITEM_WEAPON, FOUND_ITEM_CURSE - special discovery items
+                // RED_HEART, HALF_HEART, BLUE_HEART, HALF_BLUE_HEART - special heart items
+                // TIME_TOKEN - special time item
+                // GENERIC - generic placeholder item
+                if(itemName.Contains("RATAU_STAFF") || 
+                   itemName.Contains("BOP") ||
+                   itemName.Contains("FOUND_ITEM_DECORATION") ||
+                   itemName.Contains("UNUSED") ||
+                   itemName.Contains("DISCIPLE_POINTS") ||
+                   itemName.Contains("TRINKET_CARD_UNLOCKED") ||
+                   itemName.Contains("PERMANENT_HALF_HEART") ||
+                   itemName.Contains("BLACK_HEART") ||
+                   itemName.Contains("FOUND_ITEM_WEAPON") ||
+                   itemName.Contains("FOUND_ITEM_CURSE") ||
+                   itemName.Contains("RED_HEART") ||
+                   itemName.Contains("HALF_HEART") ||
+                   itemName.Contains("BLUE_HEART") ||
+                   itemName.Contains("TIME_TOKEN") ||
+                   itemName.Contains("GENERIC")){
+                    skippedDlc++;
+                    continue;
+                }
                 // YNGYA_GHOST is a quest item that can cause softlocks - never give it
                 if(itemName.Contains("YNGYA_GHOST")) continue;
                 // Purple and White flowers (Forget-me-not, Snowdrop - Woolhaven DLC) - always skip
@@ -636,12 +878,30 @@ private static readonly int MENU_HEIGHT = 400;
         }
 
         bool localGuiEnabled = GuiEnabled;
-        bool keyDown = Input.GetKeyDown(CheatConfig.Instance.GuiKeybind.Value.MainKey);
-        // Controller open: R3 (Right Stick Click)
-        bool controllerComboDown = CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.GetToggleMenuPressed();
+        bool keyDown = false;
+        bool controllerComboDown = false;
+        
+        // Handle key input - with fallback if config not loaded
+        if (CheatConfig.Instance != null) {
+            keyDown = Input.GetKeyDown(CheatConfig.Instance.GuiKeybind.Value.MainKey);
+            controllerComboDown = CheatConfig.Instance.ControllerSupport.Value && RewiredInputHelper.GetToggleMenuPressed();
+        } else {
+            // Fallback: use M key if config not loaded yet
+            keyDown = Input.GetKeyDown(KeyCode.M);
+        }
         
         if(!InputBlockedForModal && (keyDown || controllerComboDown)){
-            if(!GuiEnabled && !s_animatingIn && CultUtils.IsInGame()){
+            // Allow opening cheat menu on main menu to access Save Editor
+            // At main menu, only Save subGroup will be shown
+            if(IsAtMainMenu()){
+                // At main menu, allow opening but only Save subGroup is visible
+                if(!GuiEnabled && !s_animatingIn){
+                    StartOpenAnimation();
+                    s_selectedButtonIndex = 0;
+                } else if(GuiEnabled && !s_animatingOut) {
+                    StartCloseAnimation();
+                }
+            } else if(!GuiEnabled && !s_animatingIn){
                 StartOpenAnimation();
                 s_selectedButtonIndex = 0;
             } else if(GuiEnabled && !s_animatingOut) {
@@ -649,8 +909,13 @@ private static readonly int MENU_HEIGHT = 400;
             }
         }
         
+        // Developer Console - Open with ~ key (BackQuote is the ` or ~ key)
+        if(Input.GetKeyDown(KeyCode.BackQuote)) {
+            _devConsoleOpen = !_devConsoleOpen;
+        }
+        
         // Controller navigation when menu is open
-        if(GuiEnabled && CheatConfig.Instance.ControllerSupport.Value && !s_animatingIn && !s_animatingOut && !InputBlockedForModal) {
+        if(GuiEnabled && CheatConfig.Instance != null && CheatConfig.Instance.ControllerSupport.Value && !s_animatingIn && !s_animatingOut && !InputBlockedForModal) {
             float currentTime = Time.unscaledTime;
             
             if(currentTime - s_lastNavigationTime > s_navigationDelay) {

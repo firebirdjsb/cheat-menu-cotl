@@ -48,4 +48,19 @@ internal static partial class CultUtils {
             || upper.Contains("PIKE")
             || upper.Contains("CATFISH");
     }
+
+    /// <summary>
+    /// Returns true if the item should NEVER be given via Give All Items.
+    /// These items add to the game's "never spawn list" when obtained.
+    /// </summary>
+    public static bool ShouldNeverGiveItem(string name){
+        if(string.IsNullOrEmpty(name)) return false;
+        string upper = name.ToUpperInvariant();
+        return upper.Contains("BROKEN_WEAPON")
+            || upper.Contains("REPAIRED_WEAPON")
+            || upper.Contains("ILLEGIBLE_LETTER")
+            || upper.Contains("FISHING_ROD")
+            || upper.Contains("BEHOLDER_EYE_ROT")
+            || upper.Contains("FOUND_ITEM_OUTFIT");
+    }
 }

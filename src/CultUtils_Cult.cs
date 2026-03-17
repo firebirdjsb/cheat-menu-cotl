@@ -50,15 +50,6 @@ internal static partial class CultUtils {
         DataManager.Instance.CompletedObjectives.Add(objective);
     }
 
-    public static void CompleteAllQuests(){
-        if(DataManager.Instance.Objectives.Count > 0)
-        {
-            foreach(var objective in DataManager.Instance.Objectives.ToArray())
-            {
-                CompleteObjective(objective);
-            }
-        }
-    }
 
     public static void ClearAllDoctrines(){
         ClearUnlockedRituals();

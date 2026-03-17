@@ -21,7 +21,7 @@ public class ResourceDefinitions : IDefinition{
     /// </summary>
     public static int ItemSpawnQty = 1;
 
-    [CheatDetails("Give Resources", "Gives 100 of the main primary resources (Woolhaven DLC resources require ownership)", subGroup: "Currency")]
+    [CheatDetails("Give Resources", "Gives 100 of the main primary resources (Woolhaven DLC resources require ownership)", subGroup: "Materials")]
     public static void GiveResources(){
         // Give base game resources
         CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.LOG, 100);
@@ -235,6 +235,12 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification($"{ItemSpawnQty}x of each flower added!");
     }
 
+    [CheatDetails("Give Grass", "Gives qty Grass (qty controlled by slider)", subGroup: "Seeds & Plants")]
+    public static void GiveGrass(){
+        CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.GRASS, ItemSpawnQty);
+        CultUtils.PlayNotification($"{ItemSpawnQty}x grass added!");
+    }
+
     [CheatDetails("Give All Meals", "Gives qty of every cooked meal type (qty controlled by slider)", subGroup: "Food")]
     public static void GiveAllMeals(){
         // Base game and free update meals
@@ -281,11 +287,12 @@ public class ResourceDefinitions : IDefinition{
         CultUtils.PlayNotification($"{ItemSpawnQty} ability points added!");
     }
 
-    [CheatDetails("Give Disciple Points", "Gives qty disciple ability points (qty controlled by slider)", subGroup: "Currency")]
-    public static void GiveDisciplePoints(){
-        UpgradeSystem.DisciplePoints += ItemSpawnQty;
-        CultUtils.PlayNotification($"{ItemSpawnQty} disciple points added!");
-    }
+    // DISABLED: This doesn't work properly - commenting out
+    // [CheatDetails("Give Disciple Points", "Gives qty disciple ability points (qty controlled by slider)", subGroup: "Currency")]
+    // public static void GiveDisciplePoints(){
+    //     UpgradeSystem.DisciplePoints += ItemSpawnQty;
+    //     CultUtils.PlayNotification($"{ItemSpawnQty} disciple points added!");
+    // }
 
     [CheatDetails("Give Souls", "Gives qty souls to the Player (qty controlled by slider)", subGroup: "Currency")]
     public static void GiveSouls(){
@@ -295,19 +302,20 @@ public class ResourceDefinitions : IDefinition{
         }
     }
 
-    [CheatDetails("Give Black Souls", "Gives qty black souls (sin currency, qty controlled by slider)", subGroup: "Currency")]
-    public static void GiveBlackSouls(){
-        try {
-            DataManager.Instance.BlackSouls += ItemSpawnQty;
-            if(PlayerFarming.Instance != null){
-                PlayerFarming.Instance.GetBlackSoul(ItemSpawnQty, true, true);
-            }
-            CultUtils.PlayNotification($"{ItemSpawnQty} black souls added!");
-        } catch(Exception e){
-            Debug.LogWarning($"[CheatMenu] GiveBlackSouls error: {e.Message}");
-            CultUtils.PlayNotification("Failed to add black souls!");
-        }
-    }
+    // DISABLED: Black Souls don't work properly - commenting out
+    // [CheatDetails("Give Black Souls", "Gives qty black souls (sin currency, qty controlled by slider)", subGroup: "Currency")]
+    // public static void GiveBlackSouls(){
+    //     try {
+    //         DataManager.Instance.BlackSouls += ItemSpawnQty;
+    //         if(PlayerFarming.Instance != null){
+    //             PlayerFarming.Instance.GetBlackSoul(ItemSpawnQty, true, true);
+    //         }
+    //         CultUtils.PlayNotification($"{ItemSpawnQty} black souls added!");
+    //     } catch(Exception e){
+    //         Debug.LogWarning($"[CheatMenu] GiveBlackSouls error: {e.Message}");
+    //         CultUtils.PlayNotification("Failed to add black souls!");
+    //     }
+    // }
 
     [CheatDetails("Give Pleasure Points", "Gives qty pleasure points (sin currency, qty controlled by slider)", subGroup: "Currency")]
     public static void GivePleasurePoints(){
@@ -318,15 +326,6 @@ public class ResourceDefinitions : IDefinition{
             Debug.LogWarning($"[CheatMenu] GivePleasurePoints error: {e.Message}");
             CultUtils.PlayNotification("Failed to add pleasure points!");
         }
-    }
-
-    [CheatDetails("Give Arrows", "Gives arrows / unlocks arrow ability", subGroup: "Currency")]
-    public static void GiveArrows(){
-        if(!UpgradeSystem.GetUnlocked(UpgradeSystem.Type.Combat_Arrows)){
-            UpgradeSystem.UnlockAbility(UpgradeSystem.Type.Combat_Arrows, false);
-        }
-        DataManager.Instance.PLAYER_ARROW_AMMO = ItemSpawnQty;
-        CultUtils.PlayNotification($"{ItemSpawnQty}x arrows added!");
     }
 
     [CheatDetails("Give All Items", "Gives qty of every single item type in the game (DLC items require ownership)")]
@@ -351,6 +350,50 @@ public class ResourceDefinitions : IDefinition{
                 // YNGYA_GHOST is a quest item that can cause softlocks - never give it
                 if(itemName.Contains("YNGYA_GHOST")) continue;
                 
+                // Special wools (SPECIAL_WOOL_RANCHER, SPECIAL_WOOL_LAMBWAR, etc.) are campaign/quest items - NEVER give them
+                if(itemName.Contains("SPECIAL_WOOL")) continue;
+                
+                // FILTER: FLOWERS (Sacred Flower/Sacred Flame) - campaign/quest item, never give it
+                if(itemName.Contains("FLOWERS")) continue;
+                
+                // FILTER: FORGE_FLAME (Sacred Flame) - campaign/quest item, never give it
+                if(itemName.Contains("FORGE_FLAME")) continue;
+                
+                // FILTER: FLEECE items - these are campaign/quest rewards (Fleece1-11 correspond to SPECIAL_WOOL_*)
+                // The SPECIAL_WOOL filter above catches the enum names, but add explicit filter for clarity
+                if(itemName.Contains("FLEECE")) continue;
+                
+                // Never give quest/campaign items that add to "never spawn list"
+                if(CultUtils.ShouldNeverGiveItem(itemName)) continue;
+                
+                // FILTER: Never spawn these items - they are special/meta items that shouldn't be given
+                // RATAU_STAFF - quest item
+                // BOP - DLC quest item
+                // FOUND_ITEM_DECORATION_ALT, FOUND_ITEM_DECORATION - special decoration items
+                // UNUSED - unused items in the enum
+                // DISCIPLE_POINTS - special currency (not actual inventory item)
+                // TRINKET_CARD_UNLOCKED - special unlock item
+                // PERMANENT_HALF_HEART, BLACK_HEART - special health items
+                // FOUND_ITEM_WEAPON, FOUND_ITEM_CURSE - special discovery items
+                // RED_HEART, HALF_HEART, BLUE_HEART, HALF_BLUE_HEART - special heart items
+                // TIME_TOKEN - special time item
+                // GENERIC - generic placeholder item
+                if(itemName.Contains("RATAU_STAFF") || 
+                   itemName.Contains("BOP") ||
+                   itemName.Contains("FOUND_ITEM_DECORATION") ||
+                   itemName.Contains("UNUSED") ||
+                   itemName.Contains("DISCIPLE_POINTS") ||
+                   itemName.Contains("TRINKET_CARD_UNLOCKED") ||
+                   itemName.Contains("PERMANENT_HALF_HEART") ||
+                   itemName.Contains("BLACK_HEART") ||
+                   itemName.Contains("FOUND_ITEM_WEAPON") ||
+                   itemName.Contains("FOUND_ITEM_CURSE") ||
+                   itemName.Contains("RED_HEART") ||
+                   itemName.Contains("HALF_HEART") ||
+                   itemName.Contains("BLUE_HEART") ||
+                   itemName.Contains("TIME_TOKEN") ||
+                   itemName.Contains("GENERIC")) continue;
+                
                 // Check DLC ownership for each item
                 bool shouldSkip = false;
                 
@@ -367,8 +410,7 @@ public class ResourceDefinitions : IDefinition{
                     itemName == "WOOL" ||
                     itemName == "MILK" ||
                     itemName.Contains("MEAL_MILK") ||
-                    // Special wools (Woolhaven)
-                    itemName.Contains("SPECIAL_WOOL") ||
+                    // Special wools (Woolhaven) - NOW MOVED ABOVE AS UNCONDITIONAL SKIP
                     // Cold weather crops (Woolhaven)
                     itemName.Contains("SNOW_FRUIT") ||
                     itemName.Contains("CHILLI") ||
@@ -471,49 +513,50 @@ public class ResourceDefinitions : IDefinition{
 
     // ── Souls & Fleece (separate to control via slider) ─────────────────────
 
-    [CheatDetails("Give Fleeces", "Gives qty of all fleece types (qty controlled by slider, DLC fleeces require ownership)", subGroup: "Currency")]
-    public static void GiveFleeces(){
-        try {
-            int addedCount = 0;
-            int skippedDlc = 0;
-            bool hasMajorDLC = CultUtils.HasMajorDLC();
-            bool hasHereticDLC = CultUtils.HasHereticDLC();
-            
-            foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
-                InventoryItem.ITEM_TYPE type = (InventoryItem.ITEM_TYPE)itemType;
-                string itemName = type.ToString();
-                
-                if(!itemName.Contains("FLEECE")) continue;
-                
-                // Skip DLC fleeces if not owned
-                if(!hasMajorDLC && (itemName.Contains("DLC") || itemName.Contains("FORGE") || itemName.Contains("BREWERY") || itemName.Contains("WINTER") || itemName.Contains("SNOW") || itemName.Contains("WOOLHAVEN"))){
-                    skippedDlc++;
-                    continue;
-                }
-                // Skip Heretic DLC fleeces if not owned
-                if(!hasHereticDLC && itemName.Contains("HERETIC")){
-                    skippedDlc++;
-                    continue;
-                }
-                
-                try {
-                    CultUtils.AddInventoryItem(type, ItemSpawnQty);
-                    addedCount++;
-                } catch { }
-            }
-            
-            string msg = $"{ItemSpawnQty}x of all fleeces added ({addedCount} types)!";
-            if(skippedDlc > 0) msg += $" ({skippedDlc} DLC fleeces skipped)";
-            CultUtils.PlayNotification(msg);
-        } catch(Exception e){
-            Debug.LogWarning($"[CheatMenu] GiveFleeces error: {e.Message}");
-            CultUtils.PlayNotification("Failed to add some fleeces!");
-        }
-    }
+    // DISABLED: Doesn't work properly - commenting out
+    // [CheatDetails("Give Fleeces", "Gives qty of all fleece types (qty controlled by slider, DLC fleeces require ownership)", subGroup: "Currency")]
+    // public static void GiveFleeces(){
+    //     try {
+    //         int addedCount = 0;
+    //         int skippedDlc = 0;
+    //         bool hasMajorDLC = CultUtils.HasMajorDLC();
+    //         bool hasHereticDLC = CultUtils.HasHereticDLC();
+    //         
+    //         foreach(var itemType in Enum.GetValues(typeof(InventoryItem.ITEM_TYPE))){
+    //             InventoryItem.ITEM_TYPE type = (InventoryItem.ITEM_TYPE)itemType;
+    //             string itemName = type.ToString();
+    //             
+    //             if(!itemName.Contains("FLEECE")) continue;
+    //             
+    //             // Skip DLC fleeces if not owned
+    //             if(!hasMajorDLC && (itemName.Contains("DLC") || itemName.Contains("FORGE") || itemName.Contains("BREWERY") || itemName.Contains("WINTER") || itemName.Contains("SNOW") || itemName.Contains("WOOLHAVEN"))){
+    //                 skippedDlc++;
+    //                 continue;
+    //             }
+    //             // Skip Heretic DLC fleeces if not owned
+    //             if(!hasHereticDLC && itemName.Contains("HERETIC")){
+    //                 skippedDlc++;
+    //                 continue;
+    //             }
+    //             
+    //             try {
+    //                 CultUtils.AddInventoryItem(type, ItemSpawnQty);
+    //                 addedCount++;
+    //             } catch { }
+    //         }
+    //         
+    //         string msg = $"{ItemSpawnQty}x of all fleeces added ({addedCount} types)!";
+    //         if(skippedDlc > 0) msg += $" ({skippedDlc} DLC fleeces skipped)";
+    //         CultUtils.PlayNotification(msg);
+    //     } catch(Exception e){
+    //         Debug.LogWarning($"[CheatMenu] GiveFleeces error: {e.Message}");
+    //         CultUtils.PlayNotification("Failed to add some fleeces!");
+    //     }
+    // }
 
     // ── Inventory Management ──────────────────────────────────────────────────
 
-    [CheatDetails("Clear Inventory", "Removes all items from the player's inventory", subGroup: "Inventory")]
+    [CheatDetails("Clear Inventory", "Removes all items from the player's inventory")]
     public static void ClearInventory(){
         try {
             int clearedCount = 0;

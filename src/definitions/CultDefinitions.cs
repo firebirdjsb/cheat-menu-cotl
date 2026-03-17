@@ -18,6 +18,40 @@ namespace CheatMenu;
 /// </remarks>
 [CheatCategory(CheatCategoryEnum.CULT)]
 public class CultDefinitions : IDefinition {
+
+    /// <summary>
+    /// Returns the set of quest-specific clothing types that should NOT be unlocked via cheats.
+    /// These are given by NPCs during quests - unlocking them early causes softlocks.
+    /// </summary>
+    public static HashSet<FollowerClothingType> GetQuestClothingTypes() {
+        return new HashSet<FollowerClothingType> {
+            // Special quest rewards (given during various quests)
+            FollowerClothingType.Special_1,   // Egg Follower quest
+            FollowerClothingType.Special_2,   // Demon Collector / Fight Pit
+            FollowerClothingType.Special_3,   // Confession Booth
+            FollowerClothingType.Special_4,   // Outhouse cleaning
+            FollowerClothingType.Special_5,   // Pleasure Shrine
+            FollowerClothingType.Special_6,   // Pub
+            FollowerClothingType.Special_7,   // Tailor
+            // Winter DLC quest rewards (given during Ratoo rescue, Baal rescue)
+            FollowerClothingType.Winter_1,
+            FollowerClothingType.Winter_2,    // Ratoo quest - Acolyte Sweater
+            FollowerClothingType.Winter_3,
+            FollowerClothingType.Winter_4,
+            FollowerClothingType.Winter_5,
+            FollowerClothingType.Winter_6,
+            // Major DLC clothing (only available with Major DLC ownership)
+            FollowerClothingType.Normal_MajorDLC_1,
+            FollowerClothingType.Normal_MajorDLC_2,
+            FollowerClothingType.Normal_MajorDLC_3,
+            FollowerClothingType.Normal_MajorDLC_4,
+            FollowerClothingType.Normal_MajorDLC_5,
+            FollowerClothingType.Normal_MajorDLC_6,
+            // Apple quest rewards
+            FollowerClothingType.Apple_1,
+            FollowerClothingType.Apple_2,
+        };
+    }
     private static GUIUtils.ScrollableWindowParams s_ritualGui;
     private static GUIUtils.ScrollableWindowParams s_docterineGui;
 
@@ -73,16 +107,16 @@ public class CultDefinitions : IDefinition {
         );
     }
 
-    [CheatDetails("Teleport to Cult", "Teleports the player to the Base", subGroup: "General")]
-    public static void TeleportToBase(){
-        Traverse.Create(typeof(CheatConsole)).Method("ReturnToBase").GetValue();
-        CultUtils.PlayNotification("Teleported to base!");
-    }
-
-    [CheatDetails("Rename Cult", "Bring up the UI to rename the cult", subGroup: "General")]
+    [CheatDetails("rRename Cult", "Bring up the UI to rename the cult")]
     public static void RenameCult(){
         CultUtils.RenameCult();
         CultUtils.PlayNotification("Rename cult dialog opened!");
+    }
+
+    [CheatDetails("Teleport to Cult", "Teleports the player to the Base")]
+    public static void TeleportToBase(){
+        Traverse.Create(typeof(CheatConsole)).Method("ReturnToBase").GetValue();
+        CultUtils.PlayNotification("Teleported to base!");
     }
 
     [CheatDetails("Allow Shrine Creation", "Allow Shrine Creation (OFF)", "Allow Shrine Creation (ON)", "Allows the Shrine to be created from the building menu", true, subGroup: "Building")]
@@ -435,125 +469,6 @@ public class CultDefinitions : IDefinition {
         CultUtils.PlayNotification(flag ? "All rituals unlocked!" : "Rituals reverted!");
     }
 
-    [CheatDetails("Unlock All Clothing", "Unlocks all available follower clothing types (DLC clothing requires ownership)", subGroup: "Clothing")]
-    public static void UnlockAllClothing(){
-        try {
-            int count = 0;
-            bool hasMajorDLC = CultUtils.HasMajorDLC();
-            foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
-                FollowerClothingType type = (FollowerClothingType)clothingType;
-                if(type == FollowerClothingType.None || type == FollowerClothingType.Count) continue;
-                // Skip special boss clothing types (Robes_Baal and Robes_Aym) - these are earned through gameplay (rescuing from Ewefall)
-                if(type == FollowerClothingType.Robes_Baal || type == FollowerClothingType.Robes_Aym) continue;
-                // Skip CozyShawl - it can cause a soft lock
-                string typeName = type.ToString();
-                if(typeName == "CozyShawl") continue;
-                if(!hasMajorDLC && CultUtils.IsDlcContentName(typeName)) continue;
-                if(!DataManager.Instance.ClothesUnlocked(type)){
-                    DataManager.Instance.AddNewClothes(type);
-                    count++;
-                }
-            }
-            DataManager.Instance.UnlockedTailor = true;
-            DataManager.Instance.RevealedTailor = true;
-            CultUtils.PlayNotification($"All clothing unlocked! ({count} new items)" + (!hasMajorDLC ? " (DLC skipped)" : ""));
-        } catch(Exception e){
-            Debug.LogWarning($"Failed to unlock clothing: {e.Message}");
-            CultUtils.PlayNotification("Failed to unlock clothing!");
-        }
-    }
+ 
 
-    [CheatDetails("Give All Clothing Items", "Unlocks all clothing and assigns clothing to followers currently in the scene (DLC clothing requires ownership)", subGroup: "Clothing")]
-    public static void GiveAllClothing(){
-        try {
-            int count = 0;
-            bool hasMajorDLC = CultUtils.HasMajorDLC();
-            // First unlock all clothing types (skip DLC types without ownership)
-            foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
-                FollowerClothingType type = (FollowerClothingType)clothingType;
-                if(type == FollowerClothingType.None || type == FollowerClothingType.Count) continue;
-                // Skip special boss clothing types (Robes_Baal and Robes_Aym) - these are earned through gameplay (rescuing from Ewefall)
-                if(type == FollowerClothingType.Robes_Baal || type == FollowerClothingType.Robes_Aym) continue;
-                // Skip CozyShawl - it can cause a soft lock
-                string typeName = type.ToString();
-                if(typeName == "CozyShawl") continue;
-                if(!hasMajorDLC && CultUtils.IsDlcContentName(typeName)) continue;
-                if(!DataManager.Instance.ClothesUnlocked(type)){
-                    DataManager.Instance.AddNewClothes(type);
-                }
-            }
-            DataManager.Instance.UnlockedTailor = true;
-            DataManager.Instance.RevealedTailor = true;
-
-            // Build a list of wearable clothing types - ONLY include types with valid ClothingData
-            // TailorManager.GetClothingData() returns null for enum values without matching data assets
-            // Assigning such types causes FollowerBrainInfo.get_Protection to NRE every tick
-            List<FollowerClothingType> wearableTypes = new();
-            foreach(var clothingType in Enum.GetValues(typeof(FollowerClothingType))){
-                FollowerClothingType type = (FollowerClothingType)clothingType;
-                if(type == FollowerClothingType.None || type == FollowerClothingType.Count || type == FollowerClothingType.Naked) continue;
-                // Skip special boss clothing types
-                if(type == FollowerClothingType.Robes_Baal || type == FollowerClothingType.Robes_Aym) continue;
-                // Skip CozyShawl - it can cause a soft lock (check by name since it may not be in all enum versions)
-                string typeName = type.ToString();
-                if(typeName == "CozyShawl") continue;
-                if(!hasMajorDLC && CultUtils.IsDlcContentName(typeName)) continue;
-                if(TailorManager.GetClothingData(type) != null){
-                    wearableTypes.Add(type);
-                }
-            }
-
-            // ONLY assign clothing to followers that are currently loaded in the scene
-            // DO NOT modify FollowerInfo clothing data for unloaded followers - this causes spawn issues
-            var followers = DataManager.Instance.Followers;
-            int clothingIndex = 0;
-            for(int i = 0; i < followers.Count; i++){
-                try {
-                    FollowerInfo followerInfo = followers[i];
-                    if(followerInfo == null) continue;
-                    
-                    // Try to get the actual follower instance
-                    Follower follower = CultUtils.GetFollowerFromInfo(followerInfo);
-                    
-                    // CRITICAL: Only update followers that are fully loaded and active
-                    if(follower != null && follower.gameObject != null && follower.gameObject.activeInHierarchy && follower.Outfit != null){
-                        try {
-                            FollowerClothingType clothing = wearableTypes[clothingIndex % wearableTypes.Count];
-                            
-                            // Set on both the info and the actual follower
-                            followerInfo.Clothing = clothing;
-                            followerInfo.Outfit = FollowerOutfitType.Custom;
-                            
-                            // Update the live follower's visual outfit
-                            follower.SetOutfit(FollowerOutfitType.Custom, false, Thought.None);
-                            count++;
-                            clothingIndex++;
-                        } catch(Exception e){
-                            UnityEngine.Debug.LogWarning($"[CheatMenu] Could not update follower {followerInfo.ID} outfit: {e.Message}");
-                        }
-                    }
-                    // DO NOT set clothing data for unloaded followers - let them spawn with default outfits
-                } catch(Exception e){
-                    UnityEngine.Debug.LogWarning($"[CheatMenu] Error setting clothing for follower {i}: {e.Message}");
-                    // Continue with other followers
-                }
-            }
-
-            // Give crafting materials so the player can craft more at the tailor
-            CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.SILK_THREAD, 50);
-            if(hasMajorDLC){
-                CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.COTTON, 50);
-                CultUtils.AddInventoryItem(InventoryItem.ITEM_TYPE.WOOL, 30);
-            }
-
-            if(count > 0){
-                CultUtils.PlayNotification($"All clothing unlocked! {count} follower(s) dressed." + (!hasMajorDLC ? " (DLC skipped)" : ""));
-            } else {
-                CultUtils.PlayNotification("All clothing unlocked! (No followers in scene to dress)" + (!hasMajorDLC ? " (DLC skipped)" : ""));
-            }
-        } catch(Exception e){
-            Debug.LogWarning($"[CheatMenu] Failed to give clothing: {e.Message}");
-            CultUtils.PlayNotification("Failed to give clothing!");
-        }
-    }
 }
