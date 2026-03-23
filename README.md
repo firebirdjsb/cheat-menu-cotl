@@ -9,15 +9,7 @@
 
 ## ✨ What's New (v1.4.1)
 
-- **Menu Restructuring** — Resources menu reorganized for better usability
-- **Clear Inventory** — Now accessible at top-level Resources menu (under back button)
-- **Give Resources** — Moved from Currency to Materials subGroup
-- **Save Editor** — Full in-game save file editor with follower, player, cult, inventory, and game state editing
-- **Real-time Combat Equipment** — Change weapon, relic, and curse while in dungeons!
-- **Weapon Level Slider** — Adjust weapon level from 1-99 in real-time
-- **Curse Level Slider** — Adjust curse/ability level from 1-99 in real-time
-- **Complete Tarot Selection** — Select any tarot card from all 80+ available cards
-
+- **Save Editor Changes strill highley experimental**
 ---
 
 ## 🚀 Quick Start
