@@ -2,10 +2,11 @@ using BepInEx;
 using System;
 using System.IO;
 using System.Reflection;
+using HarmonyLib;
 
 namespace CheatMenu;
 
-[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.3.9")]
+[BepInPlugin("org.xunfairx.cheat_menu", "Cheat Menu", "1.4.1")]
 public class Plugin : BaseUnityPlugin
 {    
     private UnityAnnotationHelper _annotationHelper;
@@ -13,7 +14,7 @@ public class Plugin : BaseUnityPlugin
     private Action _onGUIFn = null;
     
     // Version constant for backup checking
-    private const string CHEAT_MENU_VERSION = "1.3.9";
+    private const string CHEAT_MENU_VERSION = "1.4.1";
     
     public void Awake()
     {        
@@ -26,6 +27,9 @@ public class Plugin : BaseUnityPlugin
         CheatMenu.Logger.Init("=========================");
 
         new CheatConfig(Config);
+
+        // Initialize DecryptedSavesPatch
+        DecryptedSavesPatch.Initialize();
 
         try {
             // Initialize ReflectionCache - scan assembly for cheat methods
@@ -44,6 +48,11 @@ public class Plugin : BaseUnityPlugin
             
             _annotationHelper.RunAllInit();
             CheatMenu.Logger.Init("Annotation system initialized successfully");
+            
+            // Apply Harmony patches from attribute-decorated classes
+            var harmony = new Harmony("CheatMenu.Patches");
+            harmony.PatchAll(Assembly.GetExecutingAssembly());
+            CheatMenu.Logger.Init("Harmony patches applied successfully");
 
             // Patch VersionNumber.OnEnable so the main menu shows "Cheaters Edition"
             PatchVersionText();

@@ -2,6 +2,10 @@
 
 All notable changes to the Cult of the Lamb Cheat Menu mod will be documented in this file.
 
+## [1.4.1] - 2026 (Version Update)
+
+---
+
 ## [1.3.9] - 2026 (Menu Restructuring)
 
 ### 🔄 Menu Reorganization

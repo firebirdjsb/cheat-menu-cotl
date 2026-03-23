@@ -22,7 +22,7 @@
 This is a BepInEx plugin for the game "Cult of the Lamb" that provides a comprehensive cheat menu with various gameplay modifications. The mod allows players to toggle godmode, add resources, manage followers, modify cult properties, and much more.
 
 ### Version
-- Current Version: 1.3.4
+- Current Version: 1.4.1
 - Namespace: `CheatMenu`
 - Assembly: `CheatMenu.dll`
 

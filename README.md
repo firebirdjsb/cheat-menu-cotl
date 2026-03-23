@@ -1,13 +1,13 @@
 # 🍇 Cheat Menu for Cult of the Lamb
 
-> **v1.3.9** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
+> **v1.4.1** — The ultimate cheat menu with 150+ cheats, full controller support, and QoL features.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/firebirdjsb/cheat-menu-cotl)
 [![BepInEx](https://img.shields.io/badge/BepInEx-5.4.21+-green)](https://github.com/BepInEx)
 
 ---
 
-## ✨ What's New (v1.3.9)
+## ✨ What's New (v1.4.1)
 
 - **Menu Restructuring** — Resources menu reorganized for better usability
 - **Clear Inventory** — Now accessible at top-level Resources menu (under back button)
